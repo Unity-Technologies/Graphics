@@ -76,8 +76,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
             m_Node.owner.owner.RegisterCompleteObjectUndo($"Change {m_Node.name} Variant");
             m_Node.InitializeFromProvider(candidates[newIdx].provider);
-            m_Node.ValidateNode();
-            m_Node.Dirty(ModificationScope.Graph);
+            m_Node.owner.ValidateGraph();
         }
     }
 }

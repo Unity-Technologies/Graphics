@@ -232,6 +232,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     AddEntries(node, title.ToArray(), nodeEntries);
                 }
             }
+            if (m_Graph.isShaderInterfaceMode)
+            {
+                foreach (var (path, node) in LocalProviderSearchEntries.For(m_Graph))
+                    AddEntries(node, path, nodeEntries);
+            }
             Profiler.EndSample();
 
             Profiler.BeginSample("SearchWindowProvider.GenerateNodeEntries.IterateGraphInputs");
@@ -281,6 +286,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             // - Art/Adjustments/Contrast
             nodeEntries.Sort((entry1, entry2) =>
             {
+                bool isLocal1 = entry1.node is IProviderNode { isLocal: true };
+                bool isLocal2 = entry2.node is IProviderNode { isLocal: true };
+                if (isLocal1 != isLocal2)
+                    return isLocal1 ? -1 : 1;
+
                 for (var i = 0; i < entry1.title.Length; i++)
                 {
                     if (i >= entry2.title.Length)
@@ -405,7 +415,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var nodeDatabase = SearcherDatabase.Create(root, string.Empty, false);
 
-            return new Searcher.Searcher(nodeDatabase, new SearchWindowAdapter("Create Node"));
+            return new Searcher.Searcher(nodeDatabase, new LocalsSearchWindowAdapter("Create Node"));
         }
 
         public bool OnSearcherSelectEntry(SearcherItem entry, Vector2 screenMousePosition)
@@ -483,7 +493,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 newNode.ChangeVersion(oldNode.sgVersion);
             }
-            if (newNode is ProviderNode providerNode)
+            if (oldNode is IProviderNode { isLocal: true } localNode)
+            {
+                // Like property nodes below, it resolves through the graph so its title is known before it's added.
+                newNode.owner = m_Graph;
+                ((IProviderNode)newNode).InitializeFromNode(localNode);
+                newNode.owner = null;
+            }
+            else if (newNode is ProviderNode providerNode)
             {
                 providerNode.InitializeFromProvider(((ProviderNode)oldNode).Provider);
             }

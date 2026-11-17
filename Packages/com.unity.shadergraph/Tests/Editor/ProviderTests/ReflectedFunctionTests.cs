@@ -1,6 +1,9 @@
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using Unity.GraphAuthoring.Editor.ProviderSystem;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
 {
@@ -67,6 +70,25 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
             provider.Reload();
             Assert.IsTrue(provider.IsValid);
             Assert.AreEqual("ExternalNamespace::ExternalStruct", ShaderObjectUtils.QualifyName(new List<IShaderField>(provider.Definition.Parameters)[0].ShaderType));
+        }
+
+        [Test]
+        public void ProviderNode_AfterLoading_ReadsItsDefinitionFromItsSource()
+        {
+            Assert.IsTrue(ProviderLibrary.TryGetInstance(out var lib), "Provider library must be available in the main editor.");
+            Assert.IsTrue(lib.TryGet<IShaderFunction>("UniqueProviderName", out var provider));
+            var graph = new GraphData();
+            var node = new ProviderNode();
+            node.InitializeFromProvider(provider);
+            graph.AddNode(node);
+
+            var loaded = new GraphData();
+            MultiJson.Deserialize(loaded, MultiJson.Serialize(graph));
+
+            var restored = loaded.GetNodes<ProviderNode>().Single();
+            Assert.IsFalse(restored.isOrphaned);
+            Assert.AreEqual("ProviderName", restored.Provider.Definition.Name);
+            Assert.AreEqual(node.GetSlots<MaterialSlot>().Count(), restored.GetSlots<MaterialSlot>().Count());
         }
 
         [Test]

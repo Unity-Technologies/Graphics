@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
         {
             m_Graph = graph;
             name = "shaderInterfaceSettings";
-            styleSheets.Add(AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/com.unity.shadergraph/Editor/UIResources/Styles/ShaderInterfaceSettings.uss"));
+            ProviderStyleSheets.Add(this, ProviderStyleSheets.kShaderInterfaceSettings);
             Rebuild();
         }
 
@@ -83,6 +83,9 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
             m_InterfaceKey = provider.AssetID.ToString();
             pickerLine.Add(CreateShowInProjectButton(AssetDatabase.GUIDToAssetPath(provider.AssetID)));
+            List<NodeMessage> messages = new();
+            ProviderMessageUtils.Collect(provider.Messages, provider.Definition, messages);
+            ProviderInspectorUtils.AddMessages(this, messages);
             AddDefinition(provider.Definition);
         }
 

@@ -1,0 +1,22 @@
+/* Header and caption insets line up with PropertyRow's labels. */
+.sg-provider-inspector__header {
+    -unity-font-style: bold;
+    margin-top: 10px;
+    padding-left: 8px;
+}
+
+.sg-provider-inspector__rows {
+    margin-left: 12px;
+}
+
+.sg-provider-inspector__value {
+    flex-grow: 1;
+    -unity-font-style: normal;
+    -unity-text-align: middle-left;
+    white-space: normal;
+}
+
+.sg-provider-inspector__caption {
+    margin-top: 4px;
+    padding-left: 8px;
+}

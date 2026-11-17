@@ -11,6 +11,7 @@ using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Legacy;
+using UnityEditor.ShaderGraph.ProviderSystem;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -445,8 +446,23 @@ namespace UnityEditor.ShaderGraph
         {
             bool reloaded = false;
             foreach (var subData in SubDatas)
-                if (subData is IHasAssetDependencies dependent)
-                    reloaded |= dependent.Reload(changedAssetGuids);
+            {
+                if (subData is not IHasAssetDependencies dependent || !dependent.Reload(changedAssetGuids))
+                    continue;
+                reloaded = true;
+                // A reloaded interface can change what it declares without changing the stacks.
+                m_ShaderInterfaceChanged |= subData is ShaderInterfaceGraphData;
+            }
+            return reloaded;
+        }
+
+        // Extensions first, since local provider nodes look their providers up through the interface.
+        internal bool ReloadAssetDependencies(HashSet<string> changedAssetGuids)
+        {
+            bool reloaded = ReloadDataExtensions(changedAssetGuids);
+            foreach (var node in GetNodes<IHasAssetDependencies>())
+                reloaded |= node.Reload(changedAssetGuids);
+            SyncVirtualFunctionStacks();
             return reloaded;
         }
 
@@ -754,6 +770,7 @@ namespace UnityEditor.ShaderGraph
             m_PastedStickyNotes.Clear();
             m_MostRecentlyCreatedGroup = null;
             m_MovedContexts = false;
+            m_ShaderInterfaceChanged = false;
         }
 
         public void AddNode(AbstractMaterialNode node, bool usePreviewPref = true)
@@ -1099,6 +1116,9 @@ namespace UnityEditor.ShaderGraph
                 // Remove from ContextData
                 blockNode.contextData.blocks.Remove(blockNode);
             }
+
+            if (node is VirtualFunctionOutputNode output)
+                RemoveFromVirtualFunctionStack(output);
         }
 
         void AddEdgeToNodeEdges(IEdge edge)
@@ -2961,6 +2981,11 @@ namespace UnityEditor.ShaderGraph
             }
 
             SortActiveTargets();
+
+            // The interface may have changed since saving; undo and redo also restore graphs through here.
+            SyncVirtualFunctionStacks();
+            // Views are built from the loaded nodes, so the output nodes the sync adds aren't changes to report.
+            m_AddedNodes.Clear();
         }
 
         private void ReplaceNodeWithNode(LegacyUnknownTypeNode nodeToReplace, AbstractMaterialNode nodeReplacement)

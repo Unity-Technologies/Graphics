@@ -50,6 +50,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 return;
             }
 
+            if (newPropertyDrawerType.IsAbstract)
+                return;
+
             var newPropertyDrawerAttribute = newPropertyDrawerType.GetCustomAttribute<SGPropertyDrawerAttribute>();
 
             if (newPropertyDrawerAttribute != null)

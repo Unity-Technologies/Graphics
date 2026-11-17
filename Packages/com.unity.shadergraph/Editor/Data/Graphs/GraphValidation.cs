@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.ProviderSystem;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -125,9 +126,10 @@ namespace UnityEditor.ShaderGraph
                         node.SetOverrideActiveState(AbstractMaterialNode.ActiveState.ExplicitInactive);
                         node.owner.AddValidationError(node.objectId, $"{node.name} Node is not allowed by any active targets, and will not be used in generation", Rendering.ShaderCompilerMessageSeverity.Warning);
                     }
+                    // Orphaned provider nodes stay inactive.
                     else
                     {
-                        node.SetOverrideActiveState(AbstractMaterialNode.ActiveState.Implicit);
+                        node.SetOverrideActiveState(node is IProviderNode { isOrphaned: true } ? AbstractMaterialNode.ActiveState.ExplicitInactive : AbstractMaterialNode.ActiveState.Implicit);
                     }
                 }
             }

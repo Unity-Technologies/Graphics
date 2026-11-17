@@ -11,6 +11,7 @@ using Unity.GraphAuthoring.Editor.ProviderSystem;
 using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
 using UnityEditor.ShaderGraph.Drawing.Views;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.ProviderSystem;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
@@ -347,21 +348,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     evt.menu.AppendSeparator();
                     evt.menu.AppendAction("Open Sub Graph", OpenSubGraph, (a) => DropdownMenuAction.Status.Normal);
                 }
-                if (selection.OfType<IShaderNodeView>().Count() == 1
-                    && selection.OfType<IShaderNodeView>().First().node is ProviderSystem.ProviderNode providerNode
-                    && providerNode.isValid
-                    && (providerNode.Provider?.IsValid ?? false)
-                    && providerNode.Provider.AssetID != default)
-                {
-                    evt.menu.AppendSeparator();
-
-                    void PingSource(DropdownMenuAction action)
-                    {
-                        var asset = AssetDatabase.LoadAssetByGUID<Object>(providerNode.Provider.AssetID);
-                        EditorGUIUtility.PingObject(asset);
-                    }
-                    evt.menu.AppendAction("Show Source in Project", PingSource, (a) => DropdownMenuAction.Status.Normal);
-                }
+                if (selection.OfType<IShaderNodeView>().Count() == 1)
+                    AddProviderNodeActions(evt, selection.OfType<IShaderNodeView>().First());
             }
             evt.menu.AppendSeparator();
             if (evt.target is StickyNote)
@@ -383,7 +371,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if (selectedObject is Group)
                             return DropdownMenuAction.Status.Disabled;
                         GraphElement ge = selectedObject as GraphElement;
-                        if (ge.userData is BlockNode)
+                        if (ge.userData is BlockNode or VirtualFunctionOutputNode)
                         {
                             return DropdownMenuAction.Status.Disabled;
                         }
@@ -712,31 +700,43 @@ namespace UnityEditor.ShaderGraph.Drawing
             ColorPicker.Show(ApplyColor, defaultColor, true, false);
         }
 
+        void AddProviderNodeActions(ContextualMenuPopulateEvent evt, IShaderNodeView nodeView)
+        {
+            if (nodeView.node is IProviderNode { Provider: { } provider } && provider.AssetID != default && !string.IsNullOrEmpty(AssetDatabase.GUIDToAssetPath(provider.AssetID)))
+            {
+                evt.menu.AppendSeparator();
+                evt.menu.AppendAction("Show Source in Project", _ => EditorGUIUtility.PingObject(AssetDatabase.LoadAssetByGUID<Object>(provider.AssetID)), _ => DropdownMenuAction.Status.Normal);
+            }
+
+            VirtualFunctionNodeMenu.AddActions(this, evt, nodeView);
+        }
+
         protected internal override bool canDeleteSelection
         {
             get
             {
                 return selection.Any(x =>
                 {
-                    if (x is ContextView) return false; //< context view must not be deleted. ( eg, Vertex, Fragment )
+                    if (x is ContextView or VirtualFunctionStackView) return false; //< contexts (Vertex, Fragment) and virtual function stacks must not be deleted.
                     return !(x is IShaderNodeView nodeView) || nodeView.node.canDeleteNode;
                 });
             }
         }
         public void GroupSelection()
         {
+            var groupItems = selection.OfType<GraphElement>().Select(e => e.userData).OfType<IGroupItem>().Where(item => item is not VirtualFunctionOutputNode).ToList();
+            if (groupItems.Count == 0)
+                return;
+
             var title = "New Group";
             var groupData = new GroupData(title, new Vector2(10f, 10f));
 
             graph.owner.RegisterCompleteObjectUndo("Create Group Node");
             graph.CreateGroup(groupData);
 
-            foreach (var element in selection.OfType<GraphElement>())
+            foreach (var groupItem in groupItems)
             {
-                if (element.userData is IGroupItem groupItem)
-                {
-                    graph.SetGroup(groupItem, groupData);
-                }
+                graph.SetGroup(groupItem, groupData);
             }
         }
 

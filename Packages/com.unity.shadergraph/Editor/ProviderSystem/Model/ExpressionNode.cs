@@ -54,7 +54,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
         public override void UpdateNodeAfterDeserialization()
         {
-            // Ensure the keyword filter is in place before base calls Refresh() → Provider.Reload().
+            // Ensure the keyword filter is in place before base refreshes from the provider.
             // Handles fresh nodes and graphs saved before [SerializeReference] was introduced.
             TypedProvider?.UpdateExpression(hlslFunctionName, TypedProvider.Expression, TypedProvider.TypeName, s_keywordFilter);
             base.UpdateNodeAfterDeserialization();

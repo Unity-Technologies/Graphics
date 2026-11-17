@@ -17,6 +17,7 @@ using UnityEditor.Searcher;
 
 using Unity.Profiling;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.ProviderSystem;
 using UnityEditor.Experimental;
 using UnityEditor.PackageManager.UI;
 using UnityEngine.Pool;
@@ -232,8 +233,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if ((ShaderGraphPreferences.allowShaderInterfaceMode || m_Graph.isShaderInterfaceMode) && !m_Graph.isSubGraph)
                     {
                         menu.AddSeparator("");
-                        menu.AddItem(new GUIContent("Shader Interface Mode (Experimental)"), m_Graph.isShaderInterfaceMode,
-                            () => m_Graph.SwitchShaderInterfaceMode(!m_Graph.isShaderInterfaceMode));
+                        menu.AddItem(new GUIContent("Shader Interface Mode (Experimental)"), m_Graph.isShaderInterfaceMode, ToggleShaderInterfaceMode);
                     }
                     if (!isCheckedOut() && Provider.enabled && Provider.isActive)
                     {
@@ -366,8 +366,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_BuiltForShaderInterfaceMode = m_Graph.isShaderInterfaceMode;
 
             // Shader interface mode keeps the target contexts and blocks in the data, but doesn't show or update them.
-            m_HideBlocks = m_Graph.isShaderInterfaceMode;
-            if (!m_Graph.isSubGraph && !m_HideBlocks)
+            if (!m_Graph.isSubGraph && !m_BuiltForShaderInterfaceMode)
             {
                 AddContexts();
             }
@@ -384,9 +383,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                     AddStickyNote(stickyNote);
             }
 
+            if (m_BuiltForShaderInterfaceMode)
+            {
+                m_VirtualFunctionStackLayout = new VirtualFunctionStackLayout(m_GraphView, m_Graph);
+                m_LocalProviderHighlight = new LocalProviderHighlight(m_GraphView);
+            }
+
             AddNodes(graph.GetNodes<AbstractMaterialNode>());
-            if (!m_HideBlocks)
+            if (!m_BuiltForShaderInterfaceMode)
                 AddBlocks(graph.GetNodes<BlockNode>());
+            m_VirtualFunctionStackLayout?.Refresh();
             AddEdges(graph.edges);
             Add(content);
 
@@ -409,9 +415,27 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         bool m_BuiltForShaderInterfaceMode;
-        bool m_HideBlocks;
+        VirtualFunctionStackLayout m_VirtualFunctionStackLayout;
+        LocalProviderHighlight m_LocalProviderHighlight;
 
         internal bool isOutOfDateForMode => m_BuiltForShaderInterfaceMode != m_Graph.isShaderInterfaceMode;
+
+        bool ShowsNode(AbstractMaterialNode node) => node switch
+        {
+            BlockNode => !m_BuiltForShaderInterfaceMode,
+            VirtualFunctionOutputNode => m_BuiltForShaderInterfaceMode,
+            _ => true,
+        };
+
+        void ToggleShaderInterfaceMode()
+        {
+            bool leaving = m_Graph.isShaderInterfaceMode;
+            if (leaving
+                && m_Graph.GetNodes<VirtualFunctionOutputNode>().Any(output => m_Graph.GetEdges(output).Any())
+                && !EditorUtility.DisplayDialog("Exit Shader Interface Mode", "Leaving Shader Interface mode removes the virtual function output nodes and their connections.", "Exit", "Cancel"))
+                return;
+            m_Graph.SwitchShaderInterfaceMode(!leaving);
+        }
 
         private void CreateBlackboard()
         {
@@ -747,6 +771,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                         var rect = element.parent.ChangeCoordinatesTo(m_GraphView.contentViewContainer, element.GetPosition());
                         contextView.contextData.position = rect.position;
                     }
+
+                    if (element is VirtualFunctionStackView stackView)
+                    {
+                        var rect = element.parent.ChangeCoordinatesTo(m_GraphView.contentViewContainer, element.GetPosition());
+                        stackView.stackData.position = rect.position;
+                    }
                 }
             }
 
@@ -965,6 +995,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddNode(node, lookupTable: lookupTable);
             }
 
+            // Undo and redo replace every node and stack, and update the inspector themselves.
+            if (m_VirtualFunctionStackLayout != null && (m_Graph.shaderInterfaceChanged || wasUndoRedoPerformed))
+            {
+                m_VirtualFunctionStackLayout.Refresh();
+                m_SearchWindowProvider.regenerateEntries = true;
+                if (!wasUndoRedoPerformed)
+                    m_InspectorView.TriggerInspectorUpdate(m_GraphView.selection);
+            }
+
             foreach (var groupChange in m_Graph.parentGroupChanges)
             {
                 GraphElement graphElement = null;
@@ -1134,7 +1173,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     nodeView.Dispose();
 
-                    if (node is BlockNode blockNode)
+                    if (node is VirtualFunctionOutputNode && (nodeView as Node)?.GetFirstAncestorOfType<VirtualFunctionStackView>() is { } stack)
+                    {
+                        stack.RemoveElement((Node)nodeView);
+                    }
+                    else if (node is BlockNode blockNode)
                     {
                         var context = m_GraphView.GetContext(blockNode.contextData);
                         // blocknode may be floating and not actually in the stacknode's visual hierarchy.
@@ -1194,8 +1237,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AddNode(AbstractMaterialNode node, bool usePrebuiltVisualGroupMap = false, Dictionary<object, GraphElement> lookupTable = null)
         {
-            // Blocks live in the target contexts, which aren't shown in Shader Interface mode.
-            if (node is BlockNode && m_HideBlocks)
+            if (!ShowsNode(node))
                 return;
 
             var materialNode = node;
@@ -1245,6 +1287,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 m_GraphView.AddElement(materialNodeView);
                 materialNodeView.Initialize(materialNode, m_PreviewManager, m_EdgeConnectorListener, graphView);
+                if (node is VirtualFunctionOutputNode output)
+                    m_VirtualFunctionStackLayout?.AdoptOutputView(materialNodeView, output);
+                if (node is IProviderNode { isLocal: true })
+                    m_LocalProviderHighlight?.Attach(materialNodeView);
                 m_ColorManager.UpdateNodeView(materialNodeView);
                 nodeView = materialNodeView;
             }
@@ -1461,7 +1507,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return null;
             }
 
-            if (targetNode is BlockNode && m_HideBlocks)
+            if (!ShowsNode(targetNode))
                 return null;
             var targetSlot = targetNode.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId);
 
@@ -1694,6 +1740,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.nodeCreationRequest = null;
                 m_GraphView = null;
             }
+
+            m_LocalProviderHighlight = null;
+            m_VirtualFunctionStackLayout = null;
 
             m_BlackboardController?.Dispose();
             m_BlackboardController = null;

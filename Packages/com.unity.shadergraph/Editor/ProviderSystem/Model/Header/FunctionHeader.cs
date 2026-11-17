@@ -30,8 +30,6 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
         internal (IProvider<IShaderFunction> provider, string label)[] groupCandidates { get; private set; }
         internal (IProvider<IShaderFunction> provider, string version)[] versionCandidates { get; private set; }
 
-        internal IReadOnlyList<(string subject, string text, MessageType severity)> messages { get; private set; }
-
         internal FunctionHeader(IShaderFunction func, IProvider provider) : this(func, provider, false) { }
 
         FunctionHeader(IShaderFunction func, IProvider provider, bool skipGroup)
@@ -105,26 +103,6 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
                 rawVersions.Add((provider as IProvider<IShaderFunction>, version));
             }
             versionCandidates = rawVersions.ToArray();
-
-            messages = CollectMessages(func, provider);
-        }
-
-        static List<(string, string, MessageType)> CollectMessages(IShaderFunction func, IProvider provider)
-        {
-            List<(string, string, MessageType)> messages = new();
-            if (provider.Messages == null)
-                return messages;
-
-            List<string> subjects = new() { null };
-            foreach (var param in func.Parameters)
-                if (!subjects.Contains(param.Name))
-                    subjects.Add(param.Name);
-
-            foreach (var subject in subjects)
-                foreach (var message in provider.Messages)
-                    if (message.Subject == subject)
-                        messages.Add((subject, message.Text, (MessageType)message.Severity));
-            return messages;
         }
     }
 }

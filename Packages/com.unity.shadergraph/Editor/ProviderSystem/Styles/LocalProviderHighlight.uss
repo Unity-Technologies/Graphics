@@ -1,0 +1,3 @@
+.sg-local-provider-highlighted #selection-border {
+    background-color: rgba(68, 192, 255, 0.08);
+}
