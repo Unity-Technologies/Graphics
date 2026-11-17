@@ -375,6 +375,8 @@ namespace UnityEditor.Rendering.Universal
                 serialized.msaa,
                 p => p.intValue != (int)MsaaQuality.Disabled && AnyTileOnlyDeferredRenderer(serialized),
                 Styles.msaaText, MessageType.Warning, Styles.msaaTileOnlyDeferredWarning);
+            if (serialized.msaa.intValue != (int)MsaaQuality.Disabled && AnyTemporalUpscaler(serialized))
+                EditorGUILayout.HelpBox(Styles.msaaTemporalUpscalerWarning, MessageType.Warning, true);
 
             EditorGUILayout.PropertyField(serialized.enableLODCrossFadeProp, Styles.enableLODCrossFadeText);
             EditorGUI.BeginDisabledGroup(!serialized.enableLODCrossFadeProp.boolValue);
@@ -1354,6 +1356,23 @@ namespace UnityEditor.Rendering.Universal
             string message = string.Format(fmt, labelText, lastTileOnlyModeInfos.rendererNames);
 
             EditorGUILayout.HelpBox(message, messageType);
+        }
+
+        static bool AnyTemporalUpscaler(SerializedUniversalRenderPipelineAsset serialized)
+        {
+            if ((ScalingMode)serialized.scalingMode.enumValueIndex != ScalingMode.Upscaling)
+                return false;
+
+            for (int i = 0; i < serialized.upscalerPriority.arraySize; ++i)
+            {
+                string upscalerId = serialized.upscalerPriority.GetArrayElementAtIndex(i).FindPropertyRelative("upscalerId").stringValue;
+                IUpscaler upscaler = UniversalRenderPipeline.upscaling?.GetIUpscalerById(upscalerId);
+
+                if (upscaler != null && upscaler.isTemporal)
+                    return true;
+            }
+
+            return false;
         }
     }
 }

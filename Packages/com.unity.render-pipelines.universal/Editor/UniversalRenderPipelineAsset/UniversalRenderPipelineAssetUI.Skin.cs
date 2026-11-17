@@ -43,6 +43,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly string xrUpscalingInfo = L10n.Tr("When targeting an XR device, the XR runtime or compositor may provide anti-aliasing and upscaling. In that case this URP upscaler can be redundant or ignored - review your XR provider settings to configure anti-aliasing and upscaling.", null);
             public static readonly string xrUpscalingInfoButton = L10n.Tr("Open Project Validation", null);
             public static readonly string stpMobilePlatformWarning = L10n.Tr("STP is selected for use on a mobile platform. STP is only supported on modern compute-capable hardware and its performance overhead may make it impractical on lower-end devices.", null);
+            public static readonly string msaaTemporalUpscalerWarning = L10n.Tr("Upscaler Priority contains temporal upscalers but MSAA is enabled. Temporal upscalers will not be executed.", null);
 
             public static GUIContent scalingModeText = L10n.TextContent("Scaling Mode", "Whether the camera renders below, at, or above the display resolution. This sets the available Render Scale range.", null, null);
             public static readonly string renderScaleQualityModeInfo = L10n.Tr("Render Scale is ignored because this upscaler's Resolution Mode is set to Quality Mode, which controls the render resolution. Set it to Custom Scaling to drive the render resolution from Render Scale.", null);

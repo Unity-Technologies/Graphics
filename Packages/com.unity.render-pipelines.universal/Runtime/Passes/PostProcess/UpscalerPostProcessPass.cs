@@ -15,6 +15,7 @@ namespace UnityEngine.Rendering.Universal
         bool m_IsValid;
 
         bool m_WarnedHardwareDrsTemporalUnsupported;
+        bool m_WarnedMsaaAndTemporalUpscalerNotCompatible;
         bool m_WarnedMissingMotionData;
         bool m_WarnedMissingOpaqueTexture;
         bool m_WarnedOpaqueDownsamplingNotCompatible;
@@ -77,6 +78,19 @@ namespace UnityEngine.Rendering.Universal
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             var sourceTexture = resourceData.cameraColor;
             var srcDesc = sourceTexture.GetDescriptor(renderGraph);
+
+            // E.g., MSAA and DLSS are incompatible.
+            if ((srcDesc.msaaSamples != MSAASamples.None || resourceData.cameraDepth.GetDescriptor(renderGraph).msaaSamples != MSAASamples.None) && postProcessingData.activeUpscaler.isTemporal)
+            {
+                if (Debug.isDebugBuild && !m_WarnedMsaaAndTemporalUpscalerNotCompatible)
+                {
+                    m_WarnedMsaaAndTemporalUpscalerNotCompatible = true;
+                    Debug.LogWarning($"MSAA is not compatible with temporal upscaler '{postProcessingData.activeUpscaler.name}'. Turn off MSAA in the current RP asset.");
+                }
+                return;
+            }
+            if (Debug.isDebugBuild)
+                m_WarnedMsaaAndTemporalUpscalerNotCompatible = false;
 
             // Create a context item containing upscaling inputs
             UpscalingIO io = frameData.Create<UpscalingIO>();
