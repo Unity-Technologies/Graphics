@@ -64,6 +64,15 @@ namespace UnityEngine.Rendering.Universal.Tests
             Assert.That(ShadowUtils.GetSoftShadowKernelRadius(softShadowQuality), Is.EqualTo(expected).Within(k_Tolerance));
         }
 
+        [Description("The kernel radius is the percentage of the shadow resolution, so it doubles with the resolution and the penumbra keeps its width. It never drops below half a texel.")]
+        [TestCase(0.341796875f, 1024.0f, 3.5f)]
+        [TestCase(0.341796875f, 2048.0f, 7.0f)]
+        [TestCase(0.1f, 256.0f, 0.5f)]
+        public void GetSoftShadowKernelRadius_MapsPercentAndShadowResolutionToKernelRadius(float softShadowKernelRadiusPercent, float shadowResolution, float expected)
+        {
+            Assert.That(ShadowUtils.GetSoftShadowKernelRadius(softShadowKernelRadiusPercent, shadowResolution), Is.EqualTo(expected).Within(k_Tolerance));
+        }
+
         [Description("A light set to UsePipelineSettings takes its soft shadow quality from the pipeline asset. The bias scaling and the shader filtering then agree on the kernel.")]
         [TestCase(SoftShadowQuality.Low)]
         [TestCase(SoftShadowQuality.Medium)]

@@ -67,6 +67,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _MainLightShadowmapID = Shader.PropertyToID(k_MainLightShadowMapTextureName);
             public static readonly int _ShadowParams = Shader.PropertyToID("_MainLightShadowParams");
             public static readonly int _ReceiverNormalBias = Shader.PropertyToID("_MainLightShadowReceiverNormalBias");
+            public static readonly int _SoftShadowKernelParams = Shader.PropertyToID("_MainLightSoftShadowKernelParams");
         }
 
         private class PassData
@@ -333,6 +334,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams, s_EmptyShadowParams);
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ReceiverNormalBias, Vector4.zero);
+            cmd.SetGlobalVector(MainLightShadowConstantBuffer._SoftShadowKernelParams, Vector4.zero);
         }
 
         internal static void SetShadowParamsForTransparentsNotReceivingShadows(IBaseCommandBuffer cmd)
@@ -448,7 +450,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
 
             VisibleLight shadowLight = data.lightData.visibleLights[shadowLightIndex];
-            SetShadowGlobalKeywordsAndConstants(cmd, ref shadowLight, shadowLightIndex, data.shadowData);
+            SetShadowGlobalKeywordsAndConstants(cmd, ref shadowLight, shadowLightIndex, data.cameraData, data.shadowData);
         }
 
         void RenderMainLightCascadeShadowmap(RasterCommandBuffer cmd, ref PassData data)
@@ -475,11 +477,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                     ShadowUtils.RenderShadowSlice(cmd, ref m_CascadeSlices[cascadeIndex], ref shadowRendererList, m_CascadeSlices[cascadeIndex].projectionMatrix, m_CascadeSlices[cascadeIndex].viewMatrix, slopeScaleDepthBias, useDepthClamp);
                 }
 
-                SetShadowGlobalKeywordsAndConstants(cmd, ref shadowLight, shadowLightIndex, data.shadowData);
+                SetShadowGlobalKeywordsAndConstants(cmd, ref shadowLight, shadowLightIndex, data.cameraData, data.shadowData);
             }
         }
 
-        internal void SetShadowGlobalKeywordsAndConstants(RasterCommandBuffer cmd, ref VisibleLight shadowLight, int shadowLightIndex, UniversalShadowData shadowData)
+        internal void SetShadowGlobalKeywordsAndConstants(RasterCommandBuffer cmd, ref VisibleLight shadowLight, int shadowLightIndex, UniversalCameraData cameraData, UniversalShadowData shadowData)
         {
             shadowData.isKeywordSoftShadowsEnabled = shadowLight.light.shadows == LightShadows.Soft && shadowData.supportsSoftShadows;
             shadowData.isMainLightPCSSEnabled = m_UsePCSS;
@@ -487,10 +489,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowCascades, shadowData.mainLightShadowCascadesCount > 1);
             ShadowUtils.SetSoftShadowQualityShaderKeywords(cmd, shadowData);
 
-            SetupMainLightShadowReceiverConstants(cmd, ref shadowLight, shadowLightIndex, shadowData);
+            SetupMainLightShadowReceiverConstants(cmd, ref shadowLight, shadowLightIndex, cameraData, shadowData);
         }
 
-        void SetupMainLightShadowReceiverConstants(RasterCommandBuffer cmd, ref VisibleLight shadowLight, int shadowLightIndex, UniversalShadowData shadowData)
+        void SetupMainLightShadowReceiverConstants(RasterCommandBuffer cmd, ref VisibleLight shadowLight, int shadowLightIndex, UniversalCameraData cameraData, UniversalShadowData shadowData)
         {
             Light light = shadowLight.light;
             bool softShadows = light.shadows == LightShadows.Soft && shadowData.supportsSoftShadows;
@@ -508,6 +510,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                     receiverNormalBias[i] = ShadowUtils.GetReceiverNormalBias(ref shadowLight, shadowLightIndex, shadowData, m_CascadeSlices[i].projectionMatrix, m_CascadeSlices[i].resolution);
             }
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ReceiverNormalBias, receiverNormalBias);
+
+            // A kernel radius of 0 keeps the soft shadow quality's fixed kernel. Every cascade tile has the same resolution.
+            bool useSoftShadowKernelRadius = softShadows && !m_UsePCSS && shadowData.softShadowKernelRadiusPercent > 0.0f;
+            float softShadowKernelRadius = useSoftShadowKernelRadius ? ShadowUtils.GetSoftShadowKernelRadius(shadowData.softShadowKernelRadiusPercent, m_CascadeSlices[0].resolution) : 0.0f;
+            cmd.SetGlobalVector(MainLightShadowConstantBuffer._SoftShadowKernelParams, new Vector4(softShadowKernelRadius, ShadowUtils.GetPCSSTemporalFrameIndex(cameraData), 0.0f, 0.0f));
         }
 
         private void InitPassData(

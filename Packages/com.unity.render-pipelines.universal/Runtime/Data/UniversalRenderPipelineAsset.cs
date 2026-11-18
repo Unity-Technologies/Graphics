@@ -589,6 +589,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ConservativeEnclosingSphere = false;
         [SerializeField] int m_NumIterationsEnclosingSphere = 64;
         [SerializeField] SoftShadowQuality m_SoftShadowQuality = SoftShadowQuality.Medium;
+        [SerializeField, Range(0.0f, 3.0f)] float m_SoftShadowKernelRadiusPercent;
 
         [SerializeField] bool m_MainLightShadowsPCSS = false;
         [SerializeField] bool m_AdditionalLightShadowsPCSS = false;
@@ -1609,6 +1610,16 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_AdditionalLightShadowsPCSS;
             set => m_AdditionalLightShadowsPCSS = value;
+        }
+
+        /// <summary>
+        /// Radius of the main light's soft shadow filter, as a percentage of the width of a cascade's shadow map, so the penumbra keeps the same width within a cascade regardless of the shadow resolution.
+        /// 0 keeps each soft shadow quality's fixed kernel in shadow-map texels. Ignored when the main light uses PCSS.
+        /// </summary>
+        internal float softShadowKernelRadiusPercent
+        {
+            get => m_SoftShadowKernelRadiusPercent;
+            set => m_SoftShadowKernelRadiusPercent = Mathf.Max(0.0f, value);
         }
 
         /// <summary>

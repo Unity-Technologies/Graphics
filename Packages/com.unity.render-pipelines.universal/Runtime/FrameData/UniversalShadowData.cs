@@ -89,6 +89,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal ShadowDepthBiasMode depthBiasMode;
         internal ShadowNormalBiasMode normalBiasMode;
+        internal float softShadowKernelRadiusPercent;
 
         internal bool isKeywordAdditionalLightShadowsEnabled;
         internal bool isKeywordSoftShadowsEnabled;
@@ -135,6 +136,7 @@ namespace UnityEngine.Rendering.Universal
             resolution?.Clear();
             depthBiasMode = ShadowDepthBiasMode.Legacy;
             normalBiasMode = ShadowNormalBiasMode.Caster;
+            softShadowKernelRadiusPercent = 0.0f;
 
             isKeywordAdditionalLightShadowsEnabled = false;
             isKeywordSoftShadowsEnabled = false;

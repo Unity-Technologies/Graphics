@@ -2544,6 +2544,7 @@ namespace UnityEngine.Rendering.Universal
             GraphicsSettings.TryGetRenderPipelineSettings<URPShadowBiasSettings>(out var shadowBiasSettings);
             shadowData.depthBiasMode = ShadowUtils.GetConfiguredDepthBiasMode(shadowBiasSettings);
             shadowData.normalBiasMode = ShadowUtils.GetConfiguredNormalBiasMode(shadowBiasSettings);
+            shadowData.softShadowKernelRadiusPercent = urpAsset.softShadowKernelRadiusPercent;
             shadowData.supportsSoftShadows = urpAsset.supportsSoftShadows && (shadowData.supportsMainLightShadows || shadowData.supportsAdditionalLightShadows);
 
             return shadowData;

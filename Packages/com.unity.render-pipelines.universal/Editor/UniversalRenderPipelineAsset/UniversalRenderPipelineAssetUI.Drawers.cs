@@ -857,6 +857,9 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.indentLevel++;
                     DrawShadowsSoftShadowQuality(serialized, ownerEditor);
                     DrawShadowsPCSS(serialized);
+                    EditorGUILayout.PropertyField(serialized.softShadowKernelRadiusPercentProp, Styles.softShadowsKernelRadiusPercent);
+                    if (serialized.mainLightShadowsPCSSProp.boolValue && serialized.softShadowKernelRadiusPercentProp.floatValue > 0.0f)
+                        EditorGUILayout.HelpBox(Styles.softShadowsKernelRadiusPCSSInfo.text, MessageType.Info, true);
                 EditorGUI.indentLevel--;
             }
         }

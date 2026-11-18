@@ -111,6 +111,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent softShadowsQuality = L10n.TextContent("Quality", "Default shadow quality setting for Lights.", null, null);
             public static GUIContent mainLightShadowsPCSS = L10n.TextContent("PCSS (Main Light)", "If enabled, the main directional light uses Percentage-Closer Soft Shadows (PCSS), so the penumbra widens with the distance between the caster and the receiver. Only applies to a light whose resolved soft shadow quality is High.", null, null);
             public static GUIContent additionalLightShadowsPCSS = L10n.TextContent("PCSS (Additional Lights)", "If enabled, shadow casting Spot and Point lights use Percentage-Closer Soft Shadows (PCSS), so the penumbra widens with the distance between the caster and the receiver. Only applies to a light whose resolved soft shadow quality is High. This costs more than the filtered soft shadows it replaces.", null, null);
+            public static GUIContent softShadowsKernelRadiusPercent = L10n.TextContent("Kernel Radius (%)", "Radius of the main light's soft shadow filter, as a percentage of a cascade's shadow map width. The penumbra keeps the same width within a cascade regardless of the shadow resolution. Set to 0 to use each soft shadow quality's fixed kernel.", null, null);
             public static GUIContent[] softShadowsQualityAssetOptions =
             {
                 L10n.TextContent(nameof(SoftShadowQuality.Low), null, null, null),
@@ -167,6 +168,8 @@ namespace UnityEditor.Rendering.Universal
                 L10n.TextContent("Some Graphics API(s) in the Player Graphics APIs list don't support PCSS, so lights use the High soft shadow filter there: ", null, null, null);
             public static GUIContent pcssEnabledBelowHighQuality =
                 L10n.TextContent("PCSS is enabled and still applies to lights whose own Soft Shadows Quality is High. Set Quality to High to change its settings.", null, null, null);
+            public static GUIContent softShadowsKernelRadiusPCSSInfo =
+                L10n.TextContent("Kernel Radius is not used while the main light uses PCSS.", null, null, null);
             public static GUIContent webGL2GpuResidentDrawerErrorMessage =
                 L10n.TextContent("GPU Resident Drawer is not supported with the WebGL2 Graphics API.", null, null, null);
             public static GUIContent brgShaderStrippingErrorMessage =
@@ -178,7 +181,7 @@ namespace UnityEditor.Rendering.Universal
                 L10n.TextContent("Render Graph must be enabled to use occlusion culling.", null, null, null);
             public static GUIContent stencilLodCrossFadeWarningMessage =
                 L10n.TextContent("LOD Cross Fade with stencil dithering is not compatible with stencil override in Renderer.", null, null, null);
-            
+
             public static readonly string formatterTileOnlyMode = L10n.Tr("'{0}' will be skipped because it is incompatible with the enabled 'Tile-Only Mode'. Affected renderers: {1}.", null);
             public static readonly string tileOnlyModeMaybeMessage = L10n.Tr("'{0}' might be skipped when 'Tile-Only Mode' is enabled. Renderer Features can provide this functionality, so behavior can vary. Affected renderers: {1}.", null);
             public static readonly string msaaTileOnlyInfo = L10n.Tr("'{0}' is supported in 'Tile-Only Mode'. However, in the Editor and on platforms where the back buffer does not support MSAA, URP forces MSAA to None to keep data in Tile Memory. Affected renderers: {1}.", null);

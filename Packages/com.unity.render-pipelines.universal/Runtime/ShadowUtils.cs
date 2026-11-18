@@ -301,10 +301,11 @@ namespace UnityEngine.Rendering.Universal
         /// <returns>The slope-scale depth bias to apply while rendering the light's shadow slices.</returns>
         public static float GetSlopeScaleDepthBias(ref VisibleLight shadowLight, UniversalShadowData shadowData, int visibleLightIndex)
         {
-            return GetSlopeScaleDepthBias(ref shadowLight, shadowData.bias, shadowData.depthBiasMode, shadowData.supportsSoftShadows, visibleLightIndex, UniversalRenderPipeline.asset);
+            // Only the main light uses the kernel radius setting, so the main light's cascade resolution is the one that matters
+            return GetSlopeScaleDepthBias(ref shadowLight, shadowData.bias, shadowData.depthBiasMode, shadowData.supportsSoftShadows, visibleLightIndex, shadowData.softShadowKernelRadiusPercent, shadowData.mainLightShadowResolution, UniversalRenderPipeline.asset);
         }
 
-        static float GetSlopeScaleDepthBias(ref VisibleLight shadowLight, List<Vector4> bias, ShadowDepthBiasMode depthBiasMode, bool supportsSoftShadows, int visibleLightIndex, UniversalRenderPipelineAsset asset)
+        static float GetSlopeScaleDepthBias(ref VisibleLight shadowLight, List<Vector4> bias, ShadowDepthBiasMode depthBiasMode, bool supportsSoftShadows, int visibleLightIndex, float softShadowKernelRadiusPercent, float shadowResolution, UniversalRenderPipelineAsset asset)
         {
             float normalizedSlopeScale = 0.0f;
             float softShadowKernelRadius = 1.0f;
@@ -312,7 +313,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 Debug.Assert(bias != null && visibleLightIndex >= 0 && visibleLightIndex < bias.Count, "GetSlopeScaleDepthBias expects a visible light index with an entry in the shadow bias data.");
                 normalizedSlopeScale = bias[visibleLightIndex].x;
-                softShadowKernelRadius = GetSoftShadowKernelRadius(ref shadowLight, supportsSoftShadows, asset);
+                softShadowKernelRadius = GetSoftShadowBiasKernelRadius(ref shadowLight, supportsSoftShadows, softShadowKernelRadiusPercent, shadowResolution, asset);
             }
 
             return GetSlopeScaleDepthBias(normalizedSlopeScale, depthBiasMode, softShadowKernelRadius);
@@ -497,7 +498,7 @@ namespace UnityEngine.Rendering.Universal
         /// <returns>The depth and normal bias from a visible light. In the slope-scale depth bias mode the x component (depth bias) is a small fixed texel-scaled caster offset, or 0 in the shadow-receiver normal bias mode; retrieve the rasterizer bias with GetSlopeScaleDepthBias instead. In the shadow-receiver normal bias mode the y component (normal bias) is 0; retrieve the world-space sampling offset with GetReceiverNormalBias instead.</returns>
         public static Vector4 GetShadowBias(ref VisibleLight shadowLight, int shadowLightIndex, ref ShadowData shadowData, Matrix4x4 lightProjectionMatrix, float shadowResolution)
         {
-            return GetShadowBias(ref shadowLight, shadowLightIndex, shadowData.bias, shadowData.supportsSoftShadows, shadowData.depthBiasMode, shadowData.normalBiasMode, lightProjectionMatrix, shadowResolution, UniversalRenderPipeline.asset);
+            return GetShadowBias(ref shadowLight, shadowLightIndex, shadowData.bias, shadowData.supportsSoftShadows, shadowData.depthBiasMode, shadowData.normalBiasMode, shadowData.softShadowKernelRadiusPercent, lightProjectionMatrix, shadowResolution, UniversalRenderPipeline.asset);
         }
 
         /// <summary>
@@ -511,7 +512,7 @@ namespace UnityEngine.Rendering.Universal
         /// <returns>The depth and normal bias from a visible light. In the slope-scale depth bias mode the x component (depth bias) is a small fixed texel-scaled caster offset, or 0 in the shadow-receiver normal bias mode; retrieve the rasterizer bias with GetSlopeScaleDepthBias instead. In the shadow-receiver normal bias mode the y component (normal bias) is 0; retrieve the world-space sampling offset with GetReceiverNormalBias instead.</returns>
         public static Vector4 GetShadowBias(ref VisibleLight shadowLight, int shadowLightIndex, UniversalShadowData shadowData, Matrix4x4 lightProjectionMatrix, float shadowResolution)
         {
-            return GetShadowBias(ref shadowLight, shadowLightIndex, shadowData.bias, shadowData.supportsSoftShadows, shadowData.depthBiasMode, shadowData.normalBiasMode, lightProjectionMatrix, shadowResolution, UniversalRenderPipeline.asset);
+            return GetShadowBias(ref shadowLight, shadowLightIndex, shadowData.bias, shadowData.supportsSoftShadows, shadowData.depthBiasMode, shadowData.normalBiasMode, shadowData.softShadowKernelRadiusPercent, lightProjectionMatrix, shadowResolution, UniversalRenderPipeline.asset);
         }
 
         static float GetShadowTexelSizeInWorldSpace(ref VisibleLight shadowLight, Matrix4x4 lightProjectionMatrix, float shadowResolution, float receiverBiasTexels = 0.0f)
@@ -569,10 +570,10 @@ namespace UnityEngine.Rendering.Universal
         /// <returns>The world-space receiver normal bias of the light's shadow slice. In the shadow-caster normal bias mode the value is 0.</returns>
         public static float GetReceiverNormalBias(ref VisibleLight shadowLight, int visibleLightIndex, UniversalShadowData shadowData, Matrix4x4 lightProjectionMatrix, float shadowResolution)
         {
-            return GetReceiverNormalBias(ref shadowLight, shadowData.bias, shadowData.normalBiasMode, shadowData.supportsSoftShadows, visibleLightIndex, lightProjectionMatrix, shadowResolution, UniversalRenderPipeline.asset);
+            return GetReceiverNormalBias(ref shadowLight, shadowData.bias, shadowData.normalBiasMode, shadowData.supportsSoftShadows, shadowData.softShadowKernelRadiusPercent, visibleLightIndex, lightProjectionMatrix, shadowResolution, UniversalRenderPipeline.asset);
         }
 
-        static float GetReceiverNormalBias(ref VisibleLight shadowLight, List<Vector4> bias, ShadowNormalBiasMode normalBiasMode, bool supportsSoftShadows, int visibleLightIndex, Matrix4x4 lightProjectionMatrix, float shadowResolution, UniversalRenderPipelineAsset asset)
+        static float GetReceiverNormalBias(ref VisibleLight shadowLight, List<Vector4> bias, ShadowNormalBiasMode normalBiasMode, bool supportsSoftShadows, float softShadowKernelRadiusPercent, int visibleLightIndex, Matrix4x4 lightProjectionMatrix, float shadowResolution, UniversalRenderPipelineAsset asset)
         {
             float normalBias = 0.0f;
             float texelSize = 0.0f;
@@ -581,7 +582,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 Debug.Assert(bias != null && visibleLightIndex >= 0 && visibleLightIndex < bias.Count, "GetReceiverNormalBias expects a visible light index with an entry in the shadow bias data.");
                 normalBias = bias[visibleLightIndex].y;
-                softShadowKernelRadius = GetSoftShadowKernelRadius(ref shadowLight, supportsSoftShadows, asset);
+                softShadowKernelRadius = GetSoftShadowBiasKernelRadius(ref shadowLight, supportsSoftShadows, softShadowKernelRadiusPercent, shadowResolution, asset);
                 texelSize = GetShadowTexelSizeInWorldSpace(ref shadowLight, lightProjectionMatrix, shadowResolution, normalBias * softShadowKernelRadius);
             }
 
@@ -602,7 +603,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static Vector4 GetShadowBias(ref VisibleLight shadowLight, int shadowLightIndex, List<Vector4> bias, bool supportsSoftShadows, ShadowDepthBiasMode depthBiasMode, ShadowNormalBiasMode normalBiasMode, Matrix4x4 lightProjectionMatrix, float shadowResolution, UniversalRenderPipelineAsset asset)
+        static Vector4 GetShadowBias(ref VisibleLight shadowLight, int shadowLightIndex, List<Vector4> bias, bool supportsSoftShadows, ShadowDepthBiasMode depthBiasMode, ShadowNormalBiasMode normalBiasMode, float softShadowKernelRadiusPercent, Matrix4x4 lightProjectionMatrix, float shadowResolution, UniversalRenderPipelineAsset asset)
         {
             if (bias == null || shadowLightIndex < 0 || shadowLightIndex >= bias.Count)
             {
@@ -611,7 +612,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // depth and normal bias scale is in shadowmap texel size in world space
-            float softShadowKernelRadius = GetSoftShadowKernelRadius(ref shadowLight, supportsSoftShadows, asset);
+            float softShadowKernelRadius = GetSoftShadowBiasKernelRadius(ref shadowLight, supportsSoftShadows, softShadowKernelRadiusPercent, shadowResolution, asset);
             // The point light guard angle grows with the receiver normal bias, so the texel size must account for it too
             float receiverBiasTexels = normalBiasMode == ShadowNormalBiasMode.Receiver
                 ? bias[shadowLightIndex].y * softShadowKernelRadius
@@ -916,6 +917,34 @@ namespace UnityEngine.Rendering.Universal
         {
             // The shader divides by the radial scales this feeds
             return Mathf.Max(Mathf.Tan(0.5f * Mathf.Deg2Rad * angularDiameterInDegrees), 1e-6f);
+        }
+
+        internal static float GetSoftShadowKernelRadius(float softShadowKernelRadiusPercent, float shadowResolution)
+        {
+            // Narrower than half a texel, some receivers have no texel edge within reach and the penumbra turns into blocky steps
+            const float minSoftShadowKernelRadius = 0.5f;
+
+            return Mathf.Max(softShadowKernelRadiusPercent * 0.01f * shadowResolution, minSoftShadowKernelRadius);
+        }
+
+        static float GetSoftShadowBiasKernelRadius(ref VisibleLight shadowLight, bool supportsSoftShadows, float softShadowKernelRadiusPercent, float shadowResolution, UniversalRenderPipelineAsset asset)
+        {
+            if (!supportsSoftShadows || shadowLight.light.shadows != LightShadows.Soft)
+                return 1.0f;
+
+            SoftShadowQuality softShadowQuality = GetPerLightSoftShadowQuality(shadowLight.light, asset);
+
+            // PCSS sizes its own filter, so neither the quality's kernel nor the kernel radius applies to it
+            if (IsPCSSEnabled(shadowLight.lightType, softShadowQuality, asset, s_PCSSSupported))
+                return 1.0f;
+
+            float qualityKernelRadius = GetSoftShadowKernelRadius(softShadowQuality);
+            if (softShadowKernelRadiusPercent <= 0.0f || shadowLight.lightType != LightType.Directional)
+                return qualityKernelRadius;
+
+            // It never drops below the quality's kernel, which keeps the biases of the fixed kernels,
+            // and follows a wider filter kernel since that samples farther from the receiver.
+            return Mathf.Max(qualityKernelRadius, GetSoftShadowKernelRadius(softShadowKernelRadiusPercent, shadowResolution));
         }
 
         /// <summary>
