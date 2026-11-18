@@ -294,7 +294,7 @@ namespace UnityEngine.Rendering
                 UpscalerOptions? options = optionsNotFound ? null: upscalerOptions[optionsIndex];
 
                 // construct upscaler (always parameterless; options are owned by the framework, not the instance)
-                IUpscaler upscaler = (IUpscaler)Activator.CreateInstance(upscalerType);
+                IUpscaler upscaler = (IUpscaler)Activator.CreateInstance(upscalerType)!;
 
                 // The registered ID is what assets serialize, so an upscaler disagreeing with it would never resolve.
                 if (upscaler.upscalerId != upscalerId)
