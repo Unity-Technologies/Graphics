@@ -108,6 +108,10 @@ namespace UnityEngine.Rendering.Tests
             if (UnityGraphicsKernelTestUtils.IsForcedUGK() && (Application.platform == RuntimePlatform.Switch || Application.platform == RuntimePlatform.PS5))
                 IgnoreWithLog("GPU recorder samples are not delivered under UGK on Switch and PS5.");
 
+            // UUM-153917: same in the Windows editor under UGK on D3D12.
+            if (UnityGraphicsKernelTestUtils.IsForcedUGK() && Application.platform == RuntimePlatform.WindowsEditor && SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12)
+                IgnoreWithLog("https://jira.unity3d.com/browse/UUM-153917");
+
             var sampler = new ProfilingSampler(nameof(CommandBufferBeginSampleWithObject_GpuSamples_ReturnsNonZeroCount));
             using var recorder = ProfilerRecorder.StartNew(ProfilerCategory.Render, sampler.name, 1, ProfilerRecorderOptions.GpuRecorder | ProfilerRecorderOptions.Default);
 
@@ -136,6 +140,10 @@ namespace UnityEngine.Rendering.Tests
             // UGK-2993
             if (UnityGraphicsKernelTestUtils.IsForcedUGK() && (Application.platform == RuntimePlatform.Switch || Application.platform == RuntimePlatform.PS5))
                 IgnoreWithLog("GPU recorder samples are not delivered under UGK on Switch and PS5.");
+
+            // UUM-153917: same in the Windows editor under UGK on D3D12.
+            if (UnityGraphicsKernelTestUtils.IsForcedUGK() && Application.platform == RuntimePlatform.WindowsEditor && SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12)
+                IgnoreWithLog("https://jira.unity3d.com/browse/UUM-153917");
 
             var sampler = new ProfilingSampler(nameof(CommandBufferBeginSample_GpuSamples_ReturnsNonZeroCount));
             using var recorder = ProfilerRecorder.StartNew(ProfilerCategory.Render, sampler.name, 1, ProfilerRecorderOptions.GpuRecorder | ProfilerRecorderOptions.Default);

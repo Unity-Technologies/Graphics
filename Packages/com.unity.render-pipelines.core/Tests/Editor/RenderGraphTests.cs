@@ -3980,8 +3980,9 @@ namespace UnityEngine.Rendering.Tests
             // Expect the CommandBuffer warning for non-mappable buffer inside render pass (all platforms)
             LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex(@"The rendering command SetGraphicsBufferData is not supported inside a renderpass"));
 
-            // On D3D12, buffer should still have initial zeros since SetBufferData was rejected at device level.
-            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12)
+            // On legacy D3D12, buffer should still have initial zeros since SetBufferData was rejected at device level.
+            // UGK applies the write, as the other backends do.
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12 && !UnityGraphicsKernelTestUtils.IsForcedUGK())
             {
                 float[] result = new float[kBufferSize];
                 buffer.GetData(result);

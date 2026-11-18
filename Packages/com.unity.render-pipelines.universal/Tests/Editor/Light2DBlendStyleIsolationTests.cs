@@ -79,6 +79,11 @@ namespace UnityEditor.Rendering.Universal.Tests
         [Test]
         public void BothLights_StillLightTheirOwnArea_WhenTwoBlendStylesAreActive()
         {
+            if (Application.platform == RuntimePlatform.WindowsEditor && SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12
+                && SystemInfo.renderingThreadingMode == RenderingThreadingMode.NativeGraphicsJobsSplitThreading
+                && System.Array.Exists(System.Environment.GetCommandLineArgs(), arg => arg.Equals("-force-ugk", System.StringComparison.OrdinalIgnoreCase)))
+                Assert.Ignore("https://jira.unity3d.com/browse/UUM-161921");
+
             var cam = SetUpScene(out var lightB, out int ax, out int ay, out int bx, out int by);
 
             lightB.enabled = false;

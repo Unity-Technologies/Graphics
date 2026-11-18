@@ -340,6 +340,10 @@ namespace UnityEngine.Rendering.Universal.Tests
         [UnityTest]
         public IEnumerator PreviewCameraDoesNotTriggerOnTileValidation()
         {
+            if (Application.platform == RuntimePlatform.WindowsEditor && SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12
+                && System.Array.Exists(System.Environment.GetCommandLineArgs(), arg => arg.Equals("-force-ugk", StringComparison.OrdinalIgnoreCase)))
+                Assert.Ignore("https://jira.unity3d.com/browse/UUM-161913");
+
             var renderTexture = new RenderTexture(256, 256, 24);
             var gameObject = new GameObject();
             var camera = gameObject.AddComponent<Camera>();

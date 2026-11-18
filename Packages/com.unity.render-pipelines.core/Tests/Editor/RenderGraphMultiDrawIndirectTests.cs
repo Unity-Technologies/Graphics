@@ -73,6 +73,7 @@ namespace UnityEngine.Rendering.Tests
         [Test, ConditionalIgnore("IgnoreNoMultiDrawIndirect", "Multi draw indirect is not supported by this device.")]
         public void DrawProceduralIndirect_MultiDraw_RendersAllSubDraws([Values] PassKind passKind, [Values] IndexMode indexMode)
         {
+            IgnoreNonIndexedMultiDrawOnUgkD3D12(indexMode);
             var pixels = RenderAndReadback(passKind, indexMode, kDrawCount, null);
             using (pixels)
                 AssertSubDrawsRendered(pixels, kDrawCount);
@@ -81,6 +82,7 @@ namespace UnityEngine.Rendering.Tests
         [Test, ConditionalIgnore("IgnoreNoMultiDrawIndirectCountBuffer", "Multi draw indirect count buffers are not supported by this device.")]
         public void DrawProceduralIndirect_MultiDrawWithCountBuffer_ClampsToCount([Values] PassKind passKind, [Values] IndexMode indexMode)
         {
+            IgnoreNonIndexedMultiDrawOnUgkD3D12(indexMode);
             var pixels = RenderAndReadback(passKind, indexMode, kDrawCount, kLiveDrawCount);
             using (pixels)
                 AssertSubDrawsRendered(pixels, kLiveDrawCount);
@@ -342,6 +344,12 @@ namespace UnityEngine.Rendering.Tests
                 clearColor = Color.clear,
                 name = "MDI Target"
             });
+        }
+
+        static void IgnoreNonIndexedMultiDrawOnUgkD3D12(IndexMode indexMode)
+        {
+            if (indexMode == IndexMode.NonIndexed && UnityGraphicsKernelTestUtils.IsForcedUGK() && SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12)
+                Assert.Ignore("https://jira.unity3d.com/browse/UGK-3349");
         }
 
         static Material LoadTestMaterial()
