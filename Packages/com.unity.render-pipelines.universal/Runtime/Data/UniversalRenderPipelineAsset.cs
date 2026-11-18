@@ -431,10 +431,12 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool IsAtLastVersion() => k_LastVersion == k_AssetVersion;
 
-        private const int k_LastVersion = 15;
+        private const int k_LastVersion = 16;
         // Default values set when a new UniversalRenderPipeline asset is created
         [SerializeField] internal int k_AssetVersion = k_LastVersion;
         [SerializeField] int k_AssetPreviousVersion = k_LastVersion;
+
+        [SerializeField] internal bool m_ShadowSettingsMigrationPending;
 
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.UniversalRenderer;
@@ -556,12 +558,24 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ReflectionProbeAtlas = true;
 
         // Shadows Settings
-        [SerializeField] float m_ShadowDistance = 50.0f;
-        [SerializeField] int m_ShadowCascadeCount = 1;
-        [SerializeField] float m_Cascade2Split = 0.25f;
-        [SerializeField] Vector2 m_Cascade3Split = new Vector2(0.1f, 0.3f);
-        [SerializeField] Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
-        [SerializeField] float m_CascadeBorder = 0.2f;
+        [SerializeField, FormerlySerializedAs("m_ShadowDistance")]
+        [Obsolete("Kept for migration. #from(7000.0)", false)]
+        internal float m_ObsoleteShadowDistance = 50.0f;
+        [SerializeField, FormerlySerializedAs("m_ShadowCascadeCount")]
+        [Obsolete("Kept for migration. #from(7000.0)", false)]
+        internal int m_ObsoleteShadowCascadeCount = 1;
+        [SerializeField, FormerlySerializedAs("m_Cascade2Split")]
+        [Obsolete("Kept for migration. #from(7000.0)", false)]
+        internal float m_ObsoleteCascade2Split = 0.25f;
+        [SerializeField, FormerlySerializedAs("m_Cascade3Split")]
+        [Obsolete("Kept for migration. #from(7000.0)", false)]
+        internal Vector2 m_ObsoleteCascade3Split = new Vector2(0.1f, 0.3f);
+        [SerializeField, FormerlySerializedAs("m_Cascade4Split")]
+        [Obsolete("Kept for migration. #from(7000.0)", false)]
+        internal Vector3 m_ObsoleteCascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
+        [SerializeField, FormerlySerializedAs("m_CascadeBorder")]
+        [Obsolete("Kept for migration. #from(7000.0)", false)]
+        internal float m_ObsoleteCascadeBorder = 0.2f;
         [SerializeField] float m_ShadowDepthBias = 1.0f;
         [SerializeField] float m_ShadowNormalBias = 1.0f;
 #if UNITY_EDITOR // multi_compile_fragment _ _SHADOWS_SOFT
@@ -1542,70 +1556,6 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Controls the maximum distance at which shadows are visible.
-        /// </summary>
-        public float shadowDistance
-        {
-            get => m_ShadowDistance;
-            set => m_ShadowDistance = Mathf.Max(0.0f, value);
-        }
-
-        /// <summary>
-        /// Returns the number of shadow cascades.
-        /// </summary>
-        public int shadowCascadeCount
-        {
-            get => m_ShadowCascadeCount;
-            set
-            {
-                if (value < k_ShadowCascadeMinCount || value > k_ShadowCascadeMaxCount)
-                {
-                    throw new ArgumentException($"Value ({value}) needs to be between {k_ShadowCascadeMinCount} and {k_ShadowCascadeMaxCount}.");
-                }
-                m_ShadowCascadeCount = value;
-            }
-        }
-
-        /// <summary>
-        /// Returns the split value.
-        /// </summary>
-        /// <returns>Returns a Float with the split value.</returns>
-        public float cascade2Split
-        {
-            get => m_Cascade2Split;
-            set => m_Cascade2Split = value;
-        }
-
-        /// <summary>
-        /// Returns the split values.
-        /// </summary>
-        /// <returns>Returns a Vector2 with the split values.</returns>
-        public Vector2 cascade3Split
-        {
-            get => m_Cascade3Split;
-            set => m_Cascade3Split = value;
-        }
-
-        /// <summary>
-        /// Returns the split values.
-        /// </summary>
-        /// <returns>Returns a Vector3 with the split values.</returns>
-        public Vector3 cascade4Split
-        {
-            get => m_Cascade4Split;
-            set => m_Cascade4Split = value;
-        }
-
-        /// <summary>
-        /// Last cascade fade distance in percentage.
-        /// </summary>
-        public float cascadeBorder
-        {
-            get => m_CascadeBorder;
-            set => m_CascadeBorder = value;
-        }
-
-        /// <summary>
         /// The Shadow Depth Bias, controls the offset of the lit pixels.
         /// </summary>
         public float shadowDepthBias
@@ -1963,11 +1913,11 @@ namespace UnityEngine.Rendering.Universal
                 int value = (int)m_ShadowCascades;
                 if (value == 2)
                 {
-                    m_ShadowCascadeCount = 4;
+                    m_ObsoleteShadowCascadeCount = 4;
                 }
                 else
                 {
-                    m_ShadowCascadeCount = value + 1;
+                    m_ObsoleteShadowCascadeCount = value + 1;
                 }
                 k_AssetVersion = 6;
 #pragma warning restore 618 // Obsolete warning
@@ -1982,7 +1932,9 @@ namespace UnityEngine.Rendering.Universal
             if (k_AssetVersion < 8)
             {
                 k_AssetPreviousVersion = k_AssetVersion;
-                m_CascadeBorder = 0.1f; // In previous version we had this hard coded
+#pragma warning disable 618 // Obsolete warning
+                m_ObsoleteCascadeBorder = 0.1f; // In previous version we had this hard coded
+#pragma warning restore 618 // Obsolete warning
                 k_AssetVersion = 8;
             }
 
@@ -2036,6 +1988,14 @@ namespace UnityEngine.Rendering.Universal
 
                 k_AssetPreviousVersion = k_AssetVersion;
                 k_AssetVersion = 15;
+            }
+
+            if (k_AssetVersion < 16)
+            {
+                m_ShadowSettingsMigrationPending = true;
+
+                k_AssetPreviousVersion = k_AssetVersion;
+                k_AssetVersion = 16;
             }
 
 #if UNITY_EDITOR
@@ -2202,6 +2162,11 @@ namespace UnityEngine.Rendering.Universal
             if (asset.k_AssetPreviousVersion < 15)
             {
                 asset.k_AssetPreviousVersion = 15;
+            }
+
+            if (asset.k_AssetPreviousVersion < 16)
+            {
+                asset.k_AssetPreviousVersion = 16;
             }
 
             ResourceReloader.ReloadAllNullIn(asset, packagePath);

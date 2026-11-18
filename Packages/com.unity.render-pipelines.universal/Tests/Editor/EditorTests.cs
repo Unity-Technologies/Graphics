@@ -87,9 +87,6 @@ class EditorTests
         UniversalRenderPipelineAsset asset = UniversalRenderPipelineAsset.Create(data);
         if (asset != null)
         {
-            asset.shadowDistance = -1.0f;
-            Assert.GreaterOrEqual(asset.shadowDistance, 0.0f);
-
             asset.renderScale = -1.0f;
             Assert.GreaterOrEqual(asset.renderScale, UniversalRenderPipeline.minRenderScale);
 

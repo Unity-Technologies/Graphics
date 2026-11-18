@@ -75,7 +75,12 @@ namespace UnityEngine.Rendering.Universal.Tests
 
             var asset = ScriptableObject.CreateInstance<UniversalRenderPipelineAsset>();
             asset.m_RendererDataList = new ScriptableRendererData[] { rendererData };
-            asset.shadowDistance = k_ShadowDistance;
+            var volumeProfile = ScriptableObject.CreateInstance<VolumeProfile>();
+            var shadowsVolume = volumeProfile.Add<ShadowsVolumeOverride>(overrides: true);
+            shadowsVolume.maxShadowDistance.value = k_ShadowDistance;
+            m_Objects.Add(shadowsVolume);
+            m_Objects.Add(volumeProfile);
+            asset.volumeProfile = volumeProfile;
             m_Objects.Add(asset);
             QualitySettings.renderPipeline = asset;
 

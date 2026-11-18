@@ -155,7 +155,7 @@ namespace UnityEditor.Rendering
             return profile.GetVolumeComponentOfType(type) ?? (VolumeComponent) ScriptableObject.CreateInstance(type);
         }
 
-        static List<Type> GetTypesMissingFromDefaultProfile(VolumeProfile profile, Type pipelineAssetType)
+        internal static List<Type> GetTypesMissingFromDefaultProfile(VolumeProfile profile, Type pipelineAssetType)
         {
             List<Type> missingTypes = new List<Type>();
             var volumeComponentTypes = VolumeManager.GetBaseComponentTypesForPipeline(pipelineAssetType);

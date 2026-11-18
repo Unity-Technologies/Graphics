@@ -100,9 +100,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent supportsLightCookies = L10n.TextContent("Light Cookies", "Makes the render pipeline include light cookies Shader Variants in the build.", null, null);
 
             // Shadow settings
-            public static GUIContent shadowWorkingUnitText = L10n.TextContent("Working Unit", "The unit in which Unity measures the shadow cascade distances. The exception is Max Distance, which will still be in meters.", null, null);
-            public static GUIContent shadowDistanceText = L10n.TextContent("Max Distance", "Maximum shadow rendering distance.", null, null);
-            public static GUIContent shadowCascadesText = L10n.TextContent("Cascade Count", "Number of cascade splits used for directional shadows.", null, null);
+            public static readonly string shadowVolumeSettingsInfo = L10n.Tr("Max Distance and shadow cascades are configured with the Shadows volume override.", null);
             public static GUIContent shadowDepthBias = L10n.TextContent("Depth Bias", "Controls the distance at which the shadows will be pushed away from the light. Useful for avoiding false self-shadowing artifacts. The depth bias mode can be changed in Project Settings > Graphics > URP.", null, null);
             public static GUIContent shadowSlopeScaleDepthBias = L10n.TextContent("Slope-Scale Depth Bias", "Controls the slope-scaled depth bias applied while rendering the shadow map: surfaces at a grazing angle to the light receive a proportionally larger depth offset. Useful for avoiding false self-shadowing artifacts. The depth bias mode can be changed in Project Settings > Graphics > URP.", null, null);
             public static GUIContent shadowNormalBiasCaster = L10n.TextContent("Normal Bias", "Controls distance at which the shadow casting surfaces will be shrunk along the surface normal. Useful for avoiding false self-shadowing artifacts. The normal bias mode can be changed in Project Settings > Graphics > URP.", null, null);

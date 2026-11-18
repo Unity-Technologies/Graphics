@@ -5,6 +5,7 @@ using UnityEditor.Build.Reporting;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using Unity.RenderPipelines.Core.Runtime.Shared;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -47,7 +48,24 @@ namespace UnityEditor.Rendering.Universal
                 {
                     Debug.Log("Default Volume Profile has been modified to ensure all overrides are present. This is required to avoid missing overrides at runtime which can lead to unexpected rendering issues. Please save these changes to avoid this message in the future.");
                 }
+                else
+                {
+                    WarnIfReadOnlyProfileMissesOverrides(volumeProfileSettings.volumeProfile);
+                }
             }
+        }
+
+        static void WarnIfReadOnlyProfileMissesOverrides(VolumeProfile profile)
+        {
+            if (!CoreEditorUtils.IsAssetInReadOnlyPackage(AssetDatabase.GetAssetPath(profile)))
+                return;
+
+            var missingTypes = VolumeProfileUtils.GetTypesMissingFromDefaultProfile(profile, GraphicsSettings.currentRenderPipelineAssetType);
+            if (missingTypes.Count == 0)
+                return;
+
+            Debug.LogWarning($"URP: The Default Volume Profile '{AssetLinkUtils.AssetLink(profile)}' is in a read-only package, so the build can't add the volume overrides it's missing: {string.Join(", ", missingTypes.ConvertAll(t => t.Name))}. " +
+                "The player can't use these overrides from any volume profile. Copy the Default Volume Profile into the Assets folder and assign the copy in Project Settings > Graphics > URP.");
         }
 
         internal static void LogIncludedAssets(List<UniversalRenderPipelineAsset> assetsList)

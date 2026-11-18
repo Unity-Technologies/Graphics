@@ -18,6 +18,8 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor.Tests
     [TestFixture]
     class URPSettingsAnalyzerTests
     {
+        const string k_ShadowSettingsFolder = "Assets/URPSettingsAnalyzerTests";
+
         private UniversalRenderPipelineAsset m_PreviousDefaultRenderPipeline;
         private RenderPipelineAsset[] m_PreviousQualitySettings;
         private int m_PreviousQualityLevel;
@@ -64,6 +66,9 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor.Tests
                 QualitySettings.renderPipeline = m_PreviousQualitySettings[i];
             }
             QualitySettings.SetQualityLevel(m_PreviousQualityLevel);
+
+            if (AssetDatabase.IsValidFolder(k_ShadowSettingsFolder))
+                AssetDatabase.DeleteAsset(k_ShadowSettingsFolder);
         }
 
         #region URP Assets Tests (0001-0100)
@@ -313,6 +318,146 @@ namespace UnityEditor.Rendering.Universal.ProjectAuditor.Tests
             // Cleanup
             UnityEngine.Object.DestroyImmediate(rendererData);
             UnityEngine.Object.DestroyImmediate(urpAsset);
+        }
+
+        static UniversalRenderPipelineAsset CreateShadowSettingsAsset(string name, float shadowDistance, bool migrationPending)
+        {
+            string path = $"{k_ShadowSettingsFolder}/{name}.asset";
+            UnityEngine.Rendering.CoreUtils.EnsureFolderTreeInAssetFilePath(path);
+
+            var rendererData = ScriptableObject.CreateInstance<UniversalRendererData>();
+            AssetDatabase.CreateAsset(rendererData, $"{k_ShadowSettingsFolder}/{name}_Renderer.asset");
+
+            var urpAsset = ScriptableObject.CreateInstance<UniversalRenderPipelineAsset>();
+            urpAsset.m_RendererDataList = new ScriptableRendererData[] { rendererData };
+            urpAsset.m_DefaultRendererIndex = 0;
+#pragma warning disable 618 // Type or member is obsolete
+            urpAsset.m_ObsoleteShadowDistance = shadowDistance;
+#pragma warning restore 618
+            AssetDatabase.CreateAsset(urpAsset, path);
+
+            // Set after the import, which would otherwise migrate a pending asset right away
+            urpAsset.m_ShadowSettingsMigrationPending = migrationPending;
+            return urpAsset;
+        }
+
+        void UseInAllRenderPipelineSlots(UniversalRenderPipelineAsset urpAsset)
+        {
+            GraphicsSettings.defaultRenderPipeline = urpAsset;
+            for (int i = 0; i < QualitySettings.names.Length && i < m_PreviousQualitySettings.Length; i++)
+            {
+                QualitySettings.SetQualityLevel(i);
+                QualitySettings.renderPipeline = urpAsset;
+            }
+        }
+
+        [Test]
+        public void URP0006_PendingShadowSettings_DetectsIssue()
+        {
+            UseInAllRenderPipelineSlots(CreateShadowSettingsAsset("Pending", 150f, migrationPending: true));
+            var analyzer = new ShadowSettingsMigrationValidation();
+
+            var issues = analyzer.EnumerateIssues().ToList();
+
+            Assert.AreEqual(1 + QualitySettings.count, issues.Count, "Should detect shadow settings that are not migrated");
+            Assert.AreEqual("URP0006", analyzer.Descriptor.Id);
+            Assert.IsNotNull(analyzer.Descriptor.Fixer);
+        }
+
+        [Test]
+        public void URP0006_PendingDefaultShadowSettings_NoIssue()
+        {
+            var defaults = ScriptableObject.CreateInstance<ShadowsVolumeOverride>();
+            float defaultDistance = defaults.maxShadowDistance.value;
+            UnityEngine.Object.DestroyImmediate(defaults);
+            UseInAllRenderPipelineSlots(CreateShadowSettingsAsset("PendingDefault", defaultDistance, migrationPending: true));
+
+            var issues = new ShadowSettingsMigrationValidation().EnumerateIssues().ToList();
+
+            Assert.AreEqual(0, issues.Count, "Should not detect default shadow settings, which render the same without a Shadows override");
+        }
+
+        [Test]
+        public void URP0006_MigratedShadowSettings_NoIssue()
+        {
+            UseInAllRenderPipelineSlots(CreateShadowSettingsAsset("Migrated", 150f, migrationPending: false));
+
+            var issues = new ShadowSettingsMigrationValidation().EnumerateIssues().ToList();
+
+            Assert.AreEqual(0, issues.Count, "Should not detect shadow settings that are already migrated");
+        }
+
+        [Test]
+        public void URP0006_Fix_MigratesShadowSettings()
+        {
+            var urpAsset = CreateShadowSettingsAsset("Fixed", 150f, migrationPending: true);
+            UseInAllRenderPipelineSlots(urpAsset);
+
+            bool fixedIssue = ShadowSettingsMigrationValidation.FixShadowSettings(urpAsset);
+
+            Assert.IsTrue(fixedIssue, "The fixer should report that it migrated the asset");
+            Assert.IsFalse(urpAsset.m_ShadowSettingsMigrationPending, "The asset should no longer be pending");
+            Assert.IsNotNull(urpAsset.volumeProfile, "The asset should get a volume profile");
+            Assert.IsTrue(urpAsset.volumeProfile.TryGet(out ShadowsVolumeOverride shadows), "The volume profile should have a Shadows override");
+            Assert.AreEqual(150f, shadows.maxShadowDistance.value);
+            Assert.AreEqual(0, new ShadowSettingsMigrationValidation().EnumerateIssues().Count(), "Should not detect an issue after the fix");
+        }
+
+        [Test]
+        public void URP0006_Fix_ReportsOnlyTheIssueAssetAsFixed()
+        {
+            var locked = CreateShadowSettingsAsset("FixLocked", 150f, migrationPending: true);
+            var editable = CreateShadowSettingsAsset("FixEditable", 80f, migrationPending: true);
+            UseInAllRenderPipelineSlots(editable);
+            GraphicsSettings.defaultRenderPipeline = locked;
+            var notEditablePaths = UnityEditor.Rendering.Universal.Test.GlobalSettingsMigration.ShadowSettingsMigrationTest.NotEditablePaths.s_Paths;
+            notEditablePaths.Add(AssetDatabase.GetAssetPath(locked));
+            LogAssert.Expect(LogType.Warning, new Regex("FixLocked</u>.*is not editable"));
+            LogAssert.Expect(LogType.Warning, new Regex("FixLocked</u>.*is not editable"));
+            try
+            {
+                Assert.IsTrue(ShadowSettingsMigrationValidation.FixShadowSettings(editable), "The issue of the editable asset should be fixed");
+                Assert.IsFalse(ShadowSettingsMigrationValidation.FixShadowSettings(locked), "The issue of the locked asset should not be fixed when another asset migrates");
+                Assert.IsTrue(locked.m_ShadowSettingsMigrationPending, "The locked asset should stay pending");
+                Assert.IsFalse(editable.m_ShadowSettingsMigrationPending, "The editable asset should be migrated");
+            }
+            finally
+            {
+                notEditablePaths.Clear();
+            }
+        }
+
+        [Test]
+        public void URP0007_PendingShadowSettingsInReadOnlyPackage_DetectsIssue()
+        {
+            var urpAsset = CreateShadowSettingsAsset("ReadOnly", 150f, migrationPending: true);
+            UseInAllRenderPipelineSlots(urpAsset);
+            string packagePath = AssetDatabase.GetAssetPath(urpAsset);
+            var previousIsInReadOnlyPackage = UniversalRenderPipelineGlobalSettings.isInReadOnlyPackage;
+            UniversalRenderPipelineGlobalSettings.isInReadOnlyPackage = path => path == packagePath;
+            try
+            {
+                var analyzer = new ReadOnlyShadowSettingsMigrationValidation();
+
+                Assert.AreEqual(1 + QualitySettings.count, analyzer.EnumerateIssues().Count(), "Should detect shadow settings in a read-only package that are not migrated");
+                Assert.AreEqual("URP0007", analyzer.Descriptor.Id);
+                Assert.IsNull(analyzer.Descriptor.Fixer, "A read-only package cannot be fixed in place");
+                Assert.AreEqual(0, new ShadowSettingsMigrationValidation().EnumerateIssues().Count(), "URP0006 should not report an asset in a read-only package");
+            }
+            finally
+            {
+                UniversalRenderPipelineGlobalSettings.isInReadOnlyPackage = previousIsInReadOnlyPackage;
+            }
+        }
+
+        [Test]
+        public void URP0007_PendingShadowSettingsOutsideReadOnlyPackage_NoIssue()
+        {
+            UseInAllRenderPipelineSlots(CreateShadowSettingsAsset("Editable", 150f, migrationPending: true));
+
+            var issues = new ReadOnlyShadowSettingsMigrationValidation().EnumerateIssues().ToList();
+
+            Assert.AreEqual(0, issues.Count, "Should not detect shadow settings that URP0006 can fix");
         }
 
         #endregion

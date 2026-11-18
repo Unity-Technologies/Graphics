@@ -58,12 +58,6 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty reflectionProbeBoxProjectionProp { get; }
         public SerializedProperty reflectionProbeAtlasProp { get; }
 
-        public SerializedProperty shadowDistanceProp { get; }
-        public SerializedProperty shadowCascadeCountProp { get; }
-        public SerializedProperty shadowCascade2SplitProp { get; }
-        public SerializedProperty shadowCascade3SplitProp { get; }
-        public SerializedProperty shadowCascade4SplitProp { get; }
-        public SerializedProperty shadowCascadeBorderProp { get; }
         public SerializedProperty shadowDepthBiasProp { get; }
         public SerializedProperty shadowNormalBiasProp { get; }
         public SerializedProperty softShadowsSupportedProp { get; }
@@ -100,8 +94,6 @@ namespace UnityEditor.Rendering.Universal
 #endif
         public UniversalRenderPipelineAsset asset { get; }
         public SerializedObject serializedObject { get; }
-
-        public EditorPrefBoolFlags<EditorUtils.Unit> state;
 
         public SerializedUniversalRenderPipelineAsset(SerializedObject serializedObject)
         {
@@ -161,13 +153,6 @@ namespace UnityEditor.Rendering.Universal
             reflectionProbeBoxProjectionProp = serializedObject.FindProperty("m_ReflectionProbeBoxProjection");
             reflectionProbeAtlasProp = serializedObject.FindProperty("m_ReflectionProbeAtlas");
 
-            shadowDistanceProp = serializedObject.FindProperty("m_ShadowDistance");
-
-            shadowCascadeCountProp = serializedObject.FindProperty("m_ShadowCascadeCount");
-            shadowCascade2SplitProp = serializedObject.FindProperty("m_Cascade2Split");
-            shadowCascade3SplitProp = serializedObject.FindProperty("m_Cascade3Split");
-            shadowCascade4SplitProp = serializedObject.FindProperty("m_Cascade4Split");
-            shadowCascadeBorderProp = serializedObject.FindProperty("m_CascadeBorder");
             shadowDepthBiasProp = serializedObject.FindProperty("m_ShadowDepthBias");
             shadowNormalBiasProp = serializedObject.FindProperty("m_ShadowNormalBias");
             softShadowsSupportedProp = serializedObject.FindProperty("m_SoftShadowsSupported");
@@ -205,9 +190,6 @@ namespace UnityEditor.Rendering.Universal
 #endif
 
             UpdateUpscalerOptions();
-
-            string Key = "Universal_Shadow_Setting_Unit:UI_State";
-            state = new EditorPrefBoolFlags<EditorUtils.Unit>(Key);
         }
 
 

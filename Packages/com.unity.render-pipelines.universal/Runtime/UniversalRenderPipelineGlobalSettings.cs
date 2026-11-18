@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool IsAtLastVersion() => k_LastVersion == m_AssetVersion;
 
-        internal const int k_LastVersion = 16;
+        internal const int k_LastVersion = 17;
 
 #pragma warning disable CS0414
         [SerializeField][FormerlySerializedAs("k_AssetVersion")]
@@ -192,6 +192,12 @@ namespace UnityEngine.Rendering.Universal
             {
                 MigrateLightFalloffMode(asset);
                 asset.m_AssetVersion = 16;
+            }
+
+            if (asset.m_AssetVersion < 17)
+            {
+                MigrateShadowSettingsToVolumeProfiles(asset);
+                asset.m_AssetVersion = 17;
             }
 
             // If the asset version has changed, means that a migration step has been executed
@@ -365,7 +371,7 @@ namespace UnityEngine.Rendering.Universal
                 var ssaoOverride = profile.Add<ScreenSpaceAmbientOcclusionVolumeOverride>(overrides: true);
                 WarnIfRenderersHaveDifferentSettings(urpAsset, ssaoFeature, reportedAssets);
                 CopyRendererFeatureSettingsToVolumeOverride(ssaoFeature, ssaoOverride);
-                PersistVolumeOverride(profile, ssaoOverride);
+                PersistVolumeOverride(profile, ssaoOverride, "Screen Space Ambient Occlusion");
                 migratedProfiles.Add(profile, urpAsset);
             }
         }
@@ -393,7 +399,7 @@ namespace UnityEngine.Rendering.Universal
                 CopyRendererFeatureSettingsToVolumeOverride(ssaoFeature, ssaoOverride);
             }
 
-            PersistVolumeOverride(profile, ssaoOverride);
+            PersistVolumeOverride(profile, ssaoOverride, "Screen Space Ambient Occlusion");
         }
 
         static IEnumerable<UniversalRenderPipelineAsset> EnumerateQualityLevelPipelineAssets()
@@ -472,18 +478,18 @@ namespace UnityEngine.Rendering.Universal
                 == (y.Intensity, y.Radius, y.Falloff, y.DirectLightingStrength, y.Downsample, y.AfterOpaque, y.AOMethod, y.Source, y.NormalSamples, y.Samples, y.BlurQuality);
         }
 
-        static void PersistVolumeOverride(VolumeProfile profile, VolumeComponent volumeOverride)
+        static bool PersistVolumeOverride(VolumeProfile profile, VolumeComponent volumeOverride, string settingsName)
         {
             // A profile that only lives in memory cannot hold the override as a sub-asset
             if (!EditorUtility.IsPersistent(profile))
-                return;
+                return true;
 
             // A read-only profile cannot store the override, and the version bump would hide the loss
             if (!AssetDatabase.MakeEditable(AssetDatabase.GetAssetPath(profile)))
             {
-                Debug.LogWarning($"URP: The volume profile '{profile.name}' is not editable, so its Screen Space Ambient Occlusion settings were not migrated. " +
+                Debug.LogWarning($"URP: The volume profile '{AssetLinkUtils.AssetLink(profile)}' is not editable, so its {settingsName} settings were not migrated. " +
                     "Make the asset editable and add the override manually.");
-                return;
+                return false;
             }
 
             AssetDatabase.AddObjectToAsset(volumeOverride, profile);
@@ -492,6 +498,7 @@ namespace UnityEngine.Rendering.Universal
             EditorUtility.SetDirty(volumeOverride);
             EditorUtility.SetDirty(profile);
             AssetDatabase.SaveAssetIfDirty(profile);
+            return true;
         }
 
         static void CopyRendererFeatureSettingsToVolumeOverride(ScreenSpaceAmbientOcclusion feature, ScreenSpaceAmbientOcclusionVolumeOverride ssaoOverride)
@@ -568,6 +575,326 @@ namespace UnityEngine.Rendering.Universal
                 lightFalloffSettings.lightFalloffMode = LightFalloffMode.Quadratic;
                 break;
             }
+        }
+
+        internal struct ShadowSettingsValues : IEquatable<ShadowSettingsValues>
+        {
+            internal float maxShadowDistance;
+            internal int cascadeCount;
+            internal float split0;
+            internal float split1;
+            internal float split2;
+            internal float lastCascadeBorder;
+
+            internal static ShadowSettingsValues FromCascadeSplitSets(float maxShadowDistance, int cascadeCount,
+                float cascade2Split, Vector2 cascade3Split, Vector3 cascade4Split, float lastCascadeBorder)
+            {
+                var values = new ShadowSettingsValues
+                {
+                    maxShadowDistance = maxShadowDistance,
+                    cascadeCount = cascadeCount,
+                    split0 = cascade4Split.x,
+                    split1 = cascade4Split.y,
+                    split2 = cascade4Split.z,
+                    lastCascadeBorder = lastCascadeBorder
+                };
+
+                if (cascadeCount == 2)
+                {
+                    values.split0 = cascade2Split;
+                }
+                else if (cascadeCount == 3)
+                {
+                    values.split0 = cascade3Split.x;
+                    values.split1 = cascade3Split.y;
+                }
+
+                return values;
+            }
+
+            internal readonly bool IsDefault()
+            {
+                var defaults = CreateInstance<ShadowsVolumeOverride>();
+                bool isDefault = Mathf.Approximately(maxShadowDistance, defaults.maxShadowDistance.value)
+                    && cascadeCount == defaults.cascadeCount.value
+                    && Mathf.Approximately(split0, defaults.cascadeSplit0.value)
+                    && Mathf.Approximately(split1, defaults.cascadeSplit1.value)
+                    && Mathf.Approximately(split2, defaults.cascadeSplit2.value)
+                    && Mathf.Approximately(lastCascadeBorder, defaults.lastCascadeBorder.value);
+                DestroyImmediate(defaults);
+                return isDefault;
+            }
+
+            public readonly bool Equals(ShadowSettingsValues other)
+            {
+                return maxShadowDistance == other.maxShadowDistance
+                    && cascadeCount == other.cascadeCount
+                    && split0 == other.split0
+                    && split1 == other.split1
+                    && split2 == other.split2
+                    && lastCascadeBorder == other.lastCascadeBorder;
+            }
+
+            public override readonly bool Equals(object obj) => obj is ShadowSettingsValues other && Equals(other);
+
+            public override readonly int GetHashCode() => HashCode.Combine(maxShadowDistance, cascadeCount, split0, split1, split2, lastCascadeBorder);
+        }
+
+        static ShadowSettingsValues ReadObsoleteShadowSettings(UniversalRenderPipelineAsset urpAsset)
+        {
+#pragma warning disable 618 // Type or member is obsolete
+            return ShadowSettingsValues.FromCascadeSplitSets(
+                urpAsset.m_ObsoleteShadowDistance,
+                urpAsset.m_ObsoleteShadowCascadeCount,
+                urpAsset.m_ObsoleteCascade2Split,
+                urpAsset.m_ObsoleteCascade3Split,
+                urpAsset.m_ObsoleteCascade4Split,
+                urpAsset.m_ObsoleteCascadeBorder);
+#pragma warning restore 618
+        }
+
+        static void MigrateShadowSettingsToVolumeProfiles(UniversalRenderPipelineGlobalSettings data)
+        {
+            MigrateShadowSettingsToVolumeProfiles(data, FindPipelineAssets());
+        }
+
+        internal static void MigratePendingShadowSettingsToVolumeProfiles(List<UniversalRenderPipelineAsset> urpAssets)
+        {
+            if (GraphicsSettings.GetSettingsForRenderPipeline<UniversalRenderPipeline>() is not UniversalRenderPipelineGlobalSettings data
+                || data.m_AssetVersion < 17)
+                return;
+
+            bool needsMigration = false;
+            foreach (var urpAsset in urpAssets)
+                needsMigration |= urpAsset.m_ShadowSettingsMigrationPending;
+
+            if (needsMigration)
+                MigrateShadowSettingsToVolumeProfiles(data, FindPipelineAssets());
+        }
+
+        internal static bool HasUnmigratedShadowSettings(UniversalRenderPipelineAsset urpAsset, bool inReadOnlyPackage)
+        {
+            return urpAsset.m_ShadowSettingsMigrationPending
+                && isInReadOnlyPackage(AssetDatabase.GetAssetPath(urpAsset)) == inReadOnlyPackage
+                && !ReadObsoleteShadowSettings(urpAsset).IsDefault();
+        }
+
+        internal static Predicate<string> isInReadOnlyPackage = assetPath =>
+            UnityEditor.PackageManager.PackageInfo.FindForAssetPath(assetPath) is { } package
+            && package.source != UnityEditor.PackageManager.PackageSource.Embedded
+            && package.source != UnityEditor.PackageManager.PackageSource.Local;
+
+        internal static List<UniversalRenderPipelineAsset> FindPipelineAssets()
+        {
+            var paths = new List<string>();
+            foreach (var guid in AssetDatabase.FindAssets("t:UniversalRenderPipelineAsset"))
+                paths.Add(AssetDatabase.GUIDToAssetPath(guid));
+            paths.Sort(StringComparer.Ordinal);
+
+            var urpAssets = new List<UniversalRenderPipelineAsset>(paths.Count);
+            foreach (var path in paths)
+            {
+                var urpAsset = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(path);
+                if (urpAsset != null)
+                    urpAssets.Add(urpAsset);
+            }
+            return urpAssets;
+        }
+
+        static void MigrateShadowSettingsToVolumeProfiles(UniversalRenderPipelineGlobalSettings data, List<UniversalRenderPipelineAsset> urpAssets)
+        {
+            var defaultProfile = data.TryGet(typeof(URPDefaultVolumeProfileSettings), out var settings)
+                && settings is URPDefaultVolumeProfileSettings defaultProfileSettings ? defaultProfileSettings.volumeProfile : null;
+
+            var groups = new List<(VolumeProfile source, ShadowSettingsValues values, List<UniversalRenderPipelineAsset> members)>();
+            var groupIndices = new Dictionary<(VolumeProfile source, ShadowSettingsValues values), int>();
+            foreach (var urpAsset in urpAssets)
+            {
+                if (!urpAsset.m_ShadowSettingsMigrationPending)
+                    continue;
+
+                var values = ReadObsoleteShadowSettings(urpAsset);
+                bool isDefault = values.IsDefault();
+
+                string assetPath = AssetDatabase.GetAssetPath(urpAsset);
+                if (isInReadOnlyPackage(assetPath))
+                {
+                    if (!isDefault)
+                        Debug.LogWarning($"URP: The pipeline asset '{AssetLinkUtils.AssetLink(urpAsset)}' is in a read-only package, so its {nameof(ShadowsVolumeOverride)} settings were not migrated. " +
+                            "Update the package, or copy the asset into the Assets folder and use the copy.");
+                    continue;
+                }
+
+                var profile = urpAsset.volumeProfile;
+                if (isDefault || (profile != null && profile.Has<ShadowsVolumeOverride>()))
+                {
+                    MarkShadowSettingsMigrated(urpAsset);
+                    continue;
+                }
+
+                if (!IsPipelineAssetEditable<ShadowsVolumeOverride>(urpAsset))
+                    continue;
+
+                if (profile != null && groupIndices.TryGetValue((profile, values), out int groupIndex))
+                {
+                    groups[groupIndex].members.Add(urpAsset);
+                    continue;
+                }
+
+                if (profile != null)
+                    groupIndices.Add((profile, values), groups.Count);
+                groups.Add((profile, values, new List<UniversalRenderPipelineAsset> { urpAsset }));
+            }
+
+            var lines = new List<string>();
+            var sources = new List<VolumeProfile>();
+            bool anyShared = false;
+            foreach (var (source, values, members) in groups)
+            {
+                string name = members.Count == 1 ? $"{members[0].name}_VolumeProfile" : $"{source.name}_Shadows";
+                var newProfile = CreateVolumeProfileCopy<ShadowsVolumeOverride>(source, VolumeProfilePathNextTo(members[0], name));
+                if (!WriteShadowSettings(newProfile, values))
+                {
+                    AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(newProfile));
+                    continue;
+                }
+
+                foreach (var member in members)
+                {
+                    AssignVolumeProfile(member, newProfile);
+                    MarkShadowSettingsMigrated(member);
+                }
+
+                if (source == null)
+                    continue;
+
+                lines.Add(DescribeVolumeProfileCopy(members, newProfile, source, defaultProfile) + ".");
+                anyShared |= members.Count > 1;
+                if (!sources.Contains(source))
+                    sources.Add(source);
+            }
+
+            foreach (var source in sources)
+            {
+                var remainingUsers = urpAssets.FindAll(urpAsset => urpAsset.volumeProfile == source);
+                if (remainingUsers.Count > 0)
+                    lines.Add(DescribeRemainingUsers(source, remainingUsers) + ".");
+            }
+
+            if (lines.Count > 0)
+                Debug.LogWarning("URP: Shadow distance and cascade settings moved to Shadows volume overrides in new volume profiles, " +
+                    "so later changes to the previous volume profiles no longer apply to these pipeline assets." +
+                    (anyShared ? " Pipeline assets with the same volume profile and shadow settings share one new profile." : string.Empty) + "\n" +
+                    string.Join("\n", lines));
+        }
+
+        static void MarkShadowSettingsMigrated(UniversalRenderPipelineAsset urpAsset)
+        {
+            if (!AssetDatabase.MakeEditable(AssetDatabase.GetAssetPath(urpAsset)))
+                return;
+
+            urpAsset.m_ShadowSettingsMigrationPending = false;
+            EditorUtility.SetDirty(urpAsset);
+            AssetDatabase.SaveAssetIfDirty(urpAsset);
+        }
+
+        internal static VolumeProfile CreateQualityVolumeProfile<T>(UniversalRenderPipelineAsset urpAsset) where T : VolumeComponent
+        {
+            if (!IsPipelineAssetEditable<T>(urpAsset))
+                return null;
+
+            var profile = CreateVolumeProfileCopy<T>(urpAsset.volumeProfile, VolumeProfilePathNextTo(urpAsset, $"{urpAsset.name}_VolumeProfile"));
+            AssignVolumeProfile(urpAsset, profile);
+            return profile;
+        }
+
+        static bool IsPipelineAssetEditable<T>(UniversalRenderPipelineAsset urpAsset) where T : VolumeComponent
+        {
+            if (AssetDatabase.MakeEditable(AssetDatabase.GetAssetPath(urpAsset)))
+                return true;
+
+            Debug.LogWarning($"URP: The pipeline asset '{AssetLinkUtils.AssetLink(urpAsset)}' is not editable, so its {typeof(T).Name} settings were not migrated. " +
+                "Make the asset editable and add the override to its volume profile manually.");
+            return false;
+        }
+
+        static string VolumeProfilePathNextTo(UniversalRenderPipelineAsset urpAsset, string name)
+        {
+            string folder = Path.GetDirectoryName(AssetDatabase.GetAssetPath(urpAsset)).Replace('\\', '/');
+            return AssetDatabase.GenerateUniqueAssetPath($"{folder}/{name}.asset");
+        }
+
+        static VolumeProfile CreateVolumeProfileCopy<T>(VolumeProfile source, string path) where T : VolumeComponent
+        {
+            var profile = CreateInstance<VolumeProfile>();
+            AssetDatabase.CreateAsset(profile, path);
+
+            if (source != null)
+            {
+                foreach (var sourceComponent in source.components)
+                {
+                    if (sourceComponent == null || sourceComponent is T)
+                        continue;
+
+                    var component = Instantiate(sourceComponent);
+                    component.name = sourceComponent.name;
+                    component.hideFlags = sourceComponent.hideFlags;
+                    profile.components.Add(component);
+                    AssetDatabase.AddObjectToAsset(component, profile);
+                }
+            }
+
+            EditorUtility.SetDirty(profile);
+            AssetDatabase.SaveAssetIfDirty(profile);
+            return profile;
+        }
+
+        static void AssignVolumeProfile(UniversalRenderPipelineAsset urpAsset, VolumeProfile profile)
+        {
+            urpAsset.volumeProfile = profile;
+            EditorUtility.SetDirty(urpAsset);
+            AssetDatabase.SaveAssetIfDirty(urpAsset);
+        }
+
+        internal static string DescribeVolumeProfileCopy(List<UniversalRenderPipelineAsset> urpAssets, VolumeProfile copy, VolumeProfile source, VolumeProfile defaultProfile)
+        {
+            return $"{AssetLinks(urpAssets)} now {(urpAssets.Count == 1 ? "uses" : "use")} '{AssetLinkUtils.AssetLink(copy)}', a copy of " +
+                (source == defaultProfile ? $"the default volume profile '{AssetLinkUtils.AssetLink(source)}'" : $"'{AssetLinkUtils.AssetLink(source)}'");
+        }
+
+        internal static string DescribeRemainingUsers(VolumeProfile source, List<UniversalRenderPipelineAsset> urpAssets)
+        {
+            return $"'{AssetLinkUtils.AssetLink(source)}' is still used by {AssetLinks(urpAssets)}";
+        }
+
+        static string AssetLinks(List<UniversalRenderPipelineAsset> urpAssets)
+        {
+            var links = new List<string>(urpAssets.Count);
+            foreach (var urpAsset in urpAssets)
+                links.Add($"'{AssetLinkUtils.AssetLink(urpAsset)}'");
+            return string.Join(", ", links);
+        }
+
+        internal static bool WriteShadowSettings(VolumeProfile profile, in ShadowSettingsValues values)
+        {
+            var shadowsOverride = profile.Add<ShadowsVolumeOverride>(overrides: true);
+            CopyShadowSettingsToVolumeOverride(values, shadowsOverride);
+            if (PersistVolumeOverride(profile, shadowsOverride, "Shadows"))
+                return true;
+
+            profile.Remove<ShadowsVolumeOverride>();
+            CoreUtils.Destroy(shadowsOverride);
+            return false;
+        }
+
+        static void CopyShadowSettingsToVolumeOverride(in ShadowSettingsValues values, ShadowsVolumeOverride shadowsOverride)
+        {
+            shadowsOverride.maxShadowDistance.value = values.maxShadowDistance;
+            shadowsOverride.cascadeCount.value = values.cascadeCount;
+            shadowsOverride.cascadeSplit0.value = values.split0;
+            shadowsOverride.cascadeSplit1.value = values.split1;
+            shadowsOverride.cascadeSplit2.value = values.split2;
+            shadowsOverride.lastCascadeBorder.value = values.lastCascadeBorder;
         }
 
 #endif // #if UNITY_EDITOR

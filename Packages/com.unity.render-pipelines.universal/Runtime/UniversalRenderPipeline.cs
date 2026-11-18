@@ -937,6 +937,7 @@ namespace UnityEngine.Rendering.Universal
                             using (new CameraRenderingScope(context, camera))
                             {
                                 camera.gameObject.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData);
+                                UpdateVolumeFramework(camera, additionalCameraData);
                                 RenderSingleCameraInternal(context, camera, ref additionalCameraData);
                             }
                         }
@@ -1021,6 +1022,8 @@ namespace UnityEngine.Rendering.Universal
             ConstantBufferPropertyWarnings.BeginRender();
             try
             {
+                camera.gameObject.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData);
+                UpdateVolumeFramework(camera, additionalCameraData);
                 RenderSingleCameraInternal(context, camera);
             }
             finally
@@ -1845,6 +1848,23 @@ namespace UnityEngine.Rendering.Universal
             return renderer;
         }
 
+        static ShadowsVolumeOverride s_DefaultShadowsVolume;
+
+        // Players only create the volume component types found in the Default Volume Profile, so the stack can lack this one.
+        static ShadowsVolumeOverride GetShadowsVolume(VolumeStack stack)
+        {
+            var shadowsVolume = stack.GetComponent<ShadowsVolumeOverride>();
+            if (shadowsVolume != null)
+                return shadowsVolume;
+
+            if (s_DefaultShadowsVolume == null)
+            {
+                s_DefaultShadowsVolume = ScriptableObject.CreateInstance<ShadowsVolumeOverride>();
+                s_DefaultShadowsVolume.hideFlags = HideFlags.HideAndDontSave;
+            }
+            return s_DefaultShadowsVolume;
+        }
+
         internal static void InitializeScaledDimensions(Camera camera, UniversalCameraData cameraData)
         {
             cameraData.scaledWidth = Mathf.Max(1, (int) (camera.pixelWidth * cameraData.renderScale));
@@ -2215,7 +2235,9 @@ namespace UnityEngine.Rendering.Universal
             var settings = asset;
 
             bool anyShadowsEnabled = settings.supportsMainLightShadows || settings.supportsAdditionalLightShadows;
-            cameraData.maxShadowDistance = Mathf.Min(settings.shadowDistance, camera.farClipPlane);
+            Debug.Assert(VolumeManager.instance.stack != null);
+            var shadowsVolume = GetShadowsVolume(VolumeManager.instance.stack);
+            cameraData.maxShadowDistance = Mathf.Min(shadowsVolume.maxShadowDistance.value, camera.farClipPlane);
             cameraData.maxShadowDistance = (anyShadowsEnabled && cameraData.maxShadowDistance >= camera.nearClipPlane) ? cameraData.maxShadowDistance : 0.0f;
 
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
@@ -2393,9 +2415,10 @@ namespace UnityEngine.Rendering.Universal
             s_ShadowResolutionData.Clear();
 
             shadowData.shadowmapDepthBufferBits = 16;
-            shadowData.mainLightShadowCascadeBorder = urpAsset.cascadeBorder;
-            shadowData.mainLightShadowCascadesCount = urpAsset.shadowCascadeCount;
-            shadowData.mainLightShadowCascadesSplit = GetMainLightCascadeSplit(shadowData.mainLightShadowCascadesCount, urpAsset);
+            var shadowsVolume = GetShadowsVolume(VolumeManager.instance.stack);
+            shadowData.mainLightShadowCascadeBorder = shadowsVolume.lastCascadeBorder.value;
+            shadowData.mainLightShadowCascadesCount = shadowsVolume.cascadeCount.value;
+            shadowData.mainLightShadowCascadesSplit = shadowsVolume.GetCascadeSplit();
             shadowData.mainLightShadowmapWidth = urpAsset.mainLightShadowmapResolution;
             shadowData.mainLightShadowmapHeight = urpAsset.mainLightShadowmapResolution;
             shadowData.additionalLightsShadowmapWidth = shadowData.additionalLightsShadowmapHeight =
@@ -2531,17 +2554,6 @@ namespace UnityEngine.Rendering.Universal
             var cullData = frameData.Create<CullContextData>();
             cullData.SetRenderContext(context);
             return cullData;
-        }
-
-        private static Vector3 GetMainLightCascadeSplit(int mainLightShadowCascadesCount, UniversalRenderPipelineAsset urpAsset)
-        {
-            switch (mainLightShadowCascadesCount)
-            {
-                case 1:  return new Vector3(1.0f, 0.0f, 0.0f);
-                case 2:  return new Vector3(urpAsset.cascade2Split, 1.0f, 0.0f);
-                case 3:  return urpAsset.cascade3Split;
-                default: return urpAsset.cascade4Split;
-            }
         }
 
         static void InitializeMainLightShadowResolution(UniversalShadowData shadowData)

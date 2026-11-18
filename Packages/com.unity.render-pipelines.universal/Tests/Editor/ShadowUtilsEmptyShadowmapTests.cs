@@ -193,6 +193,7 @@ namespace UnityEditor.Rendering.Universal.Tests
         bool m_PipelineOverridden;
         UniversalRenderPipelineAsset m_PipelineAsset;
         UniversalRendererData m_RendererData;
+        VolumeProfile m_VolumeProfile;
         Material m_TransparentMaterial;
         RenderTexture m_ColorTarget;
         RenderTexture m_DepthOnlyTarget;
@@ -215,8 +216,11 @@ namespace UnityEditor.Rendering.Universal.Tests
             m_PipelineAsset.m_RendererDataList[0] = m_RendererData;
             m_PipelineAsset.mainLightRenderingMode = LightRenderingMode.PerPixel;
             m_PipelineAsset.supportsMainLightShadows = true;
-            m_PipelineAsset.shadowDistance = k_ShadowDistance;
-            m_PipelineAsset.shadowCascadeCount = 1;
+            m_VolumeProfile = ScriptableObject.CreateInstance<VolumeProfile>();
+            var shadowsVolume = m_VolumeProfile.Add<ShadowsVolumeOverride>(overrides: true);
+            shadowsVolume.maxShadowDistance.value = k_ShadowDistance;
+            shadowsVolume.cascadeCount.value = 1;
+            m_PipelineAsset.volumeProfile = m_VolumeProfile;
             QualitySettings.renderPipeline = m_PipelineAsset;
             m_PipelineOverridden = true;
 
@@ -288,6 +292,12 @@ namespace UnityEditor.Rendering.Universal.Tests
                 Object.DestroyImmediate(m_PipelineAsset);
             if (m_RendererData != null)
                 Object.DestroyImmediate(m_RendererData);
+            if (m_VolumeProfile != null)
+            {
+                foreach (var component in m_VolumeProfile.components)
+                    Object.DestroyImmediate(component);
+                Object.DestroyImmediate(m_VolumeProfile);
+            }
         }
 
         Vector4 RenderAfterDepthOnlyCameraAndReadShadowParams(float depthOnlyCameraFarPlane)
