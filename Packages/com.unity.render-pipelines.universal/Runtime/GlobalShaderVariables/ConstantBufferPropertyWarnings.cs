@@ -56,7 +56,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal const string k_GlobalWarningBound =
             "Shader property '{0}' is a variable of URP's global constant buffer (GlobalShaderVariables), which URP binds " +
-            "itself while Use Global Constant Buffer is on (Project Settings > Graphics > URP > Rendering Capabilities). " +
+            "itself while Use Persistent Global Constant Buffer is on (Project Settings > Graphics > URP > Rendering Capabilities). " +
             "Setting it with Shader.SetGlobal*, CommandBuffer.SetGlobal*, Material.Set* or MaterialPropertyBlock.Set* doesn't " +
             "change the value that URP shaders read. Rename the property if it belongs to your own shader. This warning is " +
             "logged once per property.";
@@ -100,15 +100,12 @@ namespace UnityEngine.Rendering.Universal
         /// <see cref="EndRender"/>.
         /// </summary>
         /// <remarks>
-        /// Reads the Use Global Constant Buffer setting, like RenderCameras() does later in the frame.
-        /// UniversalRenderPipeline.useGlobalConstantBuffer still holds the mode of the previous frame here, so on the frame
-        /// that changes the mode, the warnings would describe the other one.
+        /// Resolves the mode like RenderCameras() does later in the frame: useGlobalConstantBuffer still holds the previous one.
         /// </remarks>
         [Conditional("UNITY_EDITOR")]
         internal static void BeginRender()
         {
-            var settings = GraphicsSettings.GetRenderPipelineSettings<RenderingCapabilitiesSettings>();
-            BeginRender(settings != null && settings.useGlobalConstantBuffer);
+            BeginRender(UniversalRenderPipeline.IsGlobalConstantBufferRequested());
         }
 
         /// <summary>
@@ -170,7 +167,28 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Unmarks every property, so none stays marked for another render pipeline. Call when the pipeline is disposed.
+        /// Call when the pipeline is disposed. Nothing changes while URP stays the active pipeline, so that the Material writes
+        /// of Awake, OnEnable and Start still warn before URP renders again.
+        /// </summary>
+        [Conditional("UNITY_EDITOR")]
+        internal static void OnPipelineDisposed()
+        {
+            OnPipelineDisposed(GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset);
+        }
+
+        /// <summary>
+        /// <see cref="OnPipelineDisposed()"/> for a given active pipeline.
+        /// </summary>
+        /// <param name="urpStaysActive">Whether URP is still the active render pipeline.</param>
+        [Conditional("UNITY_EDITOR")]
+        internal static void OnPipelineDisposed(bool urpStaysActive)
+        {
+            if (!urpStaysActive)
+                Release();
+        }
+
+        /// <summary>
+        /// Unmarks every property, so none stays marked for another render pipeline.
         /// </summary>
         [Conditional("UNITY_EDITOR")]
         internal static void Release()
@@ -181,6 +199,18 @@ namespace UnityEngine.Rendering.Universal
             s_RenderDepth = 0;
             s_PipelineWriteDepth = 0;
         }
+
+#if UNITY_EDITOR
+        // Registers before Awake, OnEnable and Start run, rather than on the first render, which would re-arm the properties
+        // they already warned about.
+        [UnityEditor.InitializeOnLoadMethod]
+        static void RegisterAfterDomainReload()
+        {
+            CoreBridge.EnableWarnings(false);
+            if (GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset && AreValidityChecksEnabled())
+                Register(UniversalRenderPipeline.IsGlobalConstantBufferRequested());
+        }
+#endif
 
         static void Register(bool globalsBoundByPipeline)
         {

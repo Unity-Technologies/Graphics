@@ -359,6 +359,47 @@ namespace UnityEditor.Rendering.Universal.Tests
         }
 
         [Test]
+        public void MaterialWrite_AfterURPIsDisposedButStaysActive_StillWarns()
+        {
+            var material = CreateTestMaterial();
+
+            ConstantBufferPropertyWarnings.BeginRender(true);
+            ConstantBufferPropertyWarnings.EndRender();
+            ConstantBufferPropertyWarnings.OnPipelineDisposed(true);
+            try
+            {
+                LogAssert.Expect(LogType.Warning, BoundWarningFor("_TimeParameters"));
+                material.SetVector("_TimeParameters", Vector4.one);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(material);
+            }
+
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [Test]
+        public void MaterialWrite_AfterAnotherPipelineTakesOver_DoesNotWarn()
+        {
+            var material = CreateTestMaterial();
+
+            ConstantBufferPropertyWarnings.BeginRender(true);
+            ConstantBufferPropertyWarnings.EndRender();
+            ConstantBufferPropertyWarnings.OnPipelineDisposed(false);
+            try
+            {
+                material.SetVector("_TimeParameters", Vector4.one);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(material);
+            }
+
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [Test]
         public void MaterialWrite_WithoutRenderGraphValidityChecks_DoesNotWarn()
         {
             if (!GraphicsSettings.TryGetRenderPipelineSettings<RenderGraphGlobalSettings>(out var renderGraphSettings))

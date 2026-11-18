@@ -580,7 +580,7 @@ namespace UnityEngine.Rendering.Universal
             CameraCaptureBridge.enabled = false;
 
             ConstantBuffer.ReleaseAll();
-            ConstantBufferPropertyWarnings.Release();
+            ConstantBufferPropertyWarnings.OnPipelineDisposed();
             VolumeManager.instance.Deinitialize();
 
             DisposeAdditionalCameraData();
