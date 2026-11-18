@@ -9,12 +9,22 @@ Varyings BuildVaryings(Attributes input)
     Varyings output = (Varyings)0;
 
     UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    output.positionCS = TransformObjectToHClip(input.positionOS);
+    UIEFilterAppData filterInput = (UIEFilterAppData)0;
+    UNITY_TRANSFER_INSTANCE_ID(input, filterInput);
+    #if defined(UNITY_INSTANCING_ENABLED)
+    filterInput.vertexID = input.vertexID;
+    #else
+    filterInput.vertex = float4(input.positionOS, 1);
+    filterInput.uv = input.uv0.xy;
+    #endif
+    UIEFilterVertex filterVertex = UIEGetFilterVertex(filterInput);
 
+    output.positionCS = filterVertex.position;
     #if defined(VARYINGS_NEED_TEXCOORD0) || defined(VARYINGS_DS_NEED_TEXCOORD0)
-    output.texCoord0 = input.uv0;
+    output.texCoord0 = float4(filterVertex.uv, 0, 0);
     #endif
 
     return output;
@@ -38,10 +48,9 @@ half4 frag(PackedVaryings packedInput) : SV_Target
 
     half4 color = half4(surfaceDescription.BaseColor, surfaceDescription.Alpha);
 
-    #if _UIE_OUTPUT_LINEAR
     // SRGBToLinear is SRP Core's equivalent of the legacy GammaToLinearSpace.
-    color.rgb = SRGBToLinear(color.rgb);
-    #endif
+    if (UIEFilterOutputsLinear())
+        color.rgb = SRGBToLinear(color.rgb);
 
     return color;
 }

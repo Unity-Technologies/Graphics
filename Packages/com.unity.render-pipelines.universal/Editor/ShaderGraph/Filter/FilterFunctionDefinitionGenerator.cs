@@ -84,35 +84,22 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             var bindingsArray = bindings.ToArray();
 
+            // The pass of many elements draws in one instanced draw, each element with its own parameters
+            material.enableInstancing = true;
+
             var definition = ScriptableObject.CreateInstance<FilterFunctionDefinition>();
             definition.name = filterName;
             definition.filterName = filterName;
             definition.parameters = parameters.ToArray();
             definition.passes = new[]
             {
+                // No settings callback: a pass with one draws one element at a time. UI Toolkit writes each binding's
+                // parameter itself, converted to the pass's color space.
                 new PostProcessingPass
                 {
                     material = material,
                     passIndex = 0,
                     parameterBindings = bindingsArray,
-                    // parameterBindings alone is metadata; only this callback pushes values at runtime.
-                    applySettingsCallback = (mpb, context) =>
-                    {
-                        var func = context.filterFunction;
-                        foreach (var binding in bindingsArray)
-                        {
-                            // Missing parameters keep the material's own defaults.
-                            if (binding.index >= func.parameterCount)
-                                continue;
-
-                            var param = func.parameters[binding.index];
-                            if (param.type == FilterParameterType.Color)
-                                // SetColor converts to the active color space, wrong for a gamma-reading pass.
-                                mpb.SetVector(binding.name, context.readsGamma ? (Vector4)param.colorValue : (Vector4)param.colorValue.linear);
-                            else
-                                mpb.SetFloat(binding.name, param.floatValue);
-                        }
-                    },
                     readMargins = readMargins,
                     writeMargins = writeMargins,
                 }

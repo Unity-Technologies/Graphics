@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
     // Companion to Filter Input for filters that manipulate UV before sampling (multi-tap blur, swirl
     // distortion). Filter Input's UV is already positioned in this element's sub-rect of the shared
-    // atlas (unity_uie_UVRect, see FilterUVRect.hlsl), so manipulating it directly risks bleeding into
+    // atlas (GetFilterUVRect in UnityUIEFilter.cginc), so manipulating it directly risks bleeding into
     // a neighboring element's region once an atlas holds more than one element. This node exposes only
     // the "normalize to local 0-1 space" half; feed the distorted result into Filter Input's UV socket
     // with "UV Space" set to Local, which remaps back to atlas space internally (FilterInputNode.cs).
@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     // same convention as Filter Input's own preview fallback.
     Out = UV;
 #else
-    float4 uvRect = unity_uie_UVRect[0];
+    float4 uvRect = GetFilterUVRect(0);
     Out = (UV - uvRect.xy) / uvRect.zw;
 #endif
 }
