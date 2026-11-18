@@ -1901,7 +1901,9 @@ namespace UnityEngine.Rendering
         /// <inheritdoc/>
         public override object Clone()
         {
-            return new AnimationCurveParameter(new AnimationCurve(GetValue<AnimationCurve>().keys), overrideState);
+            var curve = new AnimationCurve();
+            curve.CopyFrom(GetValue<AnimationCurve>());
+            return new AnimationCurveParameter(curve, overrideState);
         }
 
         /// <summary>
