@@ -371,6 +371,7 @@ namespace UnityEditor.VFX.UI
                     var initializeContext = system.owners.OfType<VFXBasicInitialize>().Single();
                     var boundsSlot = initializeContext.inputSlots.FirstOrDefault(s => s.name == "bounds");
                     var bounds = new Bounds(currentBounds.center, 2 * currentBounds.extents);
+                    Undo.RecordObject(boundsSlot.GetMasterSlot(), "Apply Recorded Bounds");
                     if (boundsSlot.space == VFXSpace.Local)
                         boundsSlot.value = new AABox { center = bounds.center, size = bounds.size };
                     else
