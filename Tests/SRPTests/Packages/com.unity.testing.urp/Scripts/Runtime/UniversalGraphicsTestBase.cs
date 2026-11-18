@@ -29,6 +29,7 @@ namespace Unity.Rendering.Universal.Tests
         PersistentCB,
     }
 
+    [FailOnConstantBufferPropertyWarnings]
     public class UniversalGraphicsTestBase
     {
         protected readonly GpuResidentDrawerGlobalContext gpuResidentDrawerContext;
