@@ -204,6 +204,8 @@ void TraceReflectionProbes(PositionInputs posInput, float3 normalWS, float3 rayD
 TEXTURE2D_X(_IndirectDiffuseHitPointTexture);
 // Depth buffer of the previous frame (full resolution)
 TEXTURE2D_X(_HistoryDepthTexture);
+// xy: previous frame viewport size, zw: previous viewport size / history buffer size
+float4 _HistorySizeAndScale;
 RW_TEXTURE2D_X(float3, _IndirectDiffuseTextureRW);
 
 // The maximal difference in depth that is considered acceptable to read from the color pyramid
@@ -270,9 +272,14 @@ void REPROJECT_GLOBAL_ILLUMINATION(uint3 dispatchThreadId : SV_DispatchThreadID,
         || (prevFrameUV.y > _ColorPyramidUvScaleAndLimitPrevFrame.w))
         invalid = true;
 
+    // The depth history was written at the previous frame's viewport size, which differs from the current one under dynamic resolution
+    float2 historyTapCoord = prevFrameNDC * _HistorySizeAndScale.xy;
+    if (any(historyTapCoord < 0) || any(historyTapCoord >= _HistorySizeAndScale.xy))
+        invalid = true;
+
     // Grab the depth of the hit point and reject the history buffer if the depth is too different
     // TODO: Find a better metric
-    float hitPointHistoryDepth = LOAD_TEXTURE2D_X(_HistoryDepthTexture, prevFrameNDC * _ScreenSize.xy).x;
+    float hitPointHistoryDepth = LOAD_TEXTURE2D_X(_HistoryDepthTexture, min(max(historyTapCoord, 0), _HistorySizeAndScale.xy - 1)).x;
     if (abs(hitPointHistoryDepth - hitPointDepth) > DEPTH_DIFFERENCE_THRESHOLD)
         invalid = true;
 

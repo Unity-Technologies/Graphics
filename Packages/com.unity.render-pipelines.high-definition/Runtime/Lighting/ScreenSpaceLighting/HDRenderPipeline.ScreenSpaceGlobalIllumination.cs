@@ -156,6 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // History buffers
             public TextureHandle colorPyramid;
             public TextureHandle historyDepth;
+            public Vector4 historySizeAndScale;
 
             // Intermediate buffers
             public TextureHandle hitPointBuffer;
@@ -237,6 +238,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                     passData.historyDepth = renderGraph.defaultResources.blackTextureXR;
                 builder.UseTexture(passData.historyDepth, AccessFlags.Read);
+                passData.historySizeAndScale = historyDepth != null ? EvaluateRayTracingHistorySizeAndScale(hdCamera, historyDepth) : Vector4.one;
 
                 // Temporary textures
                 passData.hitPointBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
@@ -298,6 +300,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         natCmd.SetComputeTextureParam(data.ssGICS, data.projectKernel, HDShaderIDs._IndirectDiffuseHitPointTexture, data.hitPointBuffer);
                         natCmd.SetComputeTextureParam(data.ssGICS, data.projectKernel, HDShaderIDs._ColorPyramidTexture, data.colorPyramid);
                         natCmd.SetComputeTextureParam(data.ssGICS, data.projectKernel, HDShaderIDs._HistoryDepthTexture, data.historyDepth);
+                        natCmd.SetComputeVectorParam(data.ssGICS, HDShaderIDs._HistorySizeAndScale, data.historySizeAndScale);
                         natCmd.SetComputeBufferParam(data.ssGICS, data.projectKernel, HDShaderIDs._DepthPyramidMipLevelOffsets, data.offsetBuffer);
                         natCmd.SetComputeBufferParam(data.ssGICS, data.projectKernel, HDShaderIDs.g_vLightListTile, data.lightList);
 
@@ -318,7 +321,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public int texWidth;
             public int texHeight;
             public int viewCount;
-            public Vector4 halfScreenSize;
             public float lowResPercentage;
             public ShaderVariablesBilateralUpsample shaderVariablesBilateralUpsampleCB;
 
@@ -341,7 +343,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.viewCount = hdCamera.viewCount;
 
                 float lowResPercentage = GetSSGILowResPercentage(hdCamera).x;
-                passData.shaderVariablesBilateralUpsampleCB._HalfScreenSize = new Vector4(passData.texWidth / lowResPercentage, passData.texHeight / lowResPercentage, 1.0f / (passData.texWidth * lowResPercentage), 1.0f / (passData.texHeight * lowResPercentage));
+                int lowResWidth = (int)Mathf.Floor(passData.texWidth * lowResPercentage);
+                int lowResHeight = (int)Mathf.Floor(passData.texHeight * lowResPercentage);
+                passData.shaderVariablesBilateralUpsampleCB._HalfScreenSize = new Vector4(lowResWidth, lowResHeight, 1.0f / lowResWidth, 1.0f / lowResHeight);
                 passData.lowResPercentage = lowResPercentage;
                 unsafe
                 {
@@ -351,11 +355,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int i = 0; i < 32; ++i)
                         passData.shaderVariablesBilateralUpsampleCB._TapOffsets[i] = BilateralUpsample.tapOffsets_2x2[i];
                 }
-
-                // Setup lowres bounds.
-                int lowResWidth = (int)Mathf.Floor(passData.texWidth * passData.lowResPercentage);
-                int lowResHeight = (int)Mathf.Floor(passData.texHeight * passData.lowResPercentage);
-                passData.halfScreenSize.Set(lowResWidth, lowResHeight, 1.0f / lowResWidth, 1.0f / lowResHeight);
 
                 // Grab the right kernel
                 passData.bilateralUpsampleCS =  runtimeShaders.bilateralUpsampleCS;
@@ -385,7 +384,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Inject all the input buffers
                         natCmd.SetComputeTextureParam(data.bilateralUpsampleCS, data.upscaleKernel, HDShaderIDs._DepthTexture, data.depthTexture);
                         natCmd.SetComputeTextureParam(data.bilateralUpsampleCS, data.upscaleKernel, HDShaderIDs._LowResolutionTexture, data.inputBuffer);
-                        natCmd.SetComputeVectorParam(data.bilateralUpsampleCS, HDShaderIDs._HalfScreenSize, data.halfScreenSize);
 
                         // Inject the output textures
                         natCmd.SetComputeTextureParam(data.bilateralUpsampleCS, data.upscaleKernel, HDShaderIDs._OutputUpscaledTexture, data.outputBuffer);
