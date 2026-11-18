@@ -88,10 +88,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             return true;
         }
 
-        internal static bool UvOriginCopyCompatible(this RenderGraph graph, TextureHandle source, TextureHandle destination)
+        internal static bool UVOriginCopyCompatible(this RenderGraph graph, TextureHandle source, TextureHandle destination)
         {
             // Check early if copy cannot work because it would do a UV-origin flip.
-            return !graph.UvOriginDifferAtRecordTime(source, destination);
+            return !graph.UVOriginsKnownToDiffer(source, destination);
         }
 
         /// <summary>
@@ -130,7 +130,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
             if ((int)sourceInfo.msaaSamples > 1 && !CanAddCopyPassMSAA(sourceInfo.bindMS))
                 return false;
 
-            return UvOriginCopyCompatible(graph, source, destination);
+            return UVOriginCopyCompatible(graph, source, destination);
         }
 
         class CopyPassData
@@ -164,7 +164,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.Util
                 if (isMSAA && !CanAddCopyPassMSAA(sourceInfo.bindMS))
                     throw new ArgumentException("Target does not support MSAA for AddCopyPass. Please use the blit alternative or use non MSAA textures.");
 
-                if (!UvOriginCopyCompatible(graph, source, destination))
+                if (!UVOriginCopyCompatible(graph, source, destination))
                     throw new ArgumentException("AddCopyPass cannot perform a UV-origin flip. Source and destination textures have different UV origins. Use AddBlitPass instead which will automatically insert the correct flip.");
             }
         }
