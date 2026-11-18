@@ -334,5 +334,78 @@ namespace UnityEditor.VFX.Test.UI.CopyPaste
             Assert.NotNull(copySelectedPropertyItem);
             Assert.AreEqual(parameterOrder + 1, copySelectedPropertyItem.controller.order);
         }
+
+        [UnityTest, Description("UUM-161722")]
+        public IEnumerator CopyPasteCategory_Keeps_Parameter_Order()
+        {
+            var window = VFXTestCommon.GetViewWindow();
+            var view = window.graphView;
+            view.controller = m_ViewController;
+
+            const string categoryName = "Alpha";
+            m_ViewController.graph.UIInfos.categories = new List<VFXUI.CategoryInfo> { new VFXUI.CategoryInfo { name = categoryName } };
+
+            var floatVariant = VFXLibrary.GetParameters().First(x => x.modelType == typeof(float)).variant;
+            var values = new[] { 44f, 55f, 66f };
+            var parameters = new List<VFXParameter>();
+            foreach (var value in values)
+            {
+                var parameter = m_ViewController.AddVFXParameter(Vector2.zero, floatVariant);
+                parameter.SetSettingValue("m_ExposedName", $"P{(int)value / 11}");
+                parameter.category = categoryName;
+                parameter.value = value;
+                parameters.Add(parameter);
+            }
+            m_ViewController.LightApplyChanges();
+
+            m_ViewController.GetParameterController(parameters[2]).order = 0;
+            m_ViewController.GetParameterController(parameters[0]).order = 1;
+            m_ViewController.GetParameterController(parameters[1]).order = 2;
+            view.blackboard.Update(true);
+            yield return null;
+
+            var category = view.blackboard.Query<VFXBlackboardCategory>().Where(x => x.title == categoryName).First();
+            Assert.NotNull(category);
+
+            var copyData = view.SerializeElements(new GraphElement[] { category });
+            view.UnserializeAndPasteElements("Paste", copyData);
+            yield return null;
+
+            var pastedValues = m_ViewController.parameterControllers
+                .Where(x => x.model.category == categoryName + " (1)")
+                .OrderBy(x => x.order)
+                .Select(x => (float)x.model.value)
+                .ToArray();
+            CollectionAssert.AreEqual(new[] { 66f, 44f, 55f }, pastedValues);
+        }
+
+        [UnityTest, Description("UUM-161723")]
+        public IEnumerator DuplicateParameter_Keeps_Space()
+        {
+            var window = VFXTestCommon.GetViewWindow();
+            var view = window.graphView;
+            view.controller = m_ViewController;
+
+            var parameter = m_ViewController.AddVFXParameter(Vector2.zero, VFXLibrary.GetParameters().First(x => x.modelType == typeof(Position)).variant);
+            parameter.category = string.Empty;
+            m_ViewController.LightApplyChanges();
+
+            var parameterController = m_ViewController.GetParameterController(parameter);
+            parameterController.space = VFXSpace.World;
+            view.blackboard.Update(true);
+            yield return null;
+
+            var treeView = view.blackboard.Q<TreeView>();
+            treeView.selectedIndex = 1;
+            yield return null;
+
+            view.DuplicateSelectionCallback();
+            yield return null;
+
+            Assert.AreEqual(2, m_ViewController.parameterControllers.Count());
+            var duplicate = m_ViewController.parameterControllers.Single(x => x.model != parameter);
+            Assert.AreEqual(VFXSpace.World, m_ViewController.GetParameterController(parameter).space);
+            Assert.AreEqual(VFXSpace.World, duplicate.space);
+        }
     }
 }

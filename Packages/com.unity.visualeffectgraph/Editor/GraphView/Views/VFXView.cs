@@ -2601,7 +2601,7 @@ namespace UnityEditor.VFX.UI
         {
             var categoriesToCopy = elements.OfType<VFXBlackboardCategory>().Where(x => x.item.canRename).Select(x => x.title).ToArray();
             var parameters = new List<VFXParameter>();
-            foreach (var parameter in m_Controller.parameterControllers.Where(x => categoriesToCopy.Contains(x.model.category)))
+            foreach (var parameter in m_Controller.parameterControllers.Where(x => categoriesToCopy.Contains(x.model.category)).OrderBy(x => Array.IndexOf(categoriesToCopy, x.model.category)).ThenBy(x => x.order))
             {
                 parameters.Add(parameter.model);
             }
@@ -3495,8 +3495,8 @@ namespace UnityEditor.VFX.UI
             controller.graph.UIInfos.categories.Add(new VFXUI.CategoryInfo { name = newCategoryName });
 
             var newParametersControllers = parametersToDuplicate == null || parametersToDuplicate.Length == 0
-                ? controller.parameterControllers.Where(x => x.model.category == category).ToArray()
-                : controller.parameterControllers.Where(x => parametersToDuplicate.Contains(x.exposedName)).ToArray();
+                ? controller.parameterControllers.Where(x => x.model.category == category).OrderBy(x => x.order).ToArray()
+                : controller.parameterControllers.Where(x => parametersToDuplicate.Contains(x.exposedName)).OrderBy(x => x.order).ToArray();
 
             for (var i = 0; i < newParametersControllers.Length; i++)
             {

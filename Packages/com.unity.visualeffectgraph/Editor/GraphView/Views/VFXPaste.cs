@@ -898,6 +898,11 @@ namespace UnityEditor.VFX.UI
                     viewController.SyncControllerFromModel(ref groupChanged);
 
                     var newVfxParameterController = viewController.GetParameterController(newVfxParameter);
+                    if (newVfxParameterController.spaceableAndMasterOfSpace)
+                    {
+                        newVfxParameterController.space = parameter.space;
+                    }
+
                     VFXParameterController previousController;
                     if (isDuplicate)
                     {
