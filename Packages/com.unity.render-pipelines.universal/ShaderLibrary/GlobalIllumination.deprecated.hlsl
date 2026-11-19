@@ -16,8 +16,8 @@ URP_LIGHT_ACCUM3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoa
 URP_LIGHT_ACCUM3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float clearCoatMask,
     URP_LIGHT_ACCUM3 bakedGI, half occlusion,
     half3 normalWS, half3 viewDirectionWS, bool clearCoatEnabled, bool environmentReflections);
-half3 GlossyEnvironmentReflection(half3 reflectVector, float3 positionWS, half perceptualRoughness, half occlusion, float2 normalizedScreenSpaceUV, bool environmentReflections);
-half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness, half occlusion, bool environmentReflections);
+URP_LIGHT_ACCUM3 GlossyEnvironmentReflection(half3 reflectVector, float3 positionWS, half perceptualRoughness, half occlusion, float2 normalizedScreenSpaceUV, bool environmentReflections);
+URP_LIGHT_ACCUM3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness, half occlusion, bool environmentReflections);
 
 #if !defined(_CLEARCOAT_KEYWORD_DECLARED)
     #if !defined(_CLEARCOAT)

@@ -95,6 +95,7 @@ namespace UnityEditor.Rendering.Universal
             /// <summary>Title with "Rendering Layer"</summary>
             public static readonly GUIContent RenderingLayers = L10n.TextContent("Rendering Layers", "Select the Rendering Layers that the Light affects. This Light affects objects where at least one Rendering Layer value matches.", null, null);
             public static readonly GUIContent RenderingLayersHelpBox = L10n.TextContentWithIcon("Rendering Layers are disabled by default because they have a small GPU performance cost. Enable them in the active Universal Render Pipeline Asset, under Lighting -> Use Rendering Layers.", MessageType.Info, null);
+            public static readonly GUIContent HighIntensityNoExposure = L10n.TextContentWithIcon("This intensity is too high to display without exposure. Values above ~65,000 overflow URP's colour target. Enable Use Exposure and set an Exposure override to work with physical light units.", MessageType.Warning, null);
         }
     }
 }

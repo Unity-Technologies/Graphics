@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using UnityEditor.Inspector.GraphicsSettingsInspectors;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -171,6 +172,10 @@ namespace UnityEditor.Rendering.Universal
             {
                 s_SetGizmosDirty();
                 serializedLight.settings.lightType.intValue = type;
+                // Validate and reset light unit when light type changes
+                UpdateLightIntensityUnit(serializedLight, owner);
+                // Apply changes immediately so the Light component is updated before DrawIntensity
+                serializedLight.Apply();
             }
             EditorGUI.EndProperty();
 
@@ -248,7 +253,19 @@ namespace UnityEditor.Rendering.Universal
 
         static void DrawEmissionContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
         {
-            serializedLight.settings.DrawIntensity();
+            if (serializedLight.settings.lightType.hasMultipleDifferentValues ||
+                serializedLight.settings.lightUnit.hasMultipleDifferentValues)
+            {
+                DrawMixedLightIntensity(serializedLight);
+            }
+            else
+            {
+                LightUI.DrawIntensity(serializedLight, owner);
+                LightUI.DrawIntensityModifiers(serializedLight);
+            }
+
+            DrawHighIntensityWithoutExposureWarning(serializedLight);
+
             serializedLight.settings.DrawBounceIntensity();
 
             if (!serializedLight.settings.lightType.hasMultipleDifferentValues)
@@ -265,6 +282,90 @@ namespace UnityEditor.Rendering.Universal
             }
 
             DrawLightCookieContent(serializedLight, owner);
+        }
+
+        // LightUI.DrawIntensity converts with the first selected light, so convert per light when types or units differ.
+        static void DrawMixedLightIntensity(UniversalRenderPipelineSerializedLight serializedLight)
+        {
+            const int k_ValueUnitSeparator = 2;
+            const int k_UnitWidth = 100;
+
+            var lights = serializedLight.serializedObject.targetObjects.OfType<Light>().ToArray();
+            bool unitIsMixed = serializedLight.settings.lightUnit.hasMultipleDifferentValues;
+            LightUnit unit = serializedLight.settings.lightUnit.GetEnumValue<LightUnit>();
+
+            Rect rect = EditorGUILayout.GetControlRect();
+            Rect unitRect = rect;
+            unitRect.xMin = rect.xMax - k_UnitWidth;
+            Rect valueRect = rect;
+            valueRect.xMax = unitRect.xMin - k_ValueUnitSeparator;
+
+            // Converting to a unit a light type doesn't support throws, so only convert when every light supports it.
+            bool canConvert = !unitIsMixed && lights.All(light => LightUnitUtils.IsLightUnitSupported(light.type, unit));
+            var values = canConvert
+                ? lights.Select(light => LightUnitUtils.ConvertIntensity(light, light.intensity, LightUnitUtils.GetNativeLightUnit(light.type), unit)).ToArray()
+                : new[] { 0f };
+
+            var label = EditorGUI.BeginProperty(valueRect, LightUI.Styles.lightIntensity, serializedLight.settings.intensity);
+            using (new EditorGUI.DisabledScope(!canConvert))
+            {
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.showMixedValue = !canConvert || values.Any(value => !Mathf.Approximately(value, values[0]));
+                float newValue = EditorGUI.FloatField(valueRect, label, values[0]);
+                EditorGUI.showMixedValue = false;
+                if (EditorGUI.EndChangeCheck())
+                {
+                    serializedLight.Apply();
+                    foreach (var light in lights)
+                    {
+                        using (var lightObject = new SerializedObject(light))
+                        {
+                            LightUnit nativeUnit = LightUnitUtils.GetNativeLightUnit(light.type);
+                            lightObject.FindProperty("m_Intensity").floatValue =
+                                Mathf.Max(0f, LightUnitUtils.ConvertIntensity(light, newValue, unit, nativeUnit));
+                            lightObject.ApplyModifiedProperties();
+                        }
+                    }
+                    serializedLight.Update();
+                }
+            }
+            EditorGUI.EndProperty();
+
+            // Only offer units that every selected light type supports.
+            EditorGUI.BeginProperty(unitRect, GUIContent.none, serializedLight.settings.lightUnit);
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = unitIsMixed;
+            var newUnit = (LightUnit)EditorGUI.EnumPopup(unitRect, GUIContent.none, unit,
+                candidate => lights.All(light => LightUnitUtils.IsLightUnitSupported(light.type, (LightUnit)candidate)));
+            EditorGUI.showMixedValue = false;
+            if (EditorGUI.EndChangeCheck())
+                serializedLight.settings.lightUnit.SetEnumValue(newUnit);
+            EditorGUI.EndProperty();
+        }
+
+        // Warn the user when a light is too bright to display correctly because exposure is disabled.
+        static void DrawHighIntensityWithoutExposureWarning(UniversalRenderPipelineSerializedLight serializedLight)
+        {
+            // Roughly the brightest value URP's default colour format can store.
+            const float k_MaxUnexposedIntensity = 65000f;
+
+            var intensity = serializedLight.settings.intensity;
+            if (intensity.hasMultipleDifferentValues)
+                return;
+
+            // light.color is LDR, so intensity alone is a conservative upper bound on what reaches the shader.
+            if (intensity.floatValue <= k_MaxUnexposedIntensity)
+                return;
+
+            if (GraphicsSettings.TryGetRenderPipelineSettings<URPExposureSettings>(out var exposureSetting)
+                && exposureSetting.UseExposure)
+                return;
+
+            CoreEditorUtils.DrawFixMeBox(Styles.HighIntensityNoExposure, "Open", () =>
+            {
+                GraphicsSettingsInspectorUtility.OpenAndScrollTo<URPExposureSettings>(
+                    nameof(URPExposureSettings.UseExposure));
+            });
         }
 
 #if VOLUMETRIC_FOG
@@ -634,6 +735,32 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUILayout.PropertyField(serializedLight.lightCookieOffsetProp, Styles.LightCookieOffset);
                     if (EditorGUI.EndChangeCheck())
                         Experimental.Lightmapping.SetLightDirty((UnityEngine.Light)serializedLight.serializedObject.targetObject);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Validates that the current light unit is supported by the light type.
+        /// If not supported, resets to the native unit for that light type.
+        /// This prevents invalid unit states when switching between light types.
+        /// </summary>
+        static void UpdateLightIntensityUnit(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
+        {
+            LightType lightType = serializedLight.settings.lightType.GetEnumValue<LightType>();
+            LightUnit currentUnit = serializedLight.settings.lightUnit.GetEnumValue<LightUnit>();
+
+            // Check if current unit is supported by new light type
+            if (!LightUnitUtils.IsLightUnitSupported(lightType, currentUnit))
+            {
+                // Reset to native unit for this light type
+                LightUnit nativeUnit = LightUnitUtils.GetNativeLightUnit(lightType);
+                serializedLight.settings.lightUnit.SetEnumValue(nativeUnit);
+
+                // For directional lights, reset luxAtDistance to neutral value
+                // This ensures the first display value is correct
+                if (lightType == LightType.Directional)
+                {
+                    serializedLight.settings.luxAtDistance.floatValue = 1.0f;
                 }
             }
         }

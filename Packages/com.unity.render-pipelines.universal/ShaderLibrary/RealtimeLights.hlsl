@@ -161,7 +161,7 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
 {
     // Abstraction over Light input constants
     float4 lightPositionWS = _AdditionalLightsPosition[perObjectLightIndex];
-    half3 color = _AdditionalLightsColor[perObjectLightIndex].rgb;
+    URP_LIGHT_ACCUM3 color = _AdditionalLightsColor[perObjectLightIndex].rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsAttenuation[perObjectLightIndex];
     half4 spotDirection = _AdditionalLightsSpotDir[perObjectLightIndex];
     uint lightLayerMask = asuint(_AdditionalLightsLayerMasks[perObjectLightIndex]);

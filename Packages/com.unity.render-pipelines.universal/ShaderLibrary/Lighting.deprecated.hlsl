@@ -12,13 +12,13 @@
 // Deprecated keyword-reading wrappers, kept for external back-compat.
 // New code passes the keyword state as parameters (Lighting.hlsl).
 
-half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
-    half3 lightColor, half3 lightDirectionWS, float lightAttenuation,
+URP_LIGHT_ACCUM3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat,
+    URP_LIGHT_ACCUM3 lightColor, half3 lightDirectionWS, float lightAttenuation,
     half3 normalWS, half3 viewDirectionWS,
     half clearCoatMask, bool specularHighlights, bool clearCoatEnabled);
-half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat, Light light, half3 normalWS, half3 viewDirectionWS, half clearCoatMask, bool specularHighlights, bool clearCoatEnabled);
-half3 LightingPhysicallyBased(BRDFData brdfData, Light light, half3 normalWS, half3 viewDirectionWS, bool specularHighlights, bool clearCoatEnabled);
-half3 CalculateBlinnPhong(Light light, InputData inputData, SurfaceData surfaceData, bool specularEnabled, bool alphaPremultiplyEnabled);
+URP_LIGHT_ACCUM3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat, Light light, half3 normalWS, half3 viewDirectionWS, half clearCoatMask, bool specularHighlights, bool clearCoatEnabled);
+URP_LIGHT_ACCUM3 LightingPhysicallyBased(BRDFData brdfData, Light light, half3 normalWS, half3 viewDirectionWS, bool specularHighlights, bool clearCoatEnabled);
+URP_LIGHT_ACCUM3 CalculateBlinnPhong(Light light, InputData inputData, SurfaceData surfaceData, bool specularEnabled, bool alphaPremultiplyEnabled);
 URP_LIGHT_ACCUM4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData, bool specularSetup, bool specularHighlights, bool alphaPremultiplyEnabled, bool clearCoatEnabled, bool receiveShadows, bool surfaceTypeTransparent, bool environmentReflections);
 URP_LIGHT_ACCUM4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData, bool specularEnabled, bool alphaPremultiplyEnabled, bool receiveShadows, bool surfaceTypeTransparent);
 URP_LIGHT_ACCUM4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surfaceData, bool surfaceTypeTransparent);

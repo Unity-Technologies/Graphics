@@ -48,21 +48,22 @@ Varyings VertexFullScreen(Attributes input)
 
 float4x4 _ScreenToWorld[2];
 
-half3 DeferredLightContribution(Light light, InputData inputData, GBufferData gBufferData)
+URP_LIGHT_ACCUM3 DeferredLightContribution(Light light, InputData inputData, GBufferData gBufferData)
 {
+
     UNITY_BRANCH if (LightLayersAvailable() && !IsMatchingLightLayer(light.layerMask, gBufferData.meshRenderingLayers))
-        return half3(0.0, 0.0, 0.0);
+            return URP_LIGHT_ACCUM3(0.0, 0.0, 0.0);
 
     #if defined(_SIMPLELIT)
     {
         SurfaceData surfaceData = GBufferDataToSurfaceData(gBufferData);
-        half3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
-        half3 diffuseColor = LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
+        URP_LIGHT_ACCUM3 attenuatedLightColor = light.color * (light.distanceAttenuation * light.shadowAttenuation);
+        URP_LIGHT_ACCUM3 diffuseColor = LightingLambert(attenuatedLightColor, light.direction, inputData.normalWS);
         half smoothness = exp2(10 * surfaceData.smoothness + 1);
-        half3 specularColor = LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), smoothness);
+        URP_LIGHT_ACCUM3 specularColor = LightingSpecular(attenuatedLightColor, light.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), smoothness);
 
         // TODO: if !defined(_SPECGLOSSMAP) && !defined(_SPECULAR_COLOR), force specularColor to 0 in gbuffer code
-        return half3(diffuseColor * surfaceData.albedo + specularColor);
+        return diffuseColor * surfaceData.albedo + specularColor;
     }
     #elif defined(_LIT)
     {
@@ -74,7 +75,7 @@ half3 DeferredLightContribution(Light light, InputData inputData, GBufferData gB
         #endif
 
         BRDFData brdfData = GBufferDataToBRDFData(gBufferData);
-        return half3(LightingPhysicallyBased(brdfData, light, inputData.normalWS, inputData.viewDirectionWS, !materialSpecularHighlightsOff, false));
+        return LightingPhysicallyBased(brdfData, light, inputData.normalWS, inputData.viewDirectionWS, !materialSpecularHighlightsOff, false);
     }
     #endif
 

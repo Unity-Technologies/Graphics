@@ -152,7 +152,7 @@ half3 EnvironmentBRDFSpecular(BRDFData brdfData, half fresnelTerm)
     return half3(surfaceReduction * lerp(brdfData.specular, brdfData.grazingTerm, fresnelTerm));
 }
 
-URP_LIGHT_ACCUM3 EnvironmentBRDF(BRDFData brdfData, URP_LIGHT_ACCUM3 indirectDiffuse, half3 indirectSpecular, half fresnelTerm)
+URP_LIGHT_ACCUM3 EnvironmentBRDF(BRDFData brdfData, URP_LIGHT_ACCUM3 indirectDiffuse, URP_LIGHT_ACCUM3 indirectSpecular, half fresnelTerm)
 {
     URP_LIGHT_ACCUM3 c = indirectDiffuse * brdfData.diffuse;
     c += indirectSpecular * EnvironmentBRDFSpecular(brdfData, fresnelTerm);
@@ -160,7 +160,7 @@ URP_LIGHT_ACCUM3 EnvironmentBRDF(BRDFData brdfData, URP_LIGHT_ACCUM3 indirectDif
 }
 
 // Environment BRDF without diffuse for clear coat
-half3 EnvironmentBRDFClearCoat(BRDFData brdfData, half clearCoatMask, half3 indirectSpecular, half fresnelTerm)
+URP_LIGHT_ACCUM3 EnvironmentBRDFClearCoat(BRDFData brdfData, half clearCoatMask, URP_LIGHT_ACCUM3 indirectSpecular, half fresnelTerm)
 {
     return indirectSpecular * EnvironmentBRDFSpecular(brdfData, fresnelTerm) * clearCoatMask;
 }

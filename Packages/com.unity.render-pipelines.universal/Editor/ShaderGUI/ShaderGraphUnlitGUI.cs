@@ -43,6 +43,7 @@ namespace UnityEditor
         public override void ValidateMaterial(Material material)
         {
             UpdateMaterial(material, MaterialUpdateType.ModifiedMaterial);
+            UpdateEmissionColor(material);
         }
 
         // material main surface inputs

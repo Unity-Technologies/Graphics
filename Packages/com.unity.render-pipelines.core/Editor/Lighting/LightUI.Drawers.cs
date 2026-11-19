@@ -252,19 +252,27 @@ namespace UnityEditor.Rendering
         /// <returns>The light unit that has been selected by the user. </returns>
         public static LightUnit DrawLightIntensityUnitPopup(Rect position, LightUnit selected, LightType type)
         {
-            switch (type)
+#pragma warning disable CS8524 // intentionally cover only named LightTypes; Warning flags a new one not in the switch
+            return type switch
             {
-                case LightType.Box:
-                case LightType.Directional:
-                    return (LightUnit)EditorGUI.EnumPopup(position, (DirectionalLightUnit)selected);
+                LightType.Directional or LightType.Box                  => DrawPopup<DirectionalLightUnit>(),
+                LightType.Point or LightType.Spot or LightType.Pyramid  => DrawPopup<PunctualLightUnit>(),
+                LightType.Rectangle or LightType.Disc or LightType.Tube => DrawPopup<AreaLightUnit>(),
+            };
+#pragma warning restore CS8524
 
-                case LightType.Point:
-                case LightType.Spot:
-                case LightType.Pyramid:
-                        return (LightUnit)EditorGUI.EnumPopup(position, (PunctualLightUnit)selected);
+            // Draws the unit dropdown for the given per-type unit enum. If single unit, it renders as a disabled field.
+            LightUnit DrawPopup<TUnit>() where TUnit : struct, Enum
+            {
+                if (Enum.GetValues(typeof(TUnit)).Length <= 1)
+                {
+                    LightUnit native = LightUnitUtils.GetNativeLightUnit(type);
+                    using (new EditorGUI.DisabledScope(true))
+                        EditorGUI.EnumPopup(position, native);
+                    return native;
+                }
 
-                default:
-                    return (LightUnit)EditorGUI.EnumPopup(position, (AreaLightUnit)selected);
+                return (LightUnit)EditorGUI.EnumPopup(position, (TUnit)(object)selected);
             }
         }
     }

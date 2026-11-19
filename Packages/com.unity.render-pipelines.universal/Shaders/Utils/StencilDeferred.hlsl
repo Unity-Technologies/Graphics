@@ -85,7 +85,7 @@ Varyings Vertex(Attributes input)
 float4x4 _ScreenToWorld[2];
 
 float3 _LightPosWS;
-half3 _LightColor;
+float3 _LightColor;
 half4 _LightAttenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation *for SpotLights)
 half3 _LightDirection;   // directional/spotLights support
 half4 _LightOcclusionProbInfo;
@@ -336,10 +336,10 @@ half4 DeferredShading(Varyings input) : SV_Target
         color = LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS, !materialSpecularHighlightsOff, false);
     #elif defined(_SIMPLELIT)
         SurfaceData surfaceData = GBufferDataToSurfaceData(gBufferData);
-        half3 attenuatedLightColor = unityLight.color * (unityLight.distanceAttenuation * unityLight.shadowAttenuation);
-        half3 diffuseColor = LightingLambert(attenuatedLightColor, unityLight.direction, inputData.normalWS);
+        URP_LIGHT_ACCUM3 attenuatedLightColor = unityLight.color * (unityLight.distanceAttenuation * unityLight.shadowAttenuation);
+        URP_LIGHT_ACCUM3 diffuseColor = LightingLambert(attenuatedLightColor, unityLight.direction, inputData.normalWS);
         half smoothness = exp2(10 * surfaceData.smoothness + 1);
-        half3 specularColor = LightingSpecular(attenuatedLightColor, unityLight.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), smoothness);
+        URP_LIGHT_ACCUM3 specularColor = LightingSpecular(attenuatedLightColor, unityLight.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), smoothness);
 
         // TODO: if !defined(_SPECGLOSSMAP) && !defined(_SPECULAR_COLOR), force specularColor to 0 in gbuffer code
         color = diffuseColor * surfaceData.albedo + specularColor;

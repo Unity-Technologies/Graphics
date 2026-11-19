@@ -16,6 +16,12 @@ Shader "Universal Render Pipeline/Particles/Lit"
 
         [HDR] _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
+        [ToggleUI] _UseEmissionIntensity("Use Emission Intensity", Float) = 0.0
+        // Used only to serialize the LDR and HDR emissive color in the material UI,
+        // in the shader only the _EmissionColor should be used
+        [HideInInspector] _EmissionColorLDR("Color LDR", Color) = (1,1,1,1)
+        _EmissionIntensity("Emission Intensity", Float) = 1.0
+        _EmissionIntensityUnit("EmissionIntensity Unit", Int) = 0  // 0=Nits, 1=EV100
         [ToggleUI] _ReceiveShadows("Receive Shadows", Float) = 1.0
 
         // -------------------------------------

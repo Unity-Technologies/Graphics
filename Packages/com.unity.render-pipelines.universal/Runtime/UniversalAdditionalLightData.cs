@@ -406,7 +406,7 @@ namespace UnityEngine.Rendering.Universal
             if (light)
                 light.renderingLayerMask = m_CustomShadowLayers ? m_ShadowRenderingLayersMask : m_RenderingLayersMask;
         }
-        
+
         enum Version
         {
             Initial = 0,
