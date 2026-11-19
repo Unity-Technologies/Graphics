@@ -136,7 +136,7 @@ half4 _ScreenSpaceReflectionParam;
 #endif
 
 // GLES3 causes a performance regression in some devices when using CBUFFER.
-#ifndef LIGHT_SHADOWS_NO_CBUFFER
+#if defined(URP_PERSISTENT_CONSTANT_BUFFERS_ACTIVE)
 CBUFFER_START(AdditionalLights)
 #endif
 float4 _AdditionalLightsPosition[MAX_VISIBLE_LIGHTS];
@@ -145,7 +145,7 @@ float4 _AdditionalLightsColor[MAX_VISIBLE_LIGHTS];
 float4 _AdditionalLightsAttenuation[MAX_VISIBLE_LIGHTS];
 float4 _AdditionalLightsSpotDir[MAX_VISIBLE_LIGHTS];
 float4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];
-#ifndef LIGHT_SHADOWS_NO_CBUFFER
+#if defined(URP_PERSISTENT_CONSTANT_BUFFERS_ACTIVE)
 CBUFFER_END
 #endif
 
@@ -177,7 +177,7 @@ TEXTURE2D(urp_ReflProbes_Atlas);
 // 2023.3 Deprecated. This is for backwards compatibility. Remove in the future.
 #define samplerurp_ReflProbes_Atlas sampler_LinearClamp
 
-#ifndef LIGHT_SHADOWS_NO_CBUFFER
+#if defined(URP_PERSISTENT_CONSTANT_BUFFERS_ACTIVE)
 CBUFFER_START(urp_ReflectionProbeBuffer)
 #endif
 float4 urp_ReflProbes_BoxMax[MAX_REFLECTION_PROBES];          // w contains the blend distance
@@ -186,7 +186,7 @@ float4 urp_ReflProbes_ProbePosition[MAX_REFLECTION_PROBES];   // w is positive f
 float4 urp_ReflProbes_MipScaleOffset[MAX_REFLECTION_PROBES * 7];
 float4 urp_ReflProbes_Rotation[MAX_REFLECTION_PROBES];
 float4 urp_ReflProbes_ExposureMultipliers[MAX_REFLECTION_PROBES];
-#ifndef LIGHT_SHADOWS_NO_CBUFFER
+#if defined(URP_PERSISTENT_CONSTANT_BUFFERS_ACTIVE)
 CBUFFER_END
 #endif
 

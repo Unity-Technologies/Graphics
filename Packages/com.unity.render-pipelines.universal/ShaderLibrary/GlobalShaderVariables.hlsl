@@ -3,6 +3,11 @@
 
 #define MAX_SHADOW_CASCADES 4
 
+// URP fills its constant buffers from C# everywhere but GLES3 outside WebGL, like RenderingUtils.usePersistentConstantBuffer.
+#if !defined(SHADER_API_GLES3) || defined(UNITY_PLATFORM_WEBGL)
+#define URP_PERSISTENT_CONSTANT_BUFFERS_ACTIVE
+#endif
+
 // OpenGL Core alone. Switch and Switch 2 compile their shaders as OpenGL Core unless they use DXC, so their shaders get
 // SHADER_API_GLCORE too, next to SHADER_API_SWITCH or SHADER_API_SWITCH2: testing SHADER_API_GLCORE alone would catch them.
 #if defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH) && !defined(SHADER_API_SWITCH2)
@@ -13,7 +18,7 @@
 // Declared on every API but GLES3 outside WebGL, and OpenGL Core, where the constant buffers of DOTS instancing can
 // leave no slot for it; the condition must match UniversalRenderPipeline.IsGlobalConstantBufferSupported().
 // Use Persistent Global Constant Buffer only chooses who fills it.
-#if (!defined(SHADER_API_GLES3) || defined(UNITY_PLATFORM_WEBGL)) && !defined(URP_SHADER_API_GLCORE)
+#if defined(URP_PERSISTENT_CONSTANT_BUFFERS_ACTIVE) && !defined(URP_SHADER_API_GLCORE)
 #define URP_GLOBAL_CONSTANT_BUFFER_ACTIVE
 #endif
 

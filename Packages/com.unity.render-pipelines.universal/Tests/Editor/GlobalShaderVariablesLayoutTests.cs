@@ -65,7 +65,7 @@ namespace UnityEditor.Rendering.Universal.Tests
         static readonly Regex k_HlslDefine = new Regex(@"^#define\s+(\w+)\s+(\d+)\s*$");
 
         // The define URP declares its global constant buffer under, so the layout the hlsl is read for.
-        const string k_PersistentConstantBuffersDefine = "URP_GLOBAL_CONSTANT_BUFFER";
+        const string k_GlobalConstantBufferDefine = "URP_GLOBAL_CONSTANT_BUFFER_ACTIVE";
 
         [Test]
         public void FieldTypesAreConstantBufferSafe([ValueSource(nameof(k_LayoutTypes))] Type layoutType)
@@ -238,8 +238,8 @@ namespace UnityEditor.Rendering.Universal.Tests
             var defines = new Dictionary<string, int>();
 
             // A member can be declared once per branch of a conditional, when only its precision changes. The layout
-            // read here is the one declared under URP_GLOBAL_CONSTANT_BUFFER, so the branch taken is the one that define
-            // selects. Conditions are tracked as a stack because of the include guard wrapping the whole file.
+            // read here is the one declared under URP_GLOBAL_CONSTANT_BUFFER_ACTIVE, so the branch taken is the one that
+            // define selects. Conditions are tracked as a stack because of the include guard wrapping the whole file.
             var conditions = new List<string>();
             bool skipping = false;
 
@@ -266,16 +266,16 @@ namespace UnityEditor.Rendering.Universal.Tests
                     else if (trimmed.StartsWith("#elif", StringComparison.Ordinal))
                     {
                         Assert.Fail("GlobalShaderVariables.hlsl uses #elif, which this parser cannot attribute to a " +
-                            "branch. Declare the layout under a plain #if on URP_GLOBAL_CONSTANT_BUFFER instead.");
+                            $"branch. Declare the layout under a plain #if on {k_GlobalConstantBufferDefine} instead.");
                     }
                     else if (trimmed.StartsWith("#else", StringComparison.Ordinal))
                     {
-                        // Only the URP_GLOBAL_CONSTANT_BUFFER condition has a known answer here, so anything else
+                        // Only the URP_GLOBAL_CONSTANT_BUFFER_ACTIVE condition has a known answer here, so anything else
                         // would leave the layout ambiguous instead of silently picking one of the two branches.
                         Assert.That(conditions.Count, Is.GreaterThan(0), "GlobalShaderVariables.hlsl has an #else without a matching #if.");
-                        Assert.That(conditions[conditions.Count - 1], Does.Contain(k_PersistentConstantBuffersDefine),
+                        Assert.That(conditions[conditions.Count - 1], Does.Contain(k_GlobalConstantBufferDefine),
                             $"GlobalShaderVariables.hlsl declares members under '{conditions[conditions.Count - 1]}', whose #else branch " +
-                            $"cannot be resolved. Only a conditional on {k_PersistentConstantBuffersDefine} may hold two versions of a member.");
+                            $"cannot be resolved. Only a conditional on {k_GlobalConstantBufferDefine} may hold two versions of a member.");
 
                         skipping = true;
                     }

@@ -278,13 +278,13 @@ float4      _AdditionalShadowFadeParams; // (x: additional light fade scale, y: 
 // devices where max number of uniforms per shader GL_MAX_FRAGMENT_UNIFORM_VECTORS is low (224)
 
 // GLES3 causes a performance regression in some devices when using CBUFFER.
-#ifndef LIGHT_SHADOWS_NO_CBUFFER
+#if defined(URP_PERSISTENT_CONSTANT_BUFFERS_ACTIVE)
 CBUFFER_START(AdditionalLightShadows)
 #endif
 float4x4    _AdditionalLightsWorldToShadow[MAX_VISIBLE_LIGHTS];  // Per-shadow-slice-data
 float4      _AdditionalShadowParams[MAX_VISIBLE_LIGHTS];         // Per-light data: (x: shadowStrength, y: softShadows, z: light type (Spot: 0, Point: 1), w: perLightFirstShadowSliceIndex)
 float4      _AdditionalShadowReceiverNormalBias[(MAX_VISIBLE_LIGHTS + 3) / 4]; // Per-light world-space receiver normal bias, four lights packed per float4 (all zero in caster mode)
-#ifndef LIGHT_SHADOWS_NO_CBUFFER
+#if defined(URP_PERSISTENT_CONSTANT_BUFFERS_ACTIVE)
 CBUFFER_END
 #endif
 

@@ -8,7 +8,7 @@ using UnityEngine.TestTools;
 namespace UnityEditor.Rendering.Universal.Tests
 {
     // URP decides in C# whether it fills its light data into persistent constant buffers (RenderingUtils.usePersistentConstantBuffer),
-    // and the shaders pick the matching layout in LightCookieInput.hlsl.
+    // and the shaders pick the matching layout with URP_PERSISTENT_CONSTANT_BUFFERS_ACTIVE (GlobalShaderVariables.hlsl).
     // If the two disagree on a platform, URP uploads one layout while the shaders read another.
     // This test compiles Lit for each kind of platform and checks that its light cookie layout is the one
     // usePersistentConstantBuffer picks on that platform, which each test case states.
@@ -73,7 +73,7 @@ namespace UnityEditor.Rendering.Universal.Tests
             Assert.AreEqual(expectPersistent, persistentLayout,
                 $"For {compilerPlatform} ({buildTarget}), RenderingUtils.usePersistentConstantBuffer is {expectPersistent}, " +
                 $"but the shaders use the {(persistentLayout ? "persistent" : "field-wise")} light cookie layout. " +
-                $"Check the URP_LIGHT_COOKIE_PERSISTENT_CBUFFER condition in LightCookieInput.hlsl. Constant buffers:\n{reflected}");
+                $"Check URP_PERSISTENT_CONSTANT_BUFFERS_ACTIVE in GlobalShaderVariables.hlsl. Constant buffers:\n{reflected}");
         }
 
         static ShaderData.Pass FindPass(ShaderData shaderData, string passName)

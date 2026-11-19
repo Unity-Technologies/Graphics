@@ -97,12 +97,12 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Persistent CBUFFERs exist on C# side as Graphics/ComputeBuffer and are filled with SetData(), unlike transient CBUFFERs that have no real existence on C# side
-        // Must be kept in sync with LightCookieInput.hlsl and GlobalShaderVariables.hlsl
+        // Must be kept in sync with URP_PERSISTENT_CONSTANT_BUFFERS_ACTIVE in GlobalShaderVariables.hlsl
         internal static bool usePersistentConstantBuffer
         {
             get
             {
-                // - On GLES3 non-WebGL, CBs are disabled (not even transient, see LIGHT_SHADOWS_NO_CBUFFER) due to Adreno perf issues with large CBs
+                // - On GLES3 non-WebGL, CBs are disabled (not even transient, see URP_PERSISTENT_CONSTANT_BUFFERS_ACTIVE) due to Adreno perf issues with large CBs
                 // - WebGL reports as GLES3 but keeps its light data in CBs, so it uses the persistent CB path too
                 // - Everywhere else we use the persistent CB path for optimal performance at shader setup on native engine side.
                 // The shaders get UNITY_PLATFORM_WEBGL from the build target, so in the Editor this follows the active build target.
