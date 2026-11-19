@@ -134,8 +134,8 @@ namespace Unity.Rendering.Universal.Tests
 
     public class UniversalTestFixtureData
     {
-        // Each fixture runs in both modes of URP's global constant buffer, from the same build, except on OpenGL ES 3 and
-        // OpenGL Core, which keep loose uniforms. GRDEnabled with PersistentCB is "modern URP".
+        // Each fixture runs in both modes of URP's global constant buffer, from the same build, except on OpenGL ES 3 outside
+        // WebGL and OpenGL Core, which keep loose uniforms. GRDEnabled with PersistentCB is "modern URP".
         public static IEnumerable FixtureParams
         {
             get

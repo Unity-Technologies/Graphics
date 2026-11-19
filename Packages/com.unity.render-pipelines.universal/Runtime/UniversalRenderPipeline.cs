@@ -2845,7 +2845,7 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Whether URP's shaders declare its global constant buffer on this graphics API, see GlobalShaderVariables.hlsl.
-        /// OpenGL ES 3 and OpenGL Core keep loose uniforms.
+        /// OpenGL ES 3 outside WebGL and OpenGL Core keep loose uniforms.
         /// </summary>
         internal static bool IsGlobalConstantBufferSupported()
         {

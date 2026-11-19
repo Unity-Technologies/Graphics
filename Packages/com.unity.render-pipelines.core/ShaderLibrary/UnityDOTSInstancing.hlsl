@@ -317,9 +317,12 @@ void SetupDOTSVisibleInstancingData()
     uint crossFadeValuePacked = unity_DOTSVisibleInstances[0].VisibleData.w & kDOTSInstancingFlagLODCrossFadeValuePacked;
     unity_SampledDOTSIndirectVisibleIndex = (packedIndirectVisibleOffset & ~kIndirectVisibleOffsetEnabledBit) + unity_InstanceID;
 
+    // WebGL 2 has no indirect draws, so BRG never sets an indirect visible offset there.
+#if !(defined(UNITY_PLATFORM_WEBGL) && defined(SHADER_API_GLES3))
     if (packedIndirectVisibleOffset != 0)
         unity_SampledDOTSInstanceIndex = LoadDOTSIndirectInstanceIndex(unity_SampledDOTSIndirectVisibleIndex);
     else
+#endif
         unity_SampledDOTSInstanceIndex = unity_DOTSVisibleInstances[unity_InstanceID].VisibleData.x;
 
     if(crossFadeValuePacked != 0)

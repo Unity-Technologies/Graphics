@@ -10,10 +10,10 @@
 #endif
 
 // This CB layout is directly matching GlobalShaderVariables.cs, make sure to keep the two up to date
-// Declared on every API but GLES3, which WebGL2 also reports, and OpenGL Core, where the constant buffers of DOTS instancing
-// can leave no slot for it; the condition must match UniversalRenderPipeline.IsGlobalConstantBufferSupported().
+// Declared on every API but GLES3 outside WebGL, and OpenGL Core, where the constant buffers of DOTS instancing can
+// leave no slot for it; the condition must match UniversalRenderPipeline.IsGlobalConstantBufferSupported().
 // Use Persistent Global Constant Buffer only chooses who fills it.
-#if !defined(SHADER_API_GLES3) && !defined(URP_SHADER_API_GLCORE)
+#if (!defined(SHADER_API_GLES3) || defined(UNITY_PLATFORM_WEBGL)) && !defined(URP_SHADER_API_GLCORE)
 #define URP_GLOBAL_CONSTANT_BUFFER_ACTIVE
 #endif
 

@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.Universal
 
         #region SerializeFields
         [SerializeField]
-        [Tooltip("URP binds its global shader variables as a persistent constant buffer instead of letting the engine fill it from loose uniforms. Scripts can then no longer change these variables with SetGlobal*, Material.Set*, a MaterialPropertyBlock or ComputeShader.Set*. OpenGL ES 3 and OpenGL Core keep loose uniforms.")]
+        [Tooltip("URP binds its global shader variables as a persistent constant buffer instead of letting the engine fill it from loose uniforms. Scripts can then no longer change these variables with SetGlobal*, Material.Set*, a MaterialPropertyBlock or ComputeShader.Set*. OpenGL ES 3 outside WebGL and OpenGL Core keep loose uniforms.")]
         bool m_UsePersistentGlobalConstantBuffer = false;
         #endregion
 
@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.Universal
         /// When enabled, URP binds its global constant buffer itself (persistent mode), and scripts can no longer change its
         /// variables with SetGlobal*, Material.Set*, a MaterialPropertyBlock or ComputeShader.Set*. Otherwise the engine
         /// fills it from URP's loose uniforms (transient mode). Both modes run the same shaders, so changing it recompiles
-        /// no shader. OpenGL ES 3 and OpenGL Core keep loose uniforms.
+        /// no shader. OpenGL ES 3 outside WebGL and OpenGL Core keep loose uniforms.
         /// </summary>
         public bool useGlobalConstantBuffer
         {

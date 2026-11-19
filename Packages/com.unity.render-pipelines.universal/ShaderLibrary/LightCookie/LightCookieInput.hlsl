@@ -11,10 +11,10 @@ TEXTURE2D(_AdditionalLightsCookieAtlasTexture);
 // Samplers
 SAMPLER(sampler_MainLightCookieTexture);
 
-// Persistent constant buffer everywhere except GLES3, which falls back to field-wise SetGlobalXArray. WebGL2
-// reports as GLES3. Must match RenderingUtils.usePersistentConstantBuffer: if the two disagree, the field-wise
+// Persistent constant buffer everywhere except GLES3 outside WebGL, which falls back to field-wise SetGlobalXArray.
+// Must match RenderingUtils.usePersistentConstantBuffer: if the two disagree, the field-wise
 // uploads never run and the shader reads whatever is in the bound buffer.
-#if !defined(SHADER_API_GLES3)
+#if !defined(SHADER_API_GLES3) || defined(UNITY_PLATFORM_WEBGL)
     #define URP_LIGHT_COOKIE_PERSISTENT_CBUFFER
 #endif
 
@@ -26,18 +26,12 @@ CBUFFER_START(LightCookies)
     float4 _AdditionalLightsCookieEnableBits[(MAX_VISIBLE_LIGHTS + 31) / 32]; // yzw are padding
 CBUFFER_END
 #else
-    // Field-wise layout, GLES3 only: a transient CBUFFER on WebGL2, plain loose uniforms elsewhere, since
-    // CBUFFER causes a performance regression on some GLES3 devices.
-    #ifndef LIGHT_SHADOWS_NO_CBUFFER
-    CBUFFER_START(LightCookies)
-    #endif
-        float4x4 _AdditionalLightsWorldToLights[MAX_VISIBLE_LIGHTS];
-        float4 _AdditionalLightsCookieAtlasUVRects[MAX_VISIBLE_LIGHTS];
-        float _AdditionalLightsLightTypes[MAX_VISIBLE_LIGHTS];
-        float _AdditionalLightsCookieEnableBits[(MAX_VISIBLE_LIGHTS + 31) / 32];
-    #ifndef LIGHT_SHADOWS_NO_CBUFFER
-    CBUFFER_END
-    #endif
+    // Field-wise layout, GLES3 outside WebGL only: plain loose uniforms, since CBUFFER causes a performance
+    // regression on some GLES3 devices.
+    float4x4 _AdditionalLightsWorldToLights[MAX_VISIBLE_LIGHTS];
+    float4 _AdditionalLightsCookieAtlasUVRects[MAX_VISIBLE_LIGHTS];
+    float _AdditionalLightsLightTypes[MAX_VISIBLE_LIGHTS];
+    float _AdditionalLightsCookieEnableBits[(MAX_VISIBLE_LIGHTS + 31) / 32];
 #endif
 
 
