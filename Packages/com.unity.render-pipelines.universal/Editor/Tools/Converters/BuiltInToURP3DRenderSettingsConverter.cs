@@ -44,6 +44,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         UniversalRendererData CreateUniversalRendererDataAsset(RenderingPath renderingPath, RenderingMode renderingMode)
         {
             string path = $"Assets/{UniversalProjectSettings.projectSettingsFolderPath}/Default_{renderingMode}_Renderer.asset";
@@ -60,6 +61,7 @@ namespace UnityEditor.Rendering.Universal
 
             return asset;
         }
+#pragma warning restore CS0618
 
         void GetRenderers(out ScriptableRendererData[] renderers, out int defaultIndex)
         {
@@ -225,6 +227,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         private RenderingMode GetEquivalentRenderMode(RenderingPath path)
         {
             switch (path)
@@ -238,6 +241,7 @@ namespace UnityEditor.Rendering.Universal
                     return RenderingMode.Forward;
             }
         }
+#pragma warning restore CS0618
 
         #endregion
     }

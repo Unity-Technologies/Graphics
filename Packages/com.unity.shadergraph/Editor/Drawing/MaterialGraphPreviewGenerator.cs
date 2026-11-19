@@ -51,8 +51,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Explicitly use forward rendering for all previews
             // (deferred fails when generating some static previews at editor launch; and we never want
             // vertex lit previews if that is chosen in the player settings)
-            m_Camera.renderingPath = RenderingPath.Forward;
             #pragma warning disable CS0618
+            m_Camera.renderingPath = RenderingPath.Forward;
             m_Camera.useOcclusionCulling = false;
             #pragma warning restore CS0618
             m_Camera.scene = m_Scene;
