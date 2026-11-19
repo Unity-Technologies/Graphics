@@ -987,7 +987,19 @@ namespace UnityEngine.Rendering
         internal void UnloadBakingSet()
         {
             // Need to make sure everything is unloaded before killing the baking set ref (we need it to unload cell CPU data).
+#if UNITY_EDITOR
+            m_IsUnloadingBakingSet = true;
+            try
+            {
+                PerformPendingOperations();
+            }
+            finally
+            {
+                m_IsUnloadingBakingSet = false;
+            }
+#else
             PerformPendingOperations();
+#endif
 
             if (m_CurrentBakingSet != null)
                 m_CurrentBakingSet.Cleanup();
@@ -1643,13 +1655,14 @@ namespace UnityEngine.Rendering
 
 #if UNITY_EDITOR
         Scene m_TrackedActiveScene;
+        bool m_IsUnloadingBakingSet;
 
         // Keeps the current baking set in sync with the active scene. Skipped while a bake is running, since the
         // current set is owned by EnsureCurrentBakingSet for its duration; the mismatch is picked up again once the
         // bake ends, on whichever call to PerformPendingOperations comes first.
         internal void TrackActiveScene()
         {
-            if (Application.isPlaying || UnityEditor.Lightmapping.isRunning || isBakingAdaptiveProbeVolumes)
+            if (m_IsUnloadingBakingSet || Application.isPlaying || UnityEditor.Lightmapping.isRunning || isBakingAdaptiveProbeVolumes)
                 return;
 
             var activeScene = SceneManager.GetActiveScene();
