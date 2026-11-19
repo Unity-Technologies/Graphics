@@ -703,6 +703,7 @@ namespace UnityEditor.ShaderGraph
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.textCoreLoc,                                 requirements.requiresUITK),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.layoutUV,                                    requirements.requiresUITK),
                 new ConditionalField(StructFields.SurfaceDescriptionInputs.circle,                                      requirements.requiresUITK),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.opacity,                                     requirements.requiresUITK),
 
                 new ConditionalField(Fields.ObjectToWorld, requirements.requiresTransforms.Contains(NeededTransform.ObjectToWorld)),
                 new ConditionalField(Fields.WorldToObject, requirements.requiresTransforms.Contains(NeededTransform.WorldToObject)),
@@ -1021,6 +1022,14 @@ namespace UnityEditor.ShaderGraph
                 {
                     sb.AppendLine("uint {0};", ShaderGeneratorNames.InstanceID);
                 }
+
+                if (requirements.requiresUITK)
+                {
+                    foreach (var field in StructFields.SurfaceDescriptionInputs.uitkFields)
+                    {
+                        sb.AppendLine($"{field.type} {field.name};");
+                    }
+                }
             }
         }
 
@@ -1075,6 +1084,14 @@ namespace UnityEditor.ShaderGraph
             if (requirements.requiresInstanceID)
             {
                 sb.AppendLine($"{variableName}.{ShaderGeneratorNames.InstanceID} = IN.{ShaderGeneratorNames.InstanceID};");
+            }
+
+            if (requirements.requiresUITK)
+            {
+                foreach (var field in StructFields.SurfaceDescriptionInputs.uitkFields)
+                {
+                    sb.AppendLine($"{variableName}.{field.name} = IN.{field.name};");
+                }
             }
         }
 

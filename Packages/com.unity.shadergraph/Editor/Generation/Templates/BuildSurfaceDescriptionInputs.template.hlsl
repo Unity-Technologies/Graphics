@@ -89,7 +89,11 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     $SurfaceDescriptionInputs.typeTexSettings:                          output.typeTexSettings =                            input.texCoord5;
     $SurfaceDescriptionInputs.textCoreLoc:                              output.textCoreLoc =                                input.texCoord6.xy;
     $SurfaceDescriptionInputs.layoutUV:                                 output.layoutUV =                                   input.texCoord6.zw;
+#if defined(VARYINGS_NEED_OPACITY)
     $SurfaceDescriptionInputs.opacity:                                  output.opacity =                                    input.opacity;
+#else
+    $SurfaceDescriptionInputs.opacity:                                  output.opacity =                                    1.0;
+#endif
 
     $SurfaceDescriptionInputs.circle:                                   output.circle =                                     input.texCoord7;
     

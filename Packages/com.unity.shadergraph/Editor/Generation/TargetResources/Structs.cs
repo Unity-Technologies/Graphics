@@ -170,6 +170,7 @@ namespace UnityEditor.ShaderGraph
                 StructFields.SurfaceDescriptionInputs.textCoreLoc,
                 StructFields.SurfaceDescriptionInputs.layoutUV,
                 StructFields.SurfaceDescriptionInputs.circle,
+                StructFields.SurfaceDescriptionInputs.opacity,
             }
         };
     }
