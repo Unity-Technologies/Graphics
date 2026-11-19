@@ -84,6 +84,9 @@ namespace UnityEngine.Rendering.Universal
 
         static readonly bool s_PCSSSupported;
 
+        // Whether the graphics device supports PCSS at all, whatever the asset settings
+        internal static bool isPCSSSupported => s_PCSSSupported;
+
         static ShadowUtils()
         {
             m_ForceShadowPointSampling = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal &&

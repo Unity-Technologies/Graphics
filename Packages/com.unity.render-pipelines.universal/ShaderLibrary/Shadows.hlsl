@@ -288,15 +288,14 @@ float4      _AdditionalShadowReceiverNormalBias[(MAX_VISIBLE_LIGHTS + 3) / 4]; /
 CBUFFER_END
 #endif
 
-// Kept out of AdditionalLightShadows so that only the PCSS variants reference it.
-#ifndef LIGHT_SHADOWS_NO_CBUFFER
-CBUFFER_START(AdditionalLightPCSS)
-#endif
-float4      _AdditionalLightsPCSSParams[MAX_VISIBLE_LIGHTS];     // Per-light data: (x: softness, y: min filter radius, z: blocker sample count, w: filter sample count)
-float4      _AdditionalLightsPCSSZParams[MAX_VISIBLE_LIGHTS];    // Per-light data: blocker depth linearization ((f-n)/n, 1.0, (f-n)/(n*f), 1/f)
-float4      _AdditionalLightsPCSSAtlas[MAX_VISIBLE_LIGHTS];      // Per-shadow-slice-data: (xy: atlas tile offset in UV, zw: atlas tile scale in UV)
-#ifndef LIGHT_SHADOWS_NO_CBUFFER
-CBUFFER_END
+// Kept out of AdditionalLightShadows so that only the PCSS variants reference it, and in a structured buffer so that it
+// takes no constant buffer slot. MAX_VISIBLE_LIGHTS float4 of each, in this order:
+// per-light params (x: softness, y: min filter radius, z: blocker sample count, w: filter sample count),
+// per-light blocker depth linearization ((f-n)/n, 1.0, (f-n)/(n*f), 1/f),
+// per-shadow-slice atlas rects (xy: atlas tile offset in UV, zw: atlas tile scale in UV).
+// OpenGL has no PCSS (ShadowUtils.SupportsPCSS), and OpenGL ES fragment shaders may not read structured buffers.
+#if !defined(SHADER_API_GLES3) && !defined(URP_SHADER_API_GLCORE)
+StructuredBuffer<float4> _AdditionalLightsPCSSData;
 #endif
 
 // x: depth bias,
@@ -946,11 +945,12 @@ half SampleMainLightRealtimeShadow(float4 shadowCoord, float3 positionWS, bool i
 
 half SampleShadowmapPCSSPunctual(int lightIndex, int shadowSliceIndex, float4 shadowCoord, float2 positionSS, half4 shadowParams)
 {
+#if !defined(SHADER_API_GLES3) && !defined(URP_SHADER_API_GLCORE)
     // Spot and point shadows use a perspective projection.
     shadowCoord.xyz /= shadowCoord.w;
 
-    float4 pcssParams = _AdditionalLightsPCSSParams[lightIndex];
-    float4 atlas = _AdditionalLightsPCSSAtlas[shadowSliceIndex];
+    float4 pcssParams = _AdditionalLightsPCSSData[lightIndex];
+    float4 atlas = _AdditionalLightsPCSSData[2 * MAX_VISIBLE_LIGHTS + shadowSliceIndex];
 
     // A slice with no rectangle was never rendered, for example a culled face of a point light.
     if (atlas.z <= 0.0)
@@ -961,13 +961,16 @@ half SampleShadowmapPCSSPunctual(int lightIndex, int shadowSliceIndex, float4 sh
         atlas.zw, atlas.xy,
         pcssParams.x, pcssParams.y,
         (int)pcssParams.z, (int)pcssParams.w,
-        _AdditionalLightsPCSSZParams[lightIndex], _AdditionalShadowmapSize.zw,
+        _AdditionalLightsPCSSData[MAX_VISIBLE_LIGHTS + lightIndex], _AdditionalShadowmapSize.zw,
         (uint)_AdditionalShadowFadeParams.z, 0.0,
         _AdditionalLightsShadowmapTexture, sampler_LinearClampCompare, sampler_PointClamp);
 
     attenuation = LerpWhiteTo(attenuation, shadowParams.x);
 
     return BEYOND_SHADOW_FAR(shadowCoord) ? half(1.0) : attenuation;
+#else
+    return half(1.0);
+#endif
 }
 
 // returns 0.0 if position is in light's shadow

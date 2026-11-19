@@ -38,8 +38,6 @@ namespace UnityEngine.Rendering.Universal
                 "_AdditionalLightsSpotDir", "_AdditionalLightsOcclusionProbes"),
             new LightingConstantBuffer("AdditionalLightShadows",
                 "_AdditionalLightsWorldToShadow", "_AdditionalShadowParams", "_AdditionalShadowReceiverNormalBias"),
-            new LightingConstantBuffer("AdditionalLightPCSS",
-                "_AdditionalLightsPCSSParams", "_AdditionalLightsPCSSZParams", "_AdditionalLightsPCSSAtlas"),
             new LightingConstantBuffer("urp_ReflectionProbeBuffer",
                 "urp_ReflProbes_BoxMax", "urp_ReflProbes_BoxMin", "urp_ReflProbes_ProbePosition",
                 "urp_ReflProbes_MipScaleOffset", "urp_ReflProbes_Rotation", "urp_ReflProbes_ExposureMultipliers"),

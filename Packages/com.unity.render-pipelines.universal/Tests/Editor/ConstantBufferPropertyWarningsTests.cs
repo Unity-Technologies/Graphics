@@ -22,7 +22,6 @@ namespace UnityEditor.Rendering.Universal.Tests
         {
             { "AdditionalLights", "ShaderLibrary/Input.hlsl" },
             { "AdditionalLightShadows", "ShaderLibrary/Shadows.hlsl" },
-            { "AdditionalLightPCSS", "ShaderLibrary/Shadows.hlsl" },
             { "urp_ReflectionProbeBuffer", "ShaderLibrary/Input.hlsl" },
             { "LightCookies", "ShaderLibrary/LightCookie/LightCookieInput.hlsl" },
         };
