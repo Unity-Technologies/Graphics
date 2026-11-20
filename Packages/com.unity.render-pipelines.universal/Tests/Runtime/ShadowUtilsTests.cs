@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal.Tests
 {

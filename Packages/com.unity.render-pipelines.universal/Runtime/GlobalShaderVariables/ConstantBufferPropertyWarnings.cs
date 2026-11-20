@@ -50,14 +50,16 @@ namespace UnityEngine.Rendering.Universal
             "Shader property '{0}' is a variable of URP's global constant buffer (GlobalShaderVariables), which URP will bind " +
             "itself in a future version. From then on, setting it with Shader.SetGlobal*, CommandBuffer.SetGlobal*, " +
             "Material.Set* or MaterialPropertyBlock.Set* won't change the value that URP shaders read. Rename the property if " +
-            "it belongs to your own shader. This warning is logged once per property.";
+            "it belongs to your own shader. To change URP's value, use UniversalGlobalShaderData (Universal2DGlobalShaderData " +
+            "with the 2D renderer) from a render graph pass, which works in both modes. This warning is logged once per property.";
 
         internal const string k_GlobalWarningBound =
             "Shader property '{0}' is a variable of URP's global constant buffer (GlobalShaderVariables), which URP binds " +
             "itself while Use Persistent Global Constant Buffer is on (Project Settings > Graphics > URP > Rendering Capabilities). " +
             "Setting it with Shader.SetGlobal*, CommandBuffer.SetGlobal*, Material.Set* or MaterialPropertyBlock.Set* doesn't " +
-            "change the value that URP shaders read. Rename the property if it belongs to your own shader. This warning is " +
-            "logged once per property.";
+            "change the value that URP shaders read. Rename the property if it belongs to your own shader. To change URP's " +
+            "value, use UniversalGlobalShaderData (Universal2DGlobalShaderData with the 2D renderer) from a render graph pass: " +
+            "Get() for that pass only, GetGlobal() for the rest of the camera. This warning is logged once per property.";
 
         internal static string LightingConstantBufferWarning(string constantBuffer)
         {

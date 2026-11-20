@@ -4,13 +4,13 @@ using Dirty = UnityEngine.Rendering.Universal.GlobalShaderVariablesBaseDirty;
 
 namespace UnityEngine.Rendering.Universal
 {
-    // One bit per pushable field of GlobalShaderVariablesBase, so PushGlobal() only re-uploads what changed.
+    // One bit per pushable field of GlobalShaderVariablesBase, so Push() only re-uploads what changed.
     //
     // GlobalShaderVariablesUploader is the only thing that raises or clears these bits:
     // - a property setter raises the bit of the field it writes, at record time inside a BeginFill/EndFill window
     // - EndFill snapshots the raised bits as the defaults of the camera, then clears the staging ones
-    // - PushGlobal clears the bits it just pushed, so nothing goes out twice
-    // - ResetToDefault raises them again from that snapshot, which is how PushDefaultToGlobal re-sends the whole set
+    // - Push clears the bits it just pushed, so nothing goes out twice
+    // - ResetToDefault raises them again from that snapshot, which is how PushDefault re-sends the whole set
     //   recorded for the camera once something else has overwritten the global state
     //
     // Warning! Add a bit here, an accessor in GlobalShaderVariablesUploader and a line in SetGlobals() for every new field.

@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.Universal;
 
 // GlobalShaderVariables and its sub-structs mirror an HLSL constant buffer layout, so they must obey the packing
@@ -194,6 +195,133 @@ namespace UnityEditor.Rendering.Universal.Tests
 
                 seen[value] = name;
             }
+        }
+
+        // The variables that describe what URP binds or configures (light lists, shadow maps and their PCSS filtering,
+        // cookies, probe volumes, rendering layers, dithering texture) are read-only on the public interfaces: render graph
+        // passes read them, and URP writes them through GlobalShaderVariablesUploader. Opening or closing a setter is an
+        // API decision, so it must be made here as well.
+        static readonly HashSet<string> k_ReadOnlyOnInterfaces = new HashSet<string>
+        {
+            nameof(IGlobalShaderVariablesOnly3DUploader._FPParams0),
+            nameof(IGlobalShaderVariablesOnly3DUploader._FPParams1),
+            nameof(IGlobalShaderVariablesOnly3DUploader._FPParams2),
+            nameof(IGlobalShaderVariablesOnly3DUploader._AdditionalLightsCount),
+            nameof(IGlobalShaderVariablesOnly3DUploader._MainLightShadowOffset0),
+            nameof(IGlobalShaderVariablesOnly3DUploader._MainLightShadowOffset1),
+            nameof(IGlobalShaderVariablesOnly3DUploader._MainLightShadowmapSize),
+            nameof(IGlobalShaderVariablesOnly3DUploader._MainLightPCSSParams0),
+            nameof(IGlobalShaderVariablesOnly3DUploader._MainLightPCSSParams1),
+            nameof(IGlobalShaderVariablesOnly3DUploader._MainLightPCSSScalars),
+            nameof(IGlobalShaderVariablesOnly3DUploader._AdditionalShadowOffset0),
+            nameof(IGlobalShaderVariablesOnly3DUploader._AdditionalShadowOffset1),
+            nameof(IGlobalShaderVariablesOnly3DUploader._AdditionalShadowmapSize),
+            nameof(IGlobalShaderVariablesOnly3DUploader._MainLightCookieTextureFormat),
+            nameof(IGlobalShaderVariablesOnly3DUploader._AdditionalLightsCookieAtlasTextureFormat),
+            nameof(IGlobalShaderVariablesOnly3DUploader._RenderingLayerMaxInt),
+            nameof(IGlobalShaderVariablesOnly3DUploader._EnableProbeVolumes),
+            nameof(IGlobalShaderVariablesBaseUploader._DitheringTextureInvSize),
+        };
+
+        // A field with no property still packs, has its bit and its hlsl declaration, so nothing fails, but render graph
+        // passes cannot read it. Every pushable field must be a property of the same name and type on the public interface
+        // of its group, with a getter, and a setter unless k_ReadOnlyOnInterfaces lists it, and every property of that
+        // interface must be a field. GlobalShaderVariablesUploader must have a setter for every one of them.
+        [TestCase(typeof(GlobalShaderVariablesBase), typeof(IGlobalShaderVariablesBaseUploader))]
+        // URP 2D-only globals, empty so disabled.
+        // [TestCase(typeof(GlobalShaderVariablesOnly2D), typeof(IGlobalShaderVariablesOnly2DUploader))]
+        [TestCase(typeof(GlobalShaderVariablesOnly3D), typeof(IGlobalShaderVariablesOnly3DUploader))]
+        public void EveryFieldHasAPropertyOnItsInterface(Type layoutType, Type interfaceType)
+        {
+            var fields = new HashSet<string>();
+            foreach (var field in layoutType.GetFields(k_FieldFlags))
+            {
+                if (!field.Name.StartsWith("_URPPadding", StringComparison.Ordinal))
+                    fields.Add($"{field.FieldType.Name} {field.Name}");
+            }
+
+            var properties = new HashSet<string>();
+            foreach (var property in interfaceType.GetProperties())
+            {
+                bool readOnly = k_ReadOnlyOnInterfaces.Contains(property.Name);
+                Assert.That(property.CanRead, Is.True,
+                    $"{interfaceType.Name}.{property.Name} needs a getter, like every other variable.");
+                Assert.That(property.CanWrite, Is.EqualTo(!readOnly), readOnly
+                    ? $"{interfaceType.Name}.{property.Name} is read-only on the interface, see k_ReadOnlyOnInterfaces."
+                    : $"{interfaceType.Name}.{property.Name} needs a setter, like every variable k_ReadOnlyOnInterfaces doesn't list.");
+
+                PropertyInfo uploaderProperty = typeof(GlobalShaderVariablesUploader).GetProperty(property.Name);
+                Assert.That(uploaderProperty != null && uploaderProperty.CanWrite, Is.True,
+                    $"GlobalShaderVariablesUploader.{property.Name} needs a setter: URP fills every variable through it.");
+
+                properties.Add($"{property.PropertyType.Name} {property.Name}");
+            }
+
+            Assert.That(properties, Is.EquivalentTo(fields),
+                $"{interfaceType.Name} and {layoutType.Name} have drifted apart. Every pushable field needs a property " +
+                "of the same name and type, and every property a field.");
+        }
+
+        // A setter writing the wrong field or marking the wrong bit compiles and passes every test above, and its variable
+        // stays stale on the GPU. Each property is written here through its interface on a fresh uploader, or through the
+        // uploader when it is read-only on the interface: it must read back what was written, and change only the field and
+        // the bit of its own name.
+        [TestCase(typeof(IGlobalShaderVariablesBaseUploader), nameof(GlobalShaderVariables.varsBase))]
+        // URP 2D-only globals, empty so disabled.
+        // [TestCase(typeof(IGlobalShaderVariablesOnly2DUploader), nameof(GlobalShaderVariables.vars2D))]
+        [TestCase(typeof(IGlobalShaderVariablesOnly3DUploader), nameof(GlobalShaderVariables.vars3D))]
+        public void EveryPropertyWritesItsFieldAndItsDirtyFlag(Type interfaceType, string groupName)
+        {
+            var stagingVars = typeof(GlobalShaderVariablesUploader).GetField("m_StagingVars", BindingFlags.NonPublic | BindingFlags.Instance);
+            var stagingDirty = typeof(GlobalShaderVariablesUploader).GetField("m_StagingDirty", BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.That(stagingVars, Is.Not.Null, "GlobalShaderVariablesUploader.m_StagingVars was renamed, update this test.");
+            Assert.That(stagingDirty, Is.Not.Null, "GlobalShaderVariablesUploader.m_StagingDirty was renamed, update this test.");
+
+            FieldInfo group = typeof(GlobalShaderVariables).GetField(groupName, k_FieldFlags);
+            FieldInfo groupDirty = typeof(GlobalShaderVariablesDirty).GetField(groupName, k_FieldFlags);
+
+            foreach (var property in interfaceType.GetProperties())
+            {
+                PropertyInfo setter = property.CanWrite ? property : typeof(GlobalShaderVariablesUploader).GetProperty(property.Name);
+                var uploader = new GlobalShaderVariablesUploader(GlobalShaderVariablesGroup.All);
+                object value = NonDefaultValueOf(property.PropertyType);
+                setter.SetValue(uploader, value);
+
+                Assert.That(property.GetValue(uploader), Is.EqualTo(value),
+                    $"{interfaceType.Name}.{property.Name} does not read back what was written.");
+
+                object expectedVars = Activator.CreateInstance(group.FieldType);
+                group.FieldType.GetField(property.Name, k_FieldFlags).SetValue(expectedVars, value);
+                Assert.That(group.GetValue(stagingVars.GetValue(uploader)), Is.EqualTo(expectedVars),
+                    $"{interfaceType.Name}.{property.Name} must write the {group.FieldType.Name} field of the same name, and only that one.");
+
+                object expectedDirty = new GlobalShaderVariablesDirty();
+                groupDirty.SetValue(expectedDirty, Enum.Parse(groupDirty.FieldType, property.Name));
+                Assert.That(stagingDirty.GetValue(uploader), Is.EqualTo(expectedDirty),
+                    $"{interfaceType.Name}.{property.Name} must mark the {groupDirty.FieldType.Name} bit of the same name, and only that one.");
+            }
+        }
+
+        // A value no field holds on a fresh uploader, so a setter writing the wrong field cannot pass by chance.
+        static object NonDefaultValueOf(Type type)
+        {
+            if (type == typeof(int)) return 3;
+            if (type == typeof(uint)) return 3u;
+            if (type == typeof(float)) return 1.5f;
+            if (type == typeof(Vector2)) return new Vector2(1f, 2f);
+            if (type == typeof(Vector2Int)) return new Vector2Int(1, 2);
+            if (type == typeof(Vector4)) return new Vector4(1f, 2f, 3f, 4f);
+            if (type == typeof(Matrix4x4))
+                return new Matrix4x4(new Vector4(1f, 2f, 3f, 4f), new Vector4(5f, 6f, 7f, 8f), new Vector4(9f, 10f, 11f, 12f), new Vector4(13f, 14f, 15f, 16f));
+
+            // The structs standing for an hlsl array, like MainLightShadowMatrices.
+            Assert.That(IsNestedLayoutStruct(type), Is.True, $"No test value for {type.Name}, add one to NonDefaultValueOf().");
+
+            object value = Activator.CreateInstance(type);
+            foreach (var field in type.GetFields(k_FieldFlags))
+                field.SetValue(value, NonDefaultValueOf(field.FieldType));
+
+            return value;
         }
 
         // The hlsl and these structs are two hand-maintained copies of one cbuffer layout. A rename or reorder in
@@ -389,9 +517,9 @@ namespace UnityEditor.Rendering.Universal.Tests
             }
         }
 
-        // Our layout structs live in the URP runtime namespace; Vector4/Matrix4x4 and friends live in UnityEngine.
+        // Our layout structs live in the URP runtime assembly; Vector4/Matrix4x4 and friends live in UnityEngine.
         static bool IsNestedLayoutStruct(Type type)
             => type.IsValueType && !type.IsPrimitive && !type.IsEnum
-               && type.Namespace == typeof(GlobalShaderVariables).Namespace;
+               && type.Assembly == typeof(GlobalShaderVariables).Assembly;
     }
 }

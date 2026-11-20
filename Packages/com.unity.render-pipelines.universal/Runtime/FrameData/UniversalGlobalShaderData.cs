@@ -1,15 +1,77 @@
 using System;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
-namespace UnityEngine.Rendering.Universal
+namespace UnityEngine.Experimental.Rendering
 {
-    internal class UniversalGlobalShaderData : ContextItem
+    /// <summary>
+    /// Gives the passes of the URP 3D renderer access to the URP global shader variables.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Get it from the frame data while recording, keep it in the pass data, and call <see cref="Get"/> or
+    /// <see cref="GetGlobal"/> from the render function: the variables are only available while the render graph
+    /// executes. Get() changes them for the calling pass only, GetGlobal() for every later pass of the camera. A pass that
+    /// pushes them must call
+    /// <see cref="UnityEngine.Rendering.RenderGraphModule.IBaseRenderGraphBuilder.AllowGlobalStateModification"/> with true.
+    /// </para>
+    /// <para>
+    /// Outside URP camera rendering, for example in an editor tool that draws URP shaders with a command buffer, the
+    /// buffer URP bound for its last camera stays bound while Use Persistent Global Constant Buffer is on, so SetGlobal*
+    /// doesn't reach these variables. Unbind it first, then set the variables your shaders read, as in the example.
+    /// URP binds its buffer again for its next camera. URP doesn't update the loose uniform values in this mode, so the
+    /// shaders read what you set, or stale values.
+    /// </para>
+    /// <para>
+    /// This API is experimental and might change in future versions.
+    /// </para>
+    /// </remarks>
+    /// <example>
+    /// <para>This sample code sets a variable for URP shaders drawn outside URP camera rendering:</para>
+    /// <code>
+    /// cmd.SetGlobalConstantBuffer((GraphicsBuffer)null, Shader.PropertyToID("GlobalShaderVariables"), 0, 0);
+    /// cmd.SetGlobalVector("_ScreenSize", new Vector4(width, height, 1f / width, 1f / height));
+    /// </code>
+    /// </example>
+    /// <seealso cref="IUniversalGlobalShaderVariablesTemporaryUploader"/>
+    /// <seealso cref="IUniversalGlobalShaderVariablesUploader"/>
+    /// <seealso cref="UnityEngine.Rendering.Universal.RenderingCapabilitiesSettings.useGlobalConstantBuffer"/>
+    public class UniversalGlobalShaderData : ContextItem
     {
         // Owned and created by the renderer
         private GlobalShaderVariablesUploader m_Uploader;
 
         internal void Set(GlobalShaderVariablesUploader uploader) => m_Uploader = uploader;
 
-        internal IUniversalGlobalShaderVariablesUploader Get()
+        /// <summary>
+        /// Creates a temporary copy of the URP global shader variables that applies to the calling pass only.
+        /// </summary>
+        /// <remarks>
+        /// Disposing the copy restores the values that were bound before you called this method. Dispose it before the
+        /// render function returns, typically with a using statement. To make changes that persist for the later passes
+        /// of the camera, use <see cref="GetGlobal"/> instead.
+        /// </remarks>
+        /// <returns>The temporary copy of the global shader variables.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when called outside the render graph execution of the camera,
+        /// for example while the render graph records, or while a temporary copy that was changed or pushed is open.</exception>
+        public IUniversalGlobalShaderVariablesTemporaryUploader Get() => GetUploader().Get();
+
+        /// <summary>
+        /// Gets the global shader variables at the point of the execute timeline where the calling pass runs. What
+        /// the pass pushes through them stays set for the later passes of the camera.
+        /// </summary>
+        /// <remarks>
+        /// Changes that you push through the returned object stay set for every later pass of the camera. To go back to the
+        /// values URP filled for the camera, call <see cref="IGlobalShaderVariablesGlobalUploader.PushDefault"/> on the
+        /// returned object. For changes to the calling pass only, use <see cref="Get"/> instead.
+        /// </remarks>
+        /// <returns>The staged global shader variables.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when called outside the render graph execution of the camera,
+        /// for example while the render graph records.</exception>
+        public IUniversalGlobalShaderVariablesUploader GetGlobal() => GetUploader();
+
+        // URP's own passes write the variables that are read-only on the public interfaces through it.
+        internal GlobalShaderVariablesUploader GetUploader()
         {
             if (m_Uploader == null)
                 throw new InvalidOperationException(
@@ -19,6 +81,12 @@ namespace UnityEngine.Rendering.Universal
             return m_Uploader;
         }
 
+        /// <summary>
+        /// Clears the reference to the global shader variables so the frame data can reuse this item.
+        /// </summary>
+        /// <remarks>
+        /// The render pipeline calls this method when it resets the frame data. You don't need to call it yourself.
+        /// </remarks>
         public override void Reset()
         {
             m_Uploader = null;

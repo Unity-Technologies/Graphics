@@ -569,7 +569,8 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetComputeTextureParam(cs, kernel, SharedIDs._VBufferDensity, data.vbufferDensity);
                     cmd.SetComputeTextureParam(cs, kernel, SharedIDs._VBuffer, data.vbuffer);
 
-                    var globals = data.globalShaderData.Get();
+                    // The light list and cookie variables are read-only in the public interfaces, URP writes them here.
+                    using var globals = data.globalShaderData.GetUploader().Get();
 
                     // Bind URP's persistent AdditionalLights constant buffer, or the zero stand-in if ForwardLights
                     // didn't provide one.
@@ -638,13 +639,11 @@ namespace UnityEngine.Rendering.Universal
                         cmd.SetComputeTextureParam(cs, kernel, ShaderIDs._VBufferFeedback, data.feedbackBuffer);
                     }
 
-                    globals.PushGlobal(cmd);
+                    globals.Push(cmd);
 
                     int dispatchX = CoreUtils.DivRoundUp(data.vbufferW, 8);
                     int dispatchY = CoreUtils.DivRoundUp(data.vbufferH, 8);
                     cmd.DispatchCompute(cs, kernel, dispatchX, dispatchY, 1);
-
-                    globals.PushDefaultToGlobal(cmd);
                 });
 
                 fogData.vbuffer = passData.vbuffer;

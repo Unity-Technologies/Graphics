@@ -619,7 +619,7 @@ namespace UnityEngine.Rendering.Universal
 
                     InitDefaultGlobalKeywords(cmd, data.cameraData);
 
-                    data.shaderData.Get().PushDefaultToGlobal(cmd);
+                    data.shaderData.GetGlobal().PushDefault(cmd);
                 });
             }
         }
@@ -689,8 +689,7 @@ namespace UnityEngine.Rendering.Universal
 
                     SetupCameraProperties(context, data.cameraData, isTargetFlipped);
 
-                    // Push the vars again, some were re-written by cmd.SetupCameraProperties() call above.
-                    data.shaderData.Get().PushDefaultToGlobal(context.cmd);
+                    data.shaderData.GetGlobal().PushAfterCameraSetup(context.cmd);
                 });
             }
         }
@@ -1029,6 +1028,7 @@ namespace UnityEngine.Rendering.Universal
         {
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             OnFinishRenderGraphRendering(cmd);
+            m_GlobalShaderVariablesUploader?.EndRenderGraph(cmd);
             InternalFinishRenderingCommon(cmd, cameraData.resolveFinalTarget);
         }
 

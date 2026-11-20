@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -86,7 +87,7 @@ public sealed class UniversalGlobalShaderVariablesForTests : IDisposable
     public void Push(CommandBuffer cmd)
     {
         m_Uploader.EndFill();
-        m_Uploader.PushDefaultToGlobal(CommandBufferHelpers.GetUnsafeCommandBuffer(cmd));
+        m_Uploader.PushDefault(CommandBufferHelpers.GetUnsafeCommandBuffer(cmd));
         m_Uploader.BeginFill();
     }
 

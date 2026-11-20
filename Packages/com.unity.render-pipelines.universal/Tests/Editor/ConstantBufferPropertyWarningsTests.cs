@@ -272,7 +272,7 @@ namespace UnityEditor.Rendering.Universal.Tests
             ConstantBufferPropertyWarnings.BeginRender(false);
             try
             {
-                uploader.PushGlobal(CommandBufferHelpers.GetUnsafeCommandBuffer(nativeCmd));
+                uploader.Push(CommandBufferHelpers.GetUnsafeCommandBuffer(nativeCmd));
             }
             finally
             {

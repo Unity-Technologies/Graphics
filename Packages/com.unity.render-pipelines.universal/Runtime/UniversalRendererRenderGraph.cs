@@ -751,7 +751,7 @@ namespace UnityEngine.Rendering.Universal
         private class SetupPassData
         {
             internal UniversalCameraData cameraData;
-            // The classic interface from shaderData.Get() always pushes every group, this specific render func needs Base alone but this is an exception not the norm.
+            // The internal uploader, for PushAfterCameraSetup(), which the public interfaces don't have.
             internal GlobalShaderVariablesUploader uploader;
             internal TextureHandle target;
         };
@@ -785,7 +785,7 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetGlobalVector(SSAOUtils.ShaderConstants._AmbientOcclusionParam, Vector4.zero);
                     cmd.SetGlobalVector(ScreenSpaceReflectionPass.ShaderConstants._ReflectionParam, Vector4.zero);
 
-                    data.shaderData.Get().PushDefaultToGlobal(cmd);
+                    data.shaderData.GetGlobal().PushDefault(cmd);
 
                     // The shadow passes are not recorded when shadows are disabled, so set them here instead.
                     data.shadowPassGroup.mainLightShadowmapPass.ApplyEmptyShadowmapGlobals(cmd);
@@ -854,9 +854,7 @@ namespace UnityEngine.Rendering.Universal
 
                     SetupCameraProperties(context, data.cameraData, isTargetFlipped);
 
-                    // Push the base vars again, some were re-written by cmd.SetupCameraProperties() above. Base group
-                    // only: the native call cannot touch the 3D vars, their names are URP-specific, and we don't want to call setGlobals with all default 3D vars again for nothing.
-                    data.uploader.PushDefaultToGlobal(context.cmd, GlobalShaderVariablesGroup.Base);
+                    data.uploader.PushAfterCameraSetup(context.cmd);
                 });
             }
         }

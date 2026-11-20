@@ -12,7 +12,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="IRenderPipelineGraphicsSettings"/>
     [Serializable]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-    [Categorization.CategoryInfo(Name = "Rendering Capabilities", Order = 30), HideInInspector]
+    [Categorization.CategoryInfo(Name = "Rendering Capabilities", Order = 30)]
     [Categorization.ElementInfo(Order = 0)]
     public class RenderingCapabilitiesSettings : IRenderPipelineGraphicsSettings
     {
@@ -33,19 +33,25 @@ namespace UnityEngine.Rendering.Universal
 
         #region SerializeFields
         [SerializeField]
-        [Tooltip("URP binds its global shader variables as a persistent constant buffer instead of letting the engine fill it from loose uniforms. Scripts can then no longer change these variables with SetGlobal*, Material.Set*, a MaterialPropertyBlock or ComputeShader.Set*. OpenGL ES 3 outside WebGL and OpenGL Core keep loose uniforms.")]
+        [Tooltip("When enabled, URP binds its global shader variables as a persistent constant buffer instead of letting the engine fill the buffer from loose uniforms. You can't change these variables with SetGlobal*, Material.Set*, a MaterialPropertyBlock, or ComputeShader.Set*. In render graph passes, use UniversalGlobalShaderData or Universal2DGlobalShaderData instead. OpenGL ES 3 (except on WebGL) and OpenGL Core always use loose uniforms.")]
         bool m_UsePersistentGlobalConstantBuffer = false;
         #endregion
 
         #region Data Accessors
 
         /// <summary>
-        /// The Use Persistent Global Constant Buffer setting.
-        /// When enabled, URP binds its global constant buffer itself (persistent mode), and scripts can no longer change its
-        /// variables with SetGlobal*, Material.Set*, a MaterialPropertyBlock or ComputeShader.Set*. Otherwise the engine
-        /// fills it from URP's loose uniforms (transient mode). Both modes run the same shaders, so changing it recompiles
-        /// no shader. OpenGL ES 3 outside WebGL and OpenGL Core keep loose uniforms.
+        /// Whether URP binds its global shader variables as a persistent constant buffer (the Use Persistent Global Constant
+        /// Buffer setting).
         /// </summary>
+        /// <remarks>
+        /// When enabled (persistent mode), URP binds its global constant buffer itself, and scripts can't change its variables
+        /// with `SetGlobal*`, `Material.Set*`, a `MaterialPropertyBlock`, or `ComputeShader.Set*`. Render graph passes change
+        /// them through <see cref="UnityEngine.Experimental.Rendering.UniversalGlobalShaderData"/> or
+        /// <see cref="UnityEngine.Experimental.Rendering.Universal2DGlobalShaderData"/>, which work in both modes.
+        /// When disabled (transient mode), the engine fills the buffer from URP loose uniforms. Both modes use the same
+        /// shaders, so changing this setting doesn't recompile shaders. OpenGL ES 3 (except on WebGL) and OpenGL Core always
+        /// use loose uniforms.
+        /// </remarks>
         public bool useGlobalConstantBuffer
         {
             get => m_UsePersistentGlobalConstantBuffer;

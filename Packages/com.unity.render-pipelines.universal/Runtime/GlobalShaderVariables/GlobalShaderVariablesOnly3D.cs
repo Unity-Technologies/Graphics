@@ -1,5 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
+using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
 using Dirty = UnityEngine.Rendering.Universal.GlobalShaderVariablesOnly3DDirty;
 
 namespace UnityEngine.Rendering.Universal
@@ -62,35 +64,42 @@ namespace UnityEngine.Rendering.Universal
         // Keep this referencing the last bit declared above when adding a variable.
         All = (_MainLightPCSSScalars << 1) - 1u,
     }
+}
 
+namespace UnityEngine.Experimental.Rendering
+{
     /// <summary>
-    /// The main light world to shadow matrices, one per cascade plus a trailing no-op slice.
+    /// The main light world to shadow matrices, one per cascade plus a trailing no-op matrix for indices past the last cascade.
     /// </summary>
     /// <remarks>
-    /// Grouped in a nested struct rather than declared as five fields so the dirty flag contract stays one bit per push:
-    /// they go out as a single SetGlobalMatrixArray.
+    /// Shaders read the five matrices as the `_MainLightWorldToShadow` array. To change them from a render graph pass, use the
+    /// <see cref="IGlobalShaderVariablesOnly3DUploader._MainLightWorldToShadow"/> property of the object that
+    /// <see cref="UniversalGlobalShaderData.Get"/> or <see cref="UniversalGlobalShaderData.GetGlobal"/> returns. This is a
+    /// struct, so read the property, change the copy, and assign it back.
     /// </remarks>
+    /// <seealso cref="IGlobalShaderVariablesOnly3DUploader._MainLightWorldToShadow"/>
+    /// <seealso cref="MainLightShadowCascadeVectors"/>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct MainLightShadowMatrices
+    public struct MainLightShadowMatrices
     {
-        /// <summary> The number of matrices, MAX_SHADOW_CASCADES + 1 in Shadows.hlsl. </summary>
+        /// <summary>The number of matrices, MAX_SHADOW_CASCADES + 1 as declared in GlobalShaderVariables.hlsl.</summary>
         public const int count = 5;
 
-        /// <summary>The matrix of the first cascade.</summary>
+        /// <summary>The matrix of the first shadow cascade.</summary>
         public Matrix4x4 cascade0;
 
-        /// <summary>The matrix of the second cascade.</summary>
+        /// <summary>The matrix of the second shadow cascade.</summary>
         public Matrix4x4 cascade1;
 
-        /// <summary>The matrix of the third cascade.</summary>
+        /// <summary>The matrix of the third shadow cascade.</summary>
         public Matrix4x4 cascade2;
 
-        /// <summary>The matrix of the fourth cascade.</summary>
+        /// <summary>The matrix of the fourth shadow cascade.</summary>
         public Matrix4x4 cascade3;
 
         /// <summary>
-        /// The trailing no-op matrix. It always transforms the shadow coord to half3(0, 0, NEAR_PLANE), which avoids
-        /// branching since ComputeCascadeIndex can return MAX_SHADOW_CASCADES.
+        /// The trailing no-op matrix for indices past the last cascade (ComputeCascadeIndex returns MAX_SHADOW_CASCADES
+        /// there), so shaders need no branch.
         /// </summary>
         public Matrix4x4 cascade4;
 
@@ -99,15 +108,14 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="cmd">The command buffer used to set the global.</param>
         /// <param name="nameID">The shader property id of the array.</param>
-        public readonly unsafe void SetGlobal(IBaseCommandBuffer cmd, int nameID)
+        internal readonly unsafe void SetGlobal(IBaseCommandBuffer cmd, int nameID)
         {
             fixed (Matrix4x4* matrices = &cascade0)
                 cmd.SetGlobalMatrixArray(nameID, new ReadOnlySpan<Matrix4x4>(matrices, count));
         }
 
-        /// <summary>Gets or sets the matrix of a given cascade.</summary>
+        /// <summary>The matrix of the cascade at the given index.</summary>
         /// <param name="index">The cascade index, between 0 and <see cref="count"/> - 1.</param>
-        /// <returns>The matrix stored for the requested cascade.</returns>
         /// <exception cref="IndexOutOfRangeException">Thrown if <paramref name="index"/> is out of range.</exception>
         public Matrix4x4 this[int index]
         {
@@ -138,25 +146,33 @@ namespace UnityEngine.Rendering.Universal
     /// <summary>
     /// One vector per main light shadow cascade, plus a trailing slot for the index past the last cascade.
     /// </summary>
+    /// <remarks>
+    /// URP uses this struct for the main light PCSS shadow parameters:
+    /// <see cref="IGlobalShaderVariablesOnly3DUploader._MainLightPCSSParams0"/>,
+    /// <see cref="IGlobalShaderVariablesOnly3DUploader._MainLightPCSSParams1"/>, and
+    /// <see cref="IGlobalShaderVariablesOnly3DUploader._MainLightPCSSAtlas"/>. Only _MainLightPCSSAtlas is writable: this is
+    /// a struct, so read the property, change the copy, and assign it back. URP fills the other two.
+    /// </remarks>
+    /// <seealso cref="MainLightShadowMatrices"/>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct MainLightShadowCascadeVectors
+    public struct MainLightShadowCascadeVectors
     {
-        /// <summary> The number of vectors, MAX_SHADOW_CASCADES + 1 in Shadows.hlsl. </summary>
+        /// <summary>The number of vectors, MAX_SHADOW_CASCADES + 1 as declared in GlobalShaderVariables.hlsl.</summary>
         public const int count = 5;
 
-        /// <summary>The vector of the first cascade.</summary>
+        /// <summary>The vector of the first shadow cascade.</summary>
         public Vector4 cascade0;
 
-        /// <summary>The vector of the second cascade.</summary>
+        /// <summary>The vector of the second shadow cascade.</summary>
         public Vector4 cascade1;
 
-        /// <summary>The vector of the third cascade.</summary>
+        /// <summary>The vector of the third shadow cascade.</summary>
         public Vector4 cascade2;
 
-        /// <summary>The vector of the fourth cascade.</summary>
+        /// <summary>The vector of the fourth shadow cascade.</summary>
         public Vector4 cascade3;
 
-        /// <summary>The trailing slot, see _MainLightPCSSAtlas in GlobalShaderVariables.hlsl.</summary>
+        /// <summary>The trailing slot, which shaders use past the last cascade.</summary>
         public Vector4 cascade4;
 
         /// <summary>
@@ -165,7 +181,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cmd">The command buffer used to set the global.</param>
         /// <param name="nameID">The shader property id of the array.</param>
         /// <param name="scratch">A scratch array of <see cref="count"/> elements the values are copied through.</param>
-        public readonly void SetGlobal(IBaseCommandBuffer cmd, int nameID, Vector4[] scratch)
+        internal readonly void SetGlobal(IBaseCommandBuffer cmd, int nameID, Vector4[] scratch)
         {
             scratch[0] = cascade0;
             scratch[1] = cascade1;
@@ -175,9 +191,8 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVectorArray(nameID, scratch);
         }
 
-        /// <summary>Gets or sets the vector of a given cascade.</summary>
+        /// <summary>The vector of the cascade at the given index.</summary>
         /// <param name="index">The cascade index, between 0 and <see cref="count"/> - 1.</param>
-        /// <returns>The vector stored for the requested cascade.</returns>
         /// <exception cref="IndexOutOfRangeException">Thrown if <paramref name="index"/> is out of range.</exception>
         public Vector4 this[int index]
         {
@@ -204,7 +219,10 @@ namespace UnityEngine.Rendering.Universal
             }
         }
     }
+}
 
+namespace UnityEngine.Rendering.Universal
+{
     // Global shader variables only URP 3D declares and fills, see GlobalShaderVariables for the declaration guidelines.
     [StructLayout(LayoutKind.Sequential)]
     internal struct GlobalShaderVariablesOnly3D

@@ -116,7 +116,7 @@ namespace UnityEngine.Rendering.Tests
                     universalGlobals._ScaledScreenParams = scaledScreenParams;
                     universalGlobals._ScreenSize = screenSize;
                     universalGlobals.EndFill();
-                    universalGlobals.PushDefaultToGlobal(CommandBufferHelpers.GetUnsafeCommandBuffer(cmd));
+                    universalGlobals.PushDefault(CommandBufferHelpers.GetUnsafeCommandBuffer(cmd));
                 }
                 else
                 {

@@ -299,9 +299,9 @@ namespace UnityEngine.Rendering.Universal
                     // _ScreenSize lives in the centralized global shader variables, potentially stored in a global constant buffer.
                     IGlobalShaderVariablesCommonUploader vars;
                     if (data.shaderData != null)
-                        vars = data.shaderData.Get();
+                        vars = data.shaderData.GetGlobal();
                     else
-                        vars = data.shaderData2D.Get();
+                        vars = data.shaderData2D.GetGlobal();
 
                     vars._ScreenSize = new Vector4(
                         data.newCameraTargetSize.x,
@@ -309,7 +309,7 @@ namespace UnityEngine.Rendering.Universal
                         1.0f / data.newCameraTargetSize.x,
                         1.0f / data.newCameraTargetSize.y
                     );
-                    vars.PushGlobal(ctx.cmd);
+                    vars.Push(ctx.cmd);
                 });
             }
         }

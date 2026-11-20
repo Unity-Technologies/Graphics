@@ -909,7 +909,7 @@ namespace UnityEngine.Rendering.Universal
                     // Renderer is responsible for init/resetting the keywords it manages, for now we can use the default reset
                     InitDefaultGlobalKeywords(cmd, data.cameraData);
 
-                    data.shaderData.Get().PushDefaultToGlobal(cmd);
+                    data.shaderData.GetGlobal().PushDefault(cmd);
                 });
             }
         }
@@ -931,7 +931,7 @@ namespace UnityEngine.Rendering.Universal
 
                     SetupCameraProperties(context, data.cameraData, isTargetFlipped);
 
-                    data.uploader.PushDefaultToGlobal(context.cmd, GlobalShaderVariablesGroup.Base);
+                    data.uploader.PushAfterCameraSetup(context.cmd);
                 });
             }
         }

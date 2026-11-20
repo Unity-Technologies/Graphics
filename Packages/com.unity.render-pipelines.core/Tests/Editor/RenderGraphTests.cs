@@ -1415,6 +1415,64 @@ namespace UnityEngine.Rendering.Tests
             m_Camera.Render();
         }
 
+        struct GlobalStateTestConstants
+        {
+            public Vector4 value;
+        }
+
+        static readonly int k_GlobalStateTestConstantsID = Shader.PropertyToID("_GlobalStateTestConstants");
+
+        void RecordPassBindingAGlobalConstantBuffer(ConstantBuffer<GlobalStateTestConstants> constantBuffer, bool allowGlobalStateModification)
+        {
+            m_RenderGraphTestPipeline.recordRenderGraphBody = (context, camera, cmd) =>
+            {
+                TextureHandle texture = m_RenderGraph.CreateTexture(new TextureDesc(4, 4) { format = GraphicsFormat.R8G8B8A8_UNorm });
+
+                using (var builder = m_RenderGraph.AddRasterRenderPass<RenderGraphTestPassData>("GlobalConstantBufferPass", out var passData))
+                {
+                    builder.AllowPassCulling(false);
+                    builder.AllowGlobalStateModification(allowGlobalStateModification);
+                    builder.SetRenderAttachment(texture, 0);
+                    builder.SetRenderFunc((RenderGraphTestPassData data, RasterGraphContext ctx) => constantBuffer.SetGlobal(ctx.cmd, k_GlobalStateTestConstantsID));
+                }
+            };
+        }
+
+        [Test]
+        public void BindingAGlobalConstantBufferInAPassThatAllowsGlobalStateModificationWorks()
+        {
+            var constantBuffer = new ConstantBuffer<GlobalStateTestConstants>();
+            try
+            {
+                RecordPassBindingAGlobalConstantBuffer(constantBuffer, true);
+                m_Camera.Render();
+            }
+            finally
+            {
+                constantBuffer.Release();
+            }
+        }
+
+#if UNITY_ENABLE_CHECKS
+        [Test]
+        [TestMustExpectAllLogs]
+        public void BindingAGlobalConstantBufferInAPassThatDoesNotAllowGlobalStateModificationThrows()
+        {
+            var constantBuffer = new ConstantBuffer<GlobalStateTestConstants>();
+            try
+            {
+                RecordPassBindingAGlobalConstantBuffer(constantBuffer, false);
+                LogAssert.Expect(LogType.Error, "Render Graph Execution error");
+                LogAssert.Expect(LogType.Exception, "InvalidOperationException: GlobalConstantBufferPass: Modifying global state from this command buffer is not allowed. Please ensure your render graph pass allows modifying global state.");
+                m_Camera.Render();
+            }
+            finally
+            {
+                constantBuffer.Release();
+            }
+        }
+#endif
+
         class TestBufferTextureComputeData
         {
             public BufferHandle bufferHandle;
