@@ -68,7 +68,9 @@ namespace UnityEditor.Rendering.Universal
             defaultIndex = 0;
 
             var targetGrp = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
+#pragma warning disable CS0618 // Type or member is obsolete
             var tier = EditorGraphicsSettings.GetTierSettings(targetGrp, GraphicsTier.Tier3);
+#pragma warning restore CS0618
 
             using (UnityEngine.Pool.ListPool<ScriptableRendererData>.Get(out var tmp))
             {
@@ -97,7 +99,9 @@ namespace UnityEditor.Rendering.Universal
             urpAsset.m_DefaultRendererIndex = defaultIndex;
 
             var targetGrp = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
+#pragma warning disable CS0618 // Type or member is obsolete
             var tier = EditorGraphicsSettings.GetTierSettings(targetGrp, GraphicsTier.Tier3);
+#pragma warning restore CS0618
 
             var pixelLightCount  = QualitySettings.pixelLightCount;
             var shadows          = QualitySettings.shadows;

@@ -35,8 +35,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 var subshader = ShaderUtil.GetShaderData(shader).GetSubshader(0);
                 for (int passIndex = 0; passIndex < subshader.PassCount; ++passIndex)
                 {
+#pragma warning disable CS0618 // Type or member is obsolete
                     var info = subshader.GetPass(passIndex).CompileVariant(ShaderType.Fragment, new string[0],
                         ShaderCompilerPlatform.D3D12, BuildTarget.StandaloneWindows64, GraphicsTier.Tier1, true);
+#pragma warning restore CS0618
 
                     Assert.IsTrue(info.Success, string.Join("\n", info.Messages.Select(m => m.message)));
                     Assert.IsTrue(ContainsDxilChunk(info.ShaderData), "No DXIL in the output, so the use_dxc pragma did not select DXC.");

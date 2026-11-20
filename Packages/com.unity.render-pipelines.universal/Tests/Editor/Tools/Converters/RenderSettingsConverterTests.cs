@@ -99,7 +99,9 @@ namespace UnityEditor.Rendering.Universal.Tools
                 // ---------- SETTINGS FORWARDING CHECK ----------
 
                 var targetGrp = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
+#pragma warning disable CS0618 // Type or member is obsolete
                 var tier = EditorGraphicsSettings.GetTierSettings(targetGrp, GraphicsTier.Tier3);
+#pragma warning restore CS0618
 
                 Assert.AreEqual(QualitySettings.softParticles, urpAsset.supportsCameraDepthTexture, "supportsCameraDepthTexture mismatch");
                 Assert.AreEqual(tier.hdr, urpAsset.supportsHDR, "supportsHDR mismatch");

@@ -90,7 +90,7 @@ namespace UnityEngine.Rendering.Universal
         static ShadowUtils()
         {
             m_ForceShadowPointSampling = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal &&
-                GraphicsSettings.HasShaderDefine(Graphics.activeTier, BuiltinShaderDefine.UNITY_METAL_SHADOWS_USE_POINT_FILTERING);
+                GraphicsSettings.HasShaderDefine(BuiltinShaderDefine.UNITY_METAL_SHADOWS_USE_POINT_FILTERING);
             s_PCSSSupported = SupportsPCSS(SystemInfo.graphicsDeviceType);
         }
 
