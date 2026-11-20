@@ -191,6 +191,24 @@ namespace UnityEditor.VFX.UI
             public int controllerCount;
         }
 
+        static bool IsNotSerialized(FieldInfo fieldInfo)
+        {
+#if NET
+            return fieldInfo.IsDefined(typeof(NonSerializedAttribute), false);
+#else
+            return fieldInfo.IsNotSerialized;
+#endif
+        }
+
+        static bool IsSerializable(Type type)
+        {
+#if NET
+            return type.IsDefined(typeof(SerializableAttribute), false) || type.IsEnum || type.IsArray || typeof(Delegate).IsAssignableFrom(type);
+#else
+            return type.IsSerializable;
+#endif
+        }
+
         static Dictionary<Type, List<FieldInfo>> s_SerializableFieldByType = new Dictionary<Type, List<FieldInfo>>();
         protected static List<FieldInfo> GetFields(Type type)
         {
@@ -212,10 +230,10 @@ namespace UnityEditor.VFX.UI
                                 continue;
                         }
 
-                        if (field.IsNotSerialized)
+                        if (IsNotSerialized(field))
                             continue;
 
-                        if (!field.FieldType.IsSerializable && !typeof(UnityObject).IsAssignableFrom(field.FieldType)) // Skip field that are not serializable except for UnityObject that are anyway
+                        if (!IsSerializable(field.FieldType) && !typeof(UnityObject).IsAssignableFrom(field.FieldType)) // Skip field that are not serializable except for UnityObject that are anyway
                             continue;
 
                         if (typeof(VFXModel).IsAssignableFrom(field.FieldType) || field.FieldType.IsGenericType && typeof(VFXModel).IsAssignableFrom(field.FieldType.GetGenericArguments()[0]))
