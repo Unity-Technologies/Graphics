@@ -9,6 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         static HashSet<SceneView> sceneViewHaveValidateFunction = new HashSet<SceneView>();
 
+#pragma warning disable CS0618 // Type or member is obsolete
         static private bool RejectDrawMode(SceneView.CameraMode cameraMode)
         {
             return cameraMode.drawMode != DrawCameraMode.ShadowCascades &&
@@ -25,6 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cameraMode.drawMode != DrawCameraMode.SpriteMask &&
                 cameraMode.drawMode != DrawCameraMode.TextureStreaming;
         }
+#pragma warning restore CS0618
 
         static void UpdateSceneViewStates()
         {
