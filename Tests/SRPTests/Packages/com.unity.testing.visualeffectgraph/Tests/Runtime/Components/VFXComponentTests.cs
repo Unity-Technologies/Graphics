@@ -1347,6 +1347,79 @@ VisualEffect:Vector4.animation_expected_vector4.z
             Assert.AreEqual(readValue, newValue);
         }
 
+        VisualEffect CreateComponentWithExposedProperty(VFXValueType valueType, string exposedPropertyName)
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            var desc = VFXLibrary.GetParameters().FirstOrDefault(o => VFXExpression.GetVFXValueTypeFromType(o.model.type) == valueType);
+            Assert.IsNotNull(desc);
+
+            var parameter = desc.CreateInstance();
+            parameter.SetSettingValue("m_ExposedName", exposedPropertyName);
+            parameter.SetSettingValue("m_Exposed", true);
+            graph.AddChild(parameter);
+            VFXTestCommon.ReimportVFXGraph(graph);
+
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
+            var vfx = m_mainObject.AddComponent<VisualEffect>();
+            vfx.visualEffectAsset = graph.visualEffectResource.asset;
+            Assert.IsTrue(fnHas_UsingBindings(valueType, vfx, exposedPropertyName));
+            return vfx;
+        }
+
+        public static string[] kSetUnchangedValueDoesntDirtyCases = new[] { "Float", "Float2", "Float3", "Float4", "Int32", "Uint32", "Boolean" };
+
+        [UnityTest]
+        public IEnumerator SetUnchangedValue_Doesnt_Dirty_Component([ValueSource(nameof(kSetUnchangedValueDoesntDirtyCases))] string typeCase)
+        {
+            var valueType = Enum.Parse<VFXValueType>(typeCase);
+            var exposedPropertyName = "exposed_" + typeCase;
+            var vfx = CreateComponentWithExposedProperty(valueType, exposedPropertyName);
+            yield return null;
+
+            var type = VFXExpression.TypeToType(valueType);
+            var value = GetValue_A_Type(type);
+            var newValue = valueType == VFXValueType.Boolean ? !(bool)value : GetValue_B_Type(type);
+            Assert.AreNotEqual(value, newValue);
+
+            fnSet_UsingBindings(valueType, vfx, exposedPropertyName, value);
+            var dirtyCount = EditorUtility.GetDirtyCount(vfx);
+
+            fnSet_UsingBindings(valueType, vfx, exposedPropertyName, value);
+            Assert.AreEqual(dirtyCount, EditorUtility.GetDirtyCount(vfx), "Setting an unchanged value should not dirty the component.");
+
+            fnSet_UsingBindings(valueType, vfx, exposedPropertyName, newValue);
+            Assert.Greater(EditorUtility.GetDirtyCount(vfx), dirtyCount, "Setting a new value should dirty the component.");
+        }
+
+        [UnityTest]
+        public IEnumerator SetDefaultValue_After_ResetOverride_Dirties_Component()
+        {
+            var exposedPropertyName = "exposed_Float";
+            var vfx = CreateComponentWithExposedProperty(VFXValueType.Float, exposedPropertyName);
+            yield return null;
+
+            var defaultValue = vfx.GetFloat(exposedPropertyName);
+            vfx.SetFloat(exposedPropertyName, defaultValue + 1.0f);
+            vfx.ResetOverride(exposedPropertyName);
+            var dirtyCount = EditorUtility.GetDirtyCount(vfx);
+
+            vfx.SetFloat(exposedPropertyName, defaultValue);
+            Assert.Greater(EditorUtility.GetDirtyCount(vfx), dirtyCount, "Setting a property that is not overridden should dirty the component.");
+        }
+
+        [UnityTest]
+        public IEnumerator SetNegativeZero_After_PositiveZero_Keeps_Sign()
+        {
+            var exposedPropertyName = "exposed_Float";
+            var vfx = CreateComponentWithExposedProperty(VFXValueType.Float, exposedPropertyName);
+            yield return null;
+
+            vfx.SetFloat(exposedPropertyName, 0.0f);
+            vfx.SetFloat(exposedPropertyName, -0.0f);
+            Assert.AreEqual(float.NegativeInfinity, 1.0f / vfx.GetFloat(exposedPropertyName));
+        }
+
         [UnityTest]
         public IEnumerator CreateComponentWithAllBasicTypeExposed([ValueSource("trueOrFalse")] bool linkMode, [ValueSource("trueOrFalse")] bool bindingModes)
         {
