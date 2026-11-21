@@ -29,7 +29,7 @@ Shader "Hidden/Core/DebugOccluder"
             return output;
         }
 
-        float GetOutputColor(float occluderValue)
+        float4 GetOutputColor(float occluderValue)
         {
             float value = saturate((occluderValue - _ValidRange.x) * _ValidRange.y);
             return float4(value.xxx, 1);
