@@ -217,7 +217,7 @@ PlayerSettings:
   tvOSTargetOSVersionString: 16.0
   VisionOSSdkVersion: 0
   VisionOSTargetOSVersionString: 1.0
-  xcodeProjectType: 0
+  xcodeProjectType: 1
   uIPrerenderedIcon: 0
   uIRequiresPersistentWiFi: 0
   uIRequiresFullScreen: 1
