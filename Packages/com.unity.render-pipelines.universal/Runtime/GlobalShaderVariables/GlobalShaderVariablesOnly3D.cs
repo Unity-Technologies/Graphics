@@ -77,6 +77,13 @@ namespace UnityEngine.Experimental.Rendering
     /// <see cref="UniversalGlobalShaderData.Get"/> or <see cref="UniversalGlobalShaderData.GetGlobal"/> returns. This is a
     /// struct, so read the property, change the copy, and assign it back.
     /// </remarks>
+    /// <example>
+    /// <para>This sample code draws the objects of a layer with the main light shadows of the first shadow cascade
+    /// only. The other cascades get the values that the shaders read beyond the last cascade: a matrix that has no
+    /// effect, and an empty percentage-closer soft shadows (PCSS) atlas tile.</para>
+    ///
+    /// <code source="../../DocCodeSamples.Tests/GlobalShaderVariablesSamples.cs" region="shadow-structs"/>
+    /// </example>
     /// <seealso cref="IGlobalShaderVariablesOnly3DUploader._MainLightWorldToShadow"/>
     /// <seealso cref="MainLightShadowCascadeVectors"/>
     [StructLayout(LayoutKind.Sequential)]
@@ -153,6 +160,13 @@ namespace UnityEngine.Experimental.Rendering
     /// <see cref="IGlobalShaderVariablesOnly3DUploader._MainLightPCSSAtlas"/>. Only _MainLightPCSSAtlas is writable: this is
     /// a struct, so read the property, change the copy, and assign it back. URP fills the other two.
     /// </remarks>
+    /// <example>
+    /// <para>This sample code draws the objects of a layer with the main light shadows of the first shadow cascade
+    /// only. The other cascades get the values that the shaders read beyond the last cascade: a matrix that has no
+    /// effect, and an empty percentage-closer soft shadows (PCSS) atlas tile.</para>
+    ///
+    /// <code source="../../DocCodeSamples.Tests/GlobalShaderVariablesSamples.cs" region="shadow-structs"/>
+    /// </example>
     /// <seealso cref="MainLightShadowMatrices"/>
     [StructLayout(LayoutKind.Sequential)]
     public struct MainLightShadowCascadeVectors

@@ -17,21 +17,26 @@ namespace UnityEngine.Experimental.Rendering
     /// </para>
     /// <para>
     /// Outside URP camera rendering, for example in an editor tool that draws URP shaders with a command buffer, the
-    /// buffer URP bound for its last camera stays bound while Use Persistent Global Constant Buffer is on, so SetGlobal*
-    /// doesn't reach these variables. Unbind it first, then set the variables your shaders read, as in the example.
-    /// URP binds its buffer again for its next camera. URP doesn't update the loose uniform values in this mode, so the
-    /// shaders read what you set, or stale values.
+    /// buffer URP bound for its last camera stays bound while **Use Persistent Global Constant Buffer** is enabled, so
+    /// SetGlobal* doesn't reach these variables. Unbind it first, then set the variables your shaders read, as in the
+    /// example that draws a mesh into a render texture. URP binds its buffer again for its next camera. URP doesn't
+    /// update the loose uniform values in this mode, so the shaders read what you set, or stale values.
     /// </para>
     /// <para>
     /// This API is experimental and might change in future versions.
     /// </para>
     /// </remarks>
     /// <example>
-    /// <para>This sample code sets a variable for URP shaders drawn outside URP camera rendering:</para>
-    /// <code>
-    /// cmd.SetGlobalConstantBuffer((GraphicsBuffer)null, Shader.PropertyToID("GlobalShaderVariables"), 0, 0);
-    /// cmd.SetGlobalVector("_ScreenSize", new Vector4(width, height, 1f / width, 1f / height));
-    /// </code>
+    /// <para>This sample code draws the opaque objects again into a half-resolution texture, for example as the source
+    /// of a glow effect. The shaders of the pass read the screen size of the half-resolution texture, and the shaders
+    /// of later passes read the screen size of the camera. The renderer feature adds the pass to the renderer.</para>
+    ///
+    /// <code source="../../DocCodeSamples.Tests/GlobalShaderVariablesSamples.cs" region="temporary-copy"/>
+    /// <para>This sample code draws a mesh with a URP material into a render texture outside URP camera rendering, for
+    /// example to make a preview in a Unity Editor tool. It unbinds the URP global constant buffer, then sets the
+    /// variables that the shaders read.</para>
+    ///
+    /// <code source="../../DocCodeSamples.Tests/GlobalShaderVariablesSamples.cs" region="outside-camera-rendering"/>
     /// </example>
     /// <seealso cref="IUniversalGlobalShaderVariablesTemporaryUploader"/>
     /// <seealso cref="IUniversalGlobalShaderVariablesUploader"/>
@@ -51,6 +56,14 @@ namespace UnityEngine.Experimental.Rendering
         /// render function returns, typically with a using statement. To make changes that persist for the later passes
         /// of the camera, use <see cref="GetGlobal"/> instead.
         /// </remarks>
+        /// <example>
+        /// <para>This sample code draws the opaque objects again into a half-resolution texture, for example as the
+        /// source of a glow effect. The shaders of the pass read the screen size of the half-resolution texture, and
+        /// the shaders of later passes read the screen size of the camera. The renderer feature adds the pass to the
+        /// renderer.</para>
+        ///
+        /// <code source="../../DocCodeSamples.Tests/GlobalShaderVariablesSamples.cs" region="temporary-copy"/>
+        /// </example>
         /// <returns>The temporary copy of the global shader variables.</returns>
         /// <exception cref="InvalidOperationException">Thrown when called outside the render graph execution of the camera,
         /// for example while the render graph records, or while a temporary copy that was changed or pushed is open.</exception>
@@ -65,6 +78,13 @@ namespace UnityEngine.Experimental.Rendering
         /// values URP filled for the camera, call <see cref="IGlobalShaderVariablesGlobalUploader.PushDefault"/> on the
         /// returned object. For changes to the calling pass only, use <see cref="Get"/> instead.
         /// </remarks>
+        /// <example>
+        /// <para>This sample code makes texture sampling sharper for every later pass of the camera, for example when
+        /// the camera renders at a low render scale and an upscaler restores the resolution. A negative mip bias
+        /// selects more detailed mipmaps.</para>
+        ///
+        /// <code source="../../DocCodeSamples.Tests/GlobalShaderVariablesSamples.cs" region="global-variables"/>
+        /// </example>
         /// <returns>The staged global shader variables.</returns>
         /// <exception cref="InvalidOperationException">Thrown when called outside the render graph execution of the camera,
         /// for example while the render graph records.</exception>

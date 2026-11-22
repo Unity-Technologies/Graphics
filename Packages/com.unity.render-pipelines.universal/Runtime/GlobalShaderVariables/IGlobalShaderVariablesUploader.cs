@@ -12,6 +12,13 @@ namespace UnityEngine.Experimental.Rendering
     /// call <see cref="IGlobalShaderVariablesGlobalUploader.Push"/>. For changes to the calling pass only, use
     /// <see cref="UniversalGlobalShaderData.Get"/> instead.
     /// </remarks>
+    /// <example>
+    /// <para>This sample code makes texture sampling sharper for every later pass of the camera, for example when the
+    /// camera renders at a low render scale and an upscaler restores the resolution. A negative mip bias selects more
+    /// detailed mipmaps.</para>
+    ///
+    /// <code source="../../DocCodeSamples.Tests/GlobalShaderVariablesSamples.cs" region="global-variables"/>
+    /// </example>
     public interface IUniversalGlobalShaderVariablesUploader : IGlobalShaderVariablesOnly3DUploader, IGlobalShaderVariablesCommonUploader
     {}
 
@@ -24,6 +31,13 @@ namespace UnityEngine.Experimental.Rendering
     /// call <see cref="IGlobalShaderVariablesGlobalUploader.Push"/>. For changes to the calling pass only, use
     /// <see cref="Universal2DGlobalShaderData.Get"/> instead.
     /// </remarks>
+    /// <example>
+    /// <para>This sample code tells the later passes of the camera that the camera target changed size, for example
+    /// after a custom upscaling pass that outputs the full camera resolution. The pass works with both the Universal
+    /// Renderer and the 2D Renderer.</para>
+    ///
+    /// <code source="../../DocCodeSamples.Tests/GlobalShaderVariablesSamples.cs" region="both-renderers"/>
+    /// </example>
     public interface IUniversal2DGlobalShaderVariablesUploader : IGlobalShaderVariablesOnly2DUploader, IGlobalShaderVariablesCommonUploader
     {}
 
@@ -35,6 +49,13 @@ namespace UnityEngine.Experimental.Rendering
     /// <see cref="UniversalGlobalShaderData.GetGlobal"/> and <see cref="Universal2DGlobalShaderData.GetGlobal"/> return
     /// implement it.
     /// </remarks>
+    /// <example>
+    /// <para>This sample code tells the later passes of the camera that the camera target changed size, for example
+    /// after a custom upscaling pass that outputs the full camera resolution. The pass works with both the Universal
+    /// Renderer and the 2D Renderer.</para>
+    ///
+    /// <code source="../../DocCodeSamples.Tests/GlobalShaderVariablesSamples.cs" region="both-renderers"/>
+    /// </example>
     public interface IGlobalShaderVariablesCommonUploader : IGlobalShaderVariablesBaseUploader, IGlobalShaderVariablesGlobalUploader
     {}
 
@@ -45,6 +66,18 @@ namespace UnityEngine.Experimental.Rendering
     /// A pass that pushes changes global state: it must call <see cref="UnityEngine.Rendering.RenderGraphModule.IBaseRenderGraphBuilder.AllowGlobalStateModification"/>
     /// with true, which also keeps the render graph from culling it.
     /// </remarks>
+    /// <example>
+    /// <para>This sample code makes texture sampling sharper for every later pass of the camera, for example when the
+    /// camera renders at a low render scale and an upscaler restores the resolution. A negative mip bias selects more
+    /// detailed mipmaps.</para>
+    ///
+    /// <code source="../../DocCodeSamples.Tests/GlobalShaderVariablesSamples.cs" region="global-variables"/>
+    /// <para>This sample code sets the variables back to the values URP filled for the camera, for every later pass of
+    /// the camera. If <c>keepMipBias</c> is true, the later passes keep the texture mip bias that an earlier pass set,
+    /// and a single push sends the reset and the kept mip bias to the GPU.</para>
+    ///
+    /// <code source="../../DocCodeSamples.Tests/GlobalShaderVariablesSamples.cs" region="restore-camera-values"/>
+    /// </example>
     public interface IGlobalShaderVariablesGlobalUploader
     {
         /// <summary>
@@ -95,6 +128,25 @@ namespace UnityEngine.Experimental.Rendering
     /// exception if the copy was changed or pushed.
     /// </para>
     /// </remarks>
+    /// <example>
+    /// <para>This sample code draws the opaque objects again into a half-resolution texture, for example as the source
+    /// of a glow effect. The shaders of the pass read the screen size of the half-resolution texture, and the shaders
+    /// of later passes read the screen size of the camera. The renderer feature adds the pass to the renderer.</para>
+    ///
+    /// <code source="../../DocCodeSamples.Tests/GlobalShaderVariablesSamples.cs" region="temporary-copy"/>
+    /// <para>This sample code runs a compute shader that writes a quarter-resolution texture. The compute shader reads
+    /// the screen size of that texture, and the other shaders keep reading the screen size of the camera. The compute
+    /// shader needs a <c>CSMain</c> kernel that writes to a <c>_Result</c> texture. To read the global shader
+    /// variables, the compute shader must include the <c>Core.hlsl</c> file from the URP shader library.</para>
+    ///
+    /// <code source="../../DocCodeSamples.Tests/GlobalShaderVariablesSamples.cs" region="temporary-copy-compute"/>
+    /// <para>This sample code draws the objects of a layer with the values URP filled for the camera. It ignores values
+    /// that earlier passes pushed for the rest of the camera. For example, a texture mip bias that an earlier pass
+    /// pushed doesn't apply to these objects. To draw these objects only in this pass, remove their layer from
+    /// **Opaque Layer Mask** in the Universal Renderer asset.</para>
+    ///
+    /// <code source="../../DocCodeSamples.Tests/GlobalShaderVariablesSamples.cs" region="temporary-copy-camera-values"/>
+    /// </example>
     /// <seealso cref="UniversalGlobalShaderData"/>
     /// <seealso cref="Universal2DGlobalShaderData"/>
     /// <seealso cref="IGlobalShaderVariablesGlobalUploader"/>
@@ -144,6 +196,13 @@ namespace UnityEngine.Experimental.Rendering
     /// <remarks>
     /// For details, refer to <see cref="IGlobalShaderVariablesTemporaryUploader"/>.
     /// </remarks>
+    /// <example>
+    /// <para>This sample code draws the opaque objects again into a half-resolution texture, for example as the source
+    /// of a glow effect. The shaders of the pass read the screen size of the half-resolution texture, and the shaders
+    /// of later passes read the screen size of the camera. The renderer feature adds the pass to the renderer.</para>
+    ///
+    /// <code source="../../DocCodeSamples.Tests/GlobalShaderVariablesSamples.cs" region="temporary-copy"/>
+    /// </example>
     public interface IUniversalGlobalShaderVariablesTemporaryUploader :
         IGlobalShaderVariablesBaseUploader, IGlobalShaderVariablesOnly3DUploader, IGlobalShaderVariablesTemporaryUploader
     {}
@@ -154,6 +213,13 @@ namespace UnityEngine.Experimental.Rendering
     /// <remarks>
     /// For details, refer to <see cref="IGlobalShaderVariablesTemporaryUploader"/>.
     /// </remarks>
+    /// <example>
+    /// <para>This sample code draws the sprites of a layer with the 2D Renderer, with their shader animations stopped
+    /// at a given time, for example while the application is paused. The shaders of later passes read the time of the
+    /// camera.</para>
+    ///
+    /// <code source="../../DocCodeSamples.Tests/GlobalShaderVariablesSamples.cs" region="renderer-2d"/>
+    /// </example>
     public interface IUniversal2DGlobalShaderVariablesTemporaryUploader :
         IGlobalShaderVariablesBaseUploader, IGlobalShaderVariablesOnly2DUploader, IGlobalShaderVariablesTemporaryUploader
     {}
@@ -167,6 +233,13 @@ namespace UnityEngine.Experimental.Rendering
     /// is Time.smoothDeltaTime.
     /// _DitheringTextureInvSize is read-only: it describes the dithering texture URP binds.
     /// </remarks>
+    /// <example>
+    /// <para>This sample code draws the opaque objects again into a half-resolution texture, for example as the source
+    /// of a glow effect. The shaders of the pass read the screen size of the half-resolution texture, and the shaders
+    /// of later passes read the screen size of the camera. The renderer feature adds the pass to the renderer.</para>
+    ///
+    /// <code source="../../DocCodeSamples.Tests/GlobalShaderVariablesSamples.cs" region="temporary-copy"/>
+    /// </example>
     public interface IGlobalShaderVariablesBaseUploader
     {
         /// <summary>The time, scaled: [t/20, t, t*2, t*3].</summary>
@@ -227,6 +300,13 @@ namespace UnityEngine.Experimental.Rendering
     /// The read-only properties describe what URP binds or configures for the camera: the light lists, the shadow maps
     /// and their PCSS filtering, the light cookies, the probe volumes and the rendering layers.
     /// </remarks>
+    /// <example>
+    /// <para>This sample code draws the objects of a layer with the main light shadows of the first shadow cascade
+    /// only. The other cascades get the values that the shaders read beyond the last cascade: a matrix that has no
+    /// effect, and an empty percentage-closer soft shadows (PCSS) atlas tile.</para>
+    ///
+    /// <code source="../../DocCodeSamples.Tests/GlobalShaderVariablesSamples.cs" region="shadow-structs"/>
+    /// </example>
     public interface IGlobalShaderVariablesOnly3DUploader
     {
         // Main Light
@@ -316,6 +396,13 @@ namespace UnityEngine.Experimental.Rendering
     /// return implement this interface. It has no members yet, because the URP 2D renderer currently fills only the
     /// variables in <see cref="IGlobalShaderVariablesBaseUploader"/>.
     /// </remarks>
+    /// <example>
+    /// <para>This sample code draws the sprites of a layer with the 2D Renderer, with their shader animations stopped
+    /// at a given time, for example while the application is paused. The shaders of later passes read the time of the
+    /// camera.</para>
+    ///
+    /// <code source="../../DocCodeSamples.Tests/GlobalShaderVariablesSamples.cs" region="renderer-2d"/>
+    /// </example>
     // Empty while that struct is disabled, kept so the 2D renderer keeps its own uploader surface.
     public interface IGlobalShaderVariablesOnly2DUploader
     {
