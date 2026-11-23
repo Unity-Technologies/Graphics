@@ -182,6 +182,7 @@ namespace UnityEngine.Rendering
         public uint WarmUpSampleMultiplier;
         public uint PunctualLightCandidateCount;
         public bool DistanceFallback;
+        public float RayTracingNormalBias;
     }
 
     internal struct SurfaceCachePatchFilteringParameterSet
@@ -423,6 +424,7 @@ namespace UnityEngine.Rendering
             internal uint PunctualLightCandidateCount;
             internal uint VolumeSpatialResolution;
             internal float VolumeVoxelMinSize;
+            internal float RayTracingNormalBias;
             internal bool PatchWarpingEnabled;
             internal Vector3 VolumeTargetPos;
             internal GraphicsBuffer TraceScratchBuffer;
@@ -520,6 +522,7 @@ namespace UnityEngine.Rendering
             public static readonly int _MultiBounce = Shader.PropertyToID("_MultiBounce");
             public static readonly int _VolumeVoxelMinSize = Shader.PropertyToID("_VolumeVoxelMinSize");
             public static readonly int _PatchWarping = Shader.PropertyToID("_PatchWarping");
+            public static readonly int _RayTracingNormalBias = Shader.PropertyToID("_RayTracingNormalBias");
             public static readonly int _PunctualLightSampleCount = Shader.PropertyToID("_PunctualLightSampleCount");
             public static readonly int _ShortHysteresis = Shader.PropertyToID("_ShortHysteresis");
             public static readonly int _TemporalSmoothing = Shader.PropertyToID("_TemporalSmoothing");
@@ -808,6 +811,7 @@ namespace UnityEngine.Rendering
                 passData.WarmUpSampleMultiplier = _estimationParams.WarmUpSampleMultiplier;
                 passData.PunctualLightCandidateCount = _estimationParams.PunctualLightCandidateCount;
                 passData.VolumeVoxelMinSize = Volume.VoxelMinSize;
+                passData.RayTracingNormalBias = _estimationParams.RayTracingNormalBias;
                 passData.PatchWarpingEnabled = Volume.PatchWarpingEnabled;
                 passData.Zero = _zero;
 
@@ -947,7 +951,7 @@ namespace UnityEngine.Rendering
                 cmd.SetComputeBufferParam(shader, kernelIdx, ShaderIDs._PunctualLights, punctualLightBuffer);
                 cmd.SetComputeIntParam(shader, ShaderIDs._PunctualLightCount, punctualLightCount);
                 cmd.SetComputeIntParam(shader, ShaderIDs._SamplesPerPunctualLight, (int)SamplesPerPunctualLight);
-                cmd.SetComputeFloatParam(shader, ShaderIDs._FrameIdx, data.FrameIdx);
+                cmd.SetComputeIntParam(shader, ShaderIDs._FrameIdx, (int)data.FrameIdx);
                 cmd.SetComputeBufferParam(shader, kernelIdx, ShaderIDs._Samples, data.PunctualLightSamples);
                 cmd.SetComputeBufferParam(shader, kernelIdx, ShaderIDs._MaterialEntries, data.World.GetMaterialListBuffer());
                 cmd.SetComputeTextureParam(shader, kernelIdx, ShaderIDs._AlbedoTextures, data.World.GetMaterialAlbedoTextures());
@@ -985,7 +989,8 @@ namespace UnityEngine.Rendering
                 cmd.SetComputeIntParam(shader, ShaderIDs._MultiBounce, data.MultiBounce ? 1 : 0);
                 cmd.SetComputeIntParam(shader, ShaderIDs._PatchWarping, data.PatchWarpingEnabled ? 1 : 0);
                 cmd.SetComputeFloatParam(shader, ShaderIDs._VolumeVoxelMinSize, data.VolumeVoxelMinSize);
-                cmd.SetComputeFloatParam(shader, ShaderIDs._PunctualLightSampleCount, data.PunctualLightSampleCount);
+                cmd.SetComputeFloatParam(shader, ShaderIDs._RayTracingNormalBias, data.RayTracingNormalBias);
+                cmd.SetComputeIntParam(shader, ShaderIDs._PunctualLightSampleCount, (int)data.PunctualLightSampleCount);
                 cmd.SetComputeFloatParam(shader, ShaderIDs._ShortHysteresis, data.ShortHysteresis);
                 cmd.SetComputeIntParam(shader, ShaderIDs._RingConfigOffset, (int)data.RingConfigOffset);
                 cmd.SetComputeBufferParam(shader, kernelIdx, ShaderIDs._CellPatchIndices, data.CellPatchIndices);

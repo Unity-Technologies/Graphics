@@ -4,7 +4,7 @@ using UnityEngine.Rendering.Universal;
 namespace UnityEditor.Rendering.Universal
 {
     [CustomEditor(typeof(SurfaceCacheGIVolumeOverride))]
-    internal class SurfaceCacheGIVolumeEditor : VolumeComponentEditor
+    internal class SurfaceCacheGIVolumeEditor : UniversalRenderPipelineVolumeComponentEditor
     {
         protected SurfaceCacheGIVolumeOverride.PresetQuality m_Quality;
         private bool m_QualityDirty = true;
@@ -19,6 +19,7 @@ namespace UnityEditor.Rendering.Universal
         protected SerializedDataParameter m_LightTransportRenderingLayerMask;
         protected SerializedDataParameter m_LightTransportWarmUpSampleMultiplier;
         protected SerializedDataParameter m_LightTransportPunctualLightCandidateCount;
+        protected SerializedDataParameter m_LightTransportRayTracingNormalBias;
 
         protected SerializedDataParameter m_PatchFilteringTemporalSmoothing;
         protected SerializedDataParameter m_PatchFilteringSpatialEnabled;
@@ -52,6 +53,7 @@ namespace UnityEditor.Rendering.Universal
         static GUIContent s_LightTransportBouncePatchAllocation = L10n.TextContent("Bounce Patch Allocation", "When enabled, new patches are allocated at ray hit locations when multi-bounce cache lookups fail", null, null);
         static GUIContent s_LightTransportSampleCount = L10n.TextContent("Sample Count", "Number of samples used for GI estimation. Higher values improve quality at performance cost.", null, null);
         static GUIContent s_LightTransportWarmUpSampleMultiplier = L10n.TextContent("Warm-up Sample Multiplier", "Boosts the initial sample count on newly revealed surfaces if needed. This stabilizes the image faster when geometry or camera is moving.", null, null);
+        static GUIContent s_LightTransportRayTracingNormalBias = L10n.TextContent("Ray Tracing Normal Bias", "Offsets ray origins along the surface normal, in world units. Increase this to fix dark artifacts when the ray tracing geometry differs from the rasterized geometry, for example when an object is rasterized with a less detailed mesh LOD, because ray tracing always uses mesh LOD 0. High values can cause light leaking.", null, null);
         static GUIContent s_LightTransportPunctualLightCandidateCount = L10n.TextContent("Punctual Light Candidate Count", "Number of punctual light candidates considered for each punctual light sample. Higher values reduce noise at a minor performance cost.", null, null);
         static GUIContent s_PatchFilteringTemporalSmoothing = L10n.TextContent("Temporal Smoothing", "Temporal smoothing for patch data. Higher values produce more stable results but slower response to lighting changes.", null, null);
         static GUIContent s_PatchFilteringSpatialEnabled = L10n.TextContent("Spatial Filtering", "Enables spatial filtering across patches. This reduces noise but may also increase leaking.", null, null);
@@ -79,6 +81,8 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnEnable()
         {
+            base.OnEnable();
+
             var o = new PropertyFetcher<SurfaceCacheGIVolumeOverride>(serializedObject);
 
             m_Enabled = Unpack(o.Find(obj => obj.enabled));
@@ -90,6 +94,7 @@ namespace UnityEditor.Rendering.Universal
             m_LightTransportSampleCount = Unpack(o.Find(obj => obj.lightTransportSampleCount));
             m_LightTransportWarmUpSampleMultiplier = Unpack(o.Find(obj => obj.lightTransportWarmupSampleMultiplier));
             m_LightTransportPunctualLightCandidateCount = Unpack(o.Find(obj => obj.lightTransportPunctualLightCandidateCount));
+            m_LightTransportRayTracingNormalBias = Unpack(o.Find(obj => obj.lightTransportRayTracingNormalBias));
             m_PatchFilteringTemporalSmoothing = Unpack(o.Find(obj => obj.patchFilteringTemporalSmoothing));
             m_PatchFilteringSpatialEnabled = Unpack(o.Find(obj => obj.patchFilteringSpatialEnabled));
             m_PatchFilteringSpatialSampleCount = Unpack(o.Find(obj => obj.patchFilteringSpatialSampleCount));
@@ -116,10 +121,15 @@ namespace UnityEditor.Rendering.Universal
                 m_VolumeSerializedObject.Dispose();
                 m_VolumeSerializedObject = null;
             }
+
+            base.OnDisable();
         }
 
         public override void OnInspectorGUI()
         {
+            if (SceneView.lastActiveSceneView && !SceneView.lastActiveSceneView.sceneViewState.alwaysRefreshEnabled)
+                EditorGUILayout.HelpBox("Enable \"Always Refresh\" in the Scene View to see realtime updates in the Scene View.", MessageType.Info);
+
             PropertyField(m_Enabled, s_State);
 
             if (showAdditionalProperties)
@@ -165,6 +175,7 @@ namespace UnityEditor.Rendering.Universal
             if (showAdditionalProperties)
             {
                 PropertyField(m_LightTransportPunctualLightCandidateCount, s_LightTransportPunctualLightCandidateCount);
+                PropertyField(m_LightTransportRayTracingNormalBias, s_LightTransportRayTracingNormalBias);
                 PropertyField(m_LightTransportRenderingLayerMask, s_RenderingLayerMask);
                 PropertyField(m_LightTransportDefragCount, s_DefragCount);
             }

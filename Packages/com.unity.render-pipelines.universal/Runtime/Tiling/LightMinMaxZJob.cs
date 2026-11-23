@@ -58,9 +58,9 @@ namespace UnityEngine.Rendering.Universal
                 minMax.y = float.MinValue;
             }
 
-            // Clamp to near, not 0: an orthographic near plane can be negative.
+            // Clamp to near, not 0: an orthographic near plane can be negative. A light entirely closer than the near
+            // plane keeps max < min, which ZBinningJob treats as empty.
             minMax.x = math.max(minMax.x, near);
-            minMax.y = math.max(minMax.y, near);
             minMaxZs[index] = minMax;
         }
     }

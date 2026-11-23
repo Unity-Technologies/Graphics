@@ -728,7 +728,7 @@ namespace UnityEngine.Rendering.Universal
         // Over time, more settings should be folded into these structs so that the recording methods are fully
         // decoupled from scattered state.
 
-        // Aggregates decisions regarding which rendering stages will actually execute this frame. Derived from
+        // Aggregates decisions regarding which rendering stages will actually execute this frame, and their targets. Derived from
         // camera settings, culling masks, shadow distance, and technique requirements (e.g. depth priming).
         struct RenderStages
         {
@@ -737,6 +737,8 @@ namespace UnityEngine.Rendering.Universal
             internal bool drawOpaquePass;
             internal bool drawTransparentPass;
             internal bool drawDeferredLightingPass;
+
+            internal bool depthTextureProducedByPrepass;
         }
 
         // Aggregates texture and resource requirements declared by ScriptableRenderPasses and internal features.

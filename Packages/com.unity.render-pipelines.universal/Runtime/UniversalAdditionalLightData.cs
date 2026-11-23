@@ -233,7 +233,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        void SyncLightAndShadowLayers()
+        internal void SyncLightAndShadowLayers()
         {
             if (light)
                 light.renderingLayerMask = m_CustomShadowLayers ? m_ShadowRenderingLayersMask : m_RenderingLayersMask;

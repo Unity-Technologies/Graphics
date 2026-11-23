@@ -202,19 +202,13 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        internal static void SyncLightAndShadowLayers(UniversalRenderPipelineSerializedLight serializedLight, SerializedProperty serialized)
+        internal static void SyncLightAndShadowLayers(UniversalRenderPipelineSerializedLight serializedLight)
         {
-            // If we're not in decoupled mode for light layers, we sync light with shadow layers.
-            // In mixed state, it makes sense to do it only on Light that links the mode.
-            foreach (var lightTarget in serializedLight.serializedObject.targetObjects)
+            serializedLight.serializedAdditionalDataObject.ApplyModifiedProperties();
+            Undo.RecordObjects(serializedLight.serializedObject.targetObjects, "Sync Light and Shadow Layers");
+            foreach (var additionalData in serializedLight.lightsAdditionalData)
             {
-                var additionData = (lightTarget as Component).gameObject.GetComponent<UniversalAdditionalLightData>();
-                if (additionData.customShadowLayers)
-                    continue;
-
-                Light target = lightTarget as Light;
-                if (target.renderingLayerMask != serialized.intValue)
-                    target.renderingLayerMask = serialized.intValue;
+                additionalData.SyncLightAndShadowLayers();
             }
         }
 
@@ -296,10 +290,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.PropertyField(serializedLight.renderingLayers, Styles.RenderingLayers);
                 GUI.enabled = true;
                 if (EditorGUI.EndChangeCheck())
-                {
-                    if (!serializedLight.customShadowLayers.boolValue)
-                        SyncLightAndShadowLayers(serializedLight, serializedLight.renderingLayers);
-                }
+                    SyncLightAndShadowLayers(serializedLight);
                 if (!UniversalRenderPipeline.asset.useRenderingLayers)
                 {
                     CoreEditorUtils.DrawFixMeBox(Styles.RenderingLayersHelpBox, () =>
@@ -405,19 +396,8 @@ namespace UnityEditor.Rendering.Universal
                             using (new EditorGUI.IndentLevelScope())
                                 EditorGUILayout.PropertyField(serializedLight.shadowRenderingLayers, Styles.ShadowLayer);
                         }
-                        // Undo the changes in the light component because the SyncLightAndShadowLayers will change the value automatically when link is ticked
                         if (EditorGUI.EndChangeCheck())
-                        {
-                            if (serializedLight.customShadowLayers.boolValue)
-                            {
-                                serializedLight.settings.light.renderingLayerMask = serializedLight.shadowRenderingLayers.intValue;
-                            }
-                            else
-                            {
-                                serializedLight.serializedAdditionalDataObject.ApplyModifiedProperties(); // we need to push above modification the modification on object as it is used to sync
-                                SyncLightAndShadowLayers(serializedLight, serializedLight.renderingLayers);
-                            }
-                        }
+                            SyncLightAndShadowLayers(serializedLight);
                     }
                 }
             }

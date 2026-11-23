@@ -1,8 +1,10 @@
 using System.Linq;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.TestTools;
 
 namespace UnityEditor.Rendering.Universal.Test.GlobalSettingsMigration
 {
@@ -30,6 +32,11 @@ namespace UnityEditor.Rendering.Universal.Test.GlobalSettingsMigration
             if (!renderPipelineAsset.TryGetRendererData(renderPipelineAsset.m_DefaultRendererIndex, out rendererData))
                 return null;
 
+            return AddFeature(rendererData, active);
+        }
+
+        static ScreenSpaceAmbientOcclusion AddFeature(ScriptableRendererData rendererData, bool active)
+        {
             var feature = ScriptableObject.CreateInstance<ScreenSpaceAmbientOcclusion>();
             feature.SetActive(active);
 
@@ -144,6 +151,97 @@ namespace UnityEditor.Rendering.Universal.Test.GlobalSettingsMigration
 
                 message = string.Empty;
                 return true;
+            }
+        }
+
+        class ActiveRendererFeatureOnNonDefaultRenderer : IRenderPipelineGraphicsSettingsTestCase<URPDefaultVolumeProfileSettings>
+        {
+            private ScriptableRendererData[] m_PreviousRendererDataList;
+            private UniversalRendererData m_RendererData;
+            private ScreenSpaceAmbientOcclusion m_Feature;
+
+            public void SetUp(UniversalRenderPipelineGlobalSettings globalSettingsAsset, UniversalRenderPipelineAsset renderPipelineAsset)
+            {
+                m_RendererData = ScriptableObject.CreateInstance<UniversalRendererData>();
+                m_Feature = AddFeature(m_RendererData, active: true);
+
+                m_PreviousRendererDataList = renderPipelineAsset.m_RendererDataList;
+                renderPipelineAsset.m_RendererDataList = m_PreviousRendererDataList.Append(m_RendererData).ToArray();
+
+                SeedGlobalSettings(globalSettingsAsset, CreateProfileAsset(k_ProfilePath));
+            }
+
+            public void TearDown(UniversalRenderPipelineGlobalSettings globalSettingsAsset, UniversalRenderPipelineAsset renderPipelineAsset)
+            {
+                renderPipelineAsset.m_RendererDataList = m_PreviousRendererDataList;
+                RemoveFeature(m_RendererData, m_Feature);
+                Object.DestroyImmediate(m_RendererData);
+                AssetDatabase.DeleteAsset(k_ProfilePath);
+            }
+
+            public bool IsMigrationCorrect(URPDefaultVolumeProfileSettings settings, out string message)
+            {
+                if (!TryGetMigratedOverride(settings, out var ssao))
+                {
+                    message = "The default volume profile has no ambient occlusion override";
+                    return false;
+                }
+
+                return HasCopiedFeatureSettings(ssao, out message);
+            }
+        }
+
+        class ActiveRendererFeaturesWithDifferentSettings : IRenderPipelineGraphicsSettingsTestCase<URPDefaultVolumeProfileSettings>
+        {
+            const string k_FirstRendererName = "FirstSSAORenderer";
+            const string k_SecondRendererName = "SecondSSAORenderer";
+            const float k_SecondIntensity = 1.5f;
+
+            private ScriptableRendererData[] m_PreviousRendererDataList;
+            private UniversalRendererData m_FirstRendererData;
+            private UniversalRendererData m_SecondRendererData;
+            private ScreenSpaceAmbientOcclusion m_FirstFeature;
+            private ScreenSpaceAmbientOcclusion m_SecondFeature;
+
+            public void SetUp(UniversalRenderPipelineGlobalSettings globalSettingsAsset, UniversalRenderPipelineAsset renderPipelineAsset)
+            {
+                m_FirstRendererData = ScriptableObject.CreateInstance<UniversalRendererData>();
+                m_FirstRendererData.name = k_FirstRendererName;
+                m_FirstFeature = AddFeature(m_FirstRendererData, active: true);
+
+                m_SecondRendererData = ScriptableObject.CreateInstance<UniversalRendererData>();
+                m_SecondRendererData.name = k_SecondRendererName;
+                m_SecondFeature = AddFeature(m_SecondRendererData, active: true);
+#pragma warning disable CS0618 // Type or member is obsolete
+                m_SecondFeature.settings.Intensity = k_SecondIntensity;
+#pragma warning restore CS0618
+
+                m_PreviousRendererDataList = renderPipelineAsset.m_RendererDataList;
+                renderPipelineAsset.m_RendererDataList = m_PreviousRendererDataList.Append(m_FirstRendererData).Append(m_SecondRendererData).ToArray();
+
+                SeedGlobalSettings(globalSettingsAsset, CreateProfileAsset(k_ProfilePath));
+                LogAssert.Expect(LogType.Warning, new Regex($"Only the settings of '{k_FirstRendererName}' were migrated.*\nNot migrated: '{k_SecondRendererName}'$"));
+            }
+
+            public void TearDown(UniversalRenderPipelineGlobalSettings globalSettingsAsset, UniversalRenderPipelineAsset renderPipelineAsset)
+            {
+                renderPipelineAsset.m_RendererDataList = m_PreviousRendererDataList;
+                RemoveFeature(m_FirstRendererData, m_FirstFeature);
+                RemoveFeature(m_SecondRendererData, m_SecondFeature);
+                Object.DestroyImmediate(m_FirstRendererData);
+                Object.DestroyImmediate(m_SecondRendererData);
+                AssetDatabase.DeleteAsset(k_ProfilePath);
+            }
+
+            public bool IsMigrationCorrect(URPDefaultVolumeProfileSettings settings, out string message)
+            {
+                if (!TryGetMigratedOverride(settings, out var ssao))
+                {
+                    message = "The default volume profile has no ambient occlusion override";
+                    return false;
+                }
+
+                return HasCopiedFeatureSettings(ssao, out message);
             }
         }
 
@@ -330,6 +428,10 @@ namespace UnityEditor.Rendering.Universal.Test.GlobalSettingsMigration
                 .SetName("When migrating an active ambient occlusion renderer feature, its settings are being transferred correctly"),
             new TestCaseData(new InactiveRendererFeature())
                 .SetName("When migrating an inactive ambient occlusion renderer feature, the override is added without overriding anything"),
+            new TestCaseData(new ActiveRendererFeatureOnNonDefaultRenderer())
+                .SetName("When the active ambient occlusion renderer feature is on a non-default renderer, its settings are being transferred correctly"),
+            new TestCaseData(new ActiveRendererFeaturesWithDifferentSettings())
+                .SetName("When several renderers have active ambient occlusion renderer features with different settings, the first one is transferred and a warning names the others"),
             new TestCaseData(new OverrideAlreadyAuthored())
                 .SetName("When the default volume profile already has an ambient occlusion override, the migration leaves it untouched"),
             new TestCaseData(new QualityProfileOfActiveRendererFeature())
@@ -343,7 +445,21 @@ namespace UnityEditor.Rendering.Universal.Test.GlobalSettingsMigration
         [Test, TestCaseSource(nameof(s_TestCaseDatas))]
         public void PerformMigration(IRenderPipelineGraphicsSettingsTestCase<URPDefaultVolumeProfileSettings> testCase)
         {
-            base.DoTest(testCase);
+            // The migration reads every renderer of the asset, so keep only the default one to control what it finds
+            var previousRendererDataList = m_Asset.m_RendererDataList;
+            var previousDefaultRendererIndex = m_Asset.m_DefaultRendererIndex;
+            m_Asset.m_RendererDataList = new[] { previousRendererDataList[previousDefaultRendererIndex] };
+            m_Asset.m_DefaultRendererIndex = 0;
+
+            try
+            {
+                base.DoTest(testCase);
+            }
+            finally
+            {
+                m_Asset.m_RendererDataList = previousRendererDataList;
+                m_Asset.m_DefaultRendererIndex = previousDefaultRendererIndex;
+            }
         }
     }
 }

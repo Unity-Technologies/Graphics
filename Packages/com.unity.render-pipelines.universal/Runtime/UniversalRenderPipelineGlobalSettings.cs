@@ -324,11 +324,12 @@ namespace UnityEngine.Rendering.Universal
         {
             // SSAO is now driven by the volume stack, so the renderer feature settings are no longer read.
             // The default profile goes first because a quality profile can reference that same asset.
-            MigrateScreenSpaceAmbientOcclusionToDefaultVolumeProfile(data);
-            MigrateScreenSpaceAmbientOcclusionToQualityVolumeProfiles();
+            var reportedAssets = new HashSet<UniversalRenderPipelineAsset>();
+            MigrateScreenSpaceAmbientOcclusionToDefaultVolumeProfile(data, reportedAssets);
+            MigrateScreenSpaceAmbientOcclusionToQualityVolumeProfiles(reportedAssets);
         }
 
-        static void MigrateScreenSpaceAmbientOcclusionToQualityVolumeProfiles()
+        static void MigrateScreenSpaceAmbientOcclusionToQualityVolumeProfiles(HashSet<UniversalRenderPipelineAsset> reportedAssets)
         {
             var migratedProfiles = new Dictionary<VolumeProfile, UniversalRenderPipelineAsset>();
             foreach (var urpAsset in EnumerateQualityLevelPipelineAssets())
@@ -349,13 +350,14 @@ namespace UnityEngine.Rendering.Universal
                     continue;
 
                 var ssaoOverride = profile.Add<ScreenSpaceAmbientOcclusionVolumeOverride>(overrides: true);
+                WarnIfRenderersHaveDifferentSettings(urpAsset, ssaoFeature, reportedAssets);
                 CopyRendererFeatureSettingsToVolumeOverride(ssaoFeature, ssaoOverride);
                 PersistVolumeOverride(profile, ssaoOverride);
                 migratedProfiles.Add(profile, urpAsset);
             }
         }
 
-        static void MigrateScreenSpaceAmbientOcclusionToDefaultVolumeProfile(UniversalRenderPipelineGlobalSettings data)
+        static void MigrateScreenSpaceAmbientOcclusionToDefaultVolumeProfile(UniversalRenderPipelineGlobalSettings data, HashSet<UniversalRenderPipelineAsset> reportedAssets)
         {
             // The default profile is shared by every quality level, so it can only hold the active pipeline's settings
             var profile = GetOrCreateGraphicsSettings<URPDefaultVolumeProfileSettings>(data).volumeProfile;
@@ -366,14 +368,17 @@ namespace UnityEngine.Rendering.Universal
             if (profile.Has<ScreenSpaceAmbientOcclusionVolumeOverride>())
                 return;
 
+            var urpAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
             ScreenSpaceAmbientOcclusion ssaoFeature = null;
-            bool active = GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset urpAsset
-                && TryGetActiveScreenSpaceAmbientOcclusionFeature(urpAsset, out ssaoFeature);
+            bool active = urpAsset != null && TryGetActiveScreenSpaceAmbientOcclusionFeature(urpAsset, out ssaoFeature);
 
             var ssaoOverride = profile.Add<ScreenSpaceAmbientOcclusionVolumeOverride>(overrides: active);
 
             if (active)
+            {
+                WarnIfRenderersHaveDifferentSettings(urpAsset, ssaoFeature, reportedAssets);
                 CopyRendererFeatureSettingsToVolumeOverride(ssaoFeature, ssaoOverride);
+            }
 
             PersistVolumeOverride(profile, ssaoOverride);
         }
@@ -395,11 +400,63 @@ namespace UnityEngine.Rendering.Universal
 
         static bool TryGetActiveScreenSpaceAmbientOcclusionFeature(UniversalRenderPipelineAsset urpAsset, out ScreenSpaceAmbientOcclusion ssaoFeature)
         {
+            if (urpAsset.TryGetRendererData(urpAsset.m_DefaultRendererIndex, out var defaultRendererData)
+                && TryGetActiveScreenSpaceAmbientOcclusionFeature(defaultRendererData, out ssaoFeature))
+                return true;
+
+            // Cameras can render with any renderer of the asset, so fall back to the first one that has the feature
+            foreach (var rendererData in urpAsset.rendererDataList)
+            {
+                if (TryGetActiveScreenSpaceAmbientOcclusionFeature(rendererData, out ssaoFeature))
+                    return true;
+            }
+
             ssaoFeature = null;
-            return urpAsset.TryGetRendererData(urpAsset.m_DefaultRendererIndex, out var rendererData)
-                && rendererData != null
+            return false;
+        }
+
+        static bool TryGetActiveScreenSpaceAmbientOcclusionFeature(ScriptableRendererData rendererData, out ScreenSpaceAmbientOcclusion ssaoFeature)
+        {
+            ssaoFeature = null;
+            return rendererData != null
                 && rendererData.TryGetRendererFeature<ScreenSpaceAmbientOcclusion>(out ssaoFeature)
                 && ssaoFeature.isActive;
+        }
+
+        static void WarnIfRenderersHaveDifferentSettings(UniversalRenderPipelineAsset urpAsset, ScreenSpaceAmbientOcclusion migratedFeature, HashSet<UniversalRenderPipelineAsset> reportedAssets)
+        {
+            if (!reportedAssets.Add(urpAsset))
+                return;
+
+            string migratedRendererName = null;
+            var skippedRendererNames = new List<string>();
+            foreach (var rendererData in urpAsset.rendererDataList)
+            {
+                if (!TryGetActiveScreenSpaceAmbientOcclusionFeature(rendererData, out var ssaoFeature))
+                    continue;
+
+                if (ssaoFeature == migratedFeature)
+                    migratedRendererName = rendererData.name;
+                else if (!HaveSameMigratedSettings(ssaoFeature, migratedFeature) && !skippedRendererNames.Contains(rendererData.name))
+                    skippedRendererNames.Add(rendererData.name);
+            }
+
+            if (skippedRendererNames.Count == 0)
+                return;
+
+            Debug.LogWarning($"URP: The pipeline asset '{urpAsset.name}' has renderers with different Screen Space Ambient Occlusion settings. " +
+                $"Only the settings of '{migratedRendererName}' were migrated to the volume override. If you need the others, add them to a volume manually.\n" +
+                $"Not migrated: '{string.Join("', '", skippedRendererNames)}'");
+        }
+
+        static bool HaveSameMigratedSettings(ScreenSpaceAmbientOcclusion a, ScreenSpaceAmbientOcclusion b)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            var x = a.settings;
+            var y = b.settings;
+#pragma warning restore CS0618
+            return (x.Intensity, x.Radius, x.Falloff, x.DirectLightingStrength, x.Downsample, x.AfterOpaque, x.AOMethod, x.Source, x.NormalSamples, x.Samples, x.BlurQuality)
+                == (y.Intensity, y.Radius, y.Falloff, y.DirectLightingStrength, y.Downsample, y.AfterOpaque, y.AOMethod, y.Source, y.NormalSamples, y.Samples, y.BlurQuality);
         }
 
         static void PersistVolumeOverride(VolumeProfile profile, VolumeComponent volumeOverride)

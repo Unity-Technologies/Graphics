@@ -30,26 +30,29 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
+            var cameraData = frameData.Get<UniversalCameraData>();
+            var probe = cameraData.cameraType == CameraType.Reflection ? cameraData.camera.reflectionProbeRendered : null;
+
             if (!GraphicsSettings.TryGetRenderPipelineSettings<URPExposureSettings>(out var exposureSetting) || !exposureSetting.UseExposure)
+            {
+                // This capture is not pre-exposed. Reset the probe's EV so it doesn't keep the value from an earlier
+                // capture made with exposure enabled, which would be applied once exposure is enabled again.
+                if (probe != null)
+                    probe.exposureValue = 0f;
                 return;
+            }
 
             var exposureVolume = VolumeManager.instance.stack.GetComponent<ExposureVolume>();
             if (exposureVolume.mode.value == ExposureVolume.Mode.Fixed)
             {
-                float exposureMultiplier = Mathf.Pow(2.0f, -exposureVolume.fixedExposure.value);
+                float fixedExposure = exposureVolume.GetClampedFixedExposure();
+                float exposureMultiplier = Mathf.Pow(2.0f, -fixedExposure);
                 var resourceData = frameData.Get<UniversalResourceData>();
-                var cameraData = frameData.Get<UniversalCameraData>();
 
                 resourceData.exposureMultiplier = CreateTexture(renderGraph);
 
-                if (cameraData.cameraType == CameraType.Reflection)
-                {
-                    var probe = cameraData.camera.reflectionProbeRendered;
-                    if (probe != null)
-                    {
-                        probe.exposureValue = exposureVolume.fixedExposure.value;
-                    }
-                }
+                if (probe != null)
+                    probe.exposureValue = fixedExposure;
 
                 using (var builder = renderGraph.AddRasterRenderPass("Set Fixed Exposure", out PassData passData))
                 {

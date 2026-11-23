@@ -336,15 +336,16 @@ bool TraceScreenSpaceRayHiZ(
 
         // 'distFloor' can be smaller than the current distance 't'.
         // We can also safely ignore 'distBase'.
-        // If we hit the floor, it's always safe to jump there.
-        // If we are at (mipLevel != 0) and we are below the floor, we should not move.
-        t = hitFloor ? distFloor : (((mipLevel != 0) && belowFloor) ? t : distWall);
+        // If we are at (mipLevel != 0) and we are below the floor, we should not move,
+        // as jumping to the floor could skip intersections with finer cells.
+        // Otherwise, if we hit the floor, it's safe to jump there.
+        t = ((mipLevel != 0) && belowFloor) ? t : (hitFloor ? distFloor : distWall);
         rayPos.z = bounds.z; // Retain the depth of the potential intersection
 
-        // Warning: both rays towards the eye, and tracing behind objects has linear
+        // Warning: tracing behind objects has linear
         // rather than logarithmic complexity! This is due to the fact that we only store
         // the maximum value of depth, and not the min-max.
-        mipLevel += (hitFloor || belowFloor || rayTowardsEye) ? -1 : 1;
+        mipLevel += (hitFloor || belowFloor) ? -1 : 1;
         mipLevel  = clamp(mipLevel, 0, maxMipLevel);
 
         // mipLevel = 0;
@@ -378,7 +379,7 @@ float3 ClampAndSanitizeColor(float3 color)
     float3 clamped = scale * color;
     if (AnyIsNaN(clamped) || AnyIsInf(clamped))
         return 0;
-    return color;
+    return clamped;
 }
 
 float4 ComputeSSR(Varyings input
@@ -399,7 +400,7 @@ float4 ComputeSSR(Varyings input
 
     // If the smoothness is below our minimum, don't do any raymarching
     float perceptualSmoothness = SampleSmoothness(positionNDC);
-    UNITY_BRANCH if (perceptualSmoothness <= GetMinimumSmoothness())
+    UNITY_BRANCH if (perceptualSmoothness < GetMinimumSmoothness())
     {
         // Output the framebuffer color ->
         //   avoids bleeding black/uninitialized texels into reflections when blurring.

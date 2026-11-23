@@ -44,6 +44,20 @@ namespace UnityEditor.ShaderGraph
 
         public ScreenSpaceType screenSpaceType => m_ScreenSpaceType;
 
+        internal const string k_ClipNotSupportedWarning = "Screen Position node: Clip mode is not supported, using Default instead.";
+
+        public override void OnAfterDeserialize(string json)
+        {
+            base.OnAfterDeserialize(json);
+
+            // Clip is no longer a Mode, and the dropdown already shows it as Default.
+            if (m_ScreenSpaceType == ScreenSpaceType.Clip)
+            {
+                Debug.LogWarning(k_ClipNotSupportedWarning);
+                m_ScreenSpaceType = ScreenSpaceType.Default;
+            }
+        }
+
         private const int kOutputSlotId = 0;
         private const string kOutputSlotName = "Out";
 

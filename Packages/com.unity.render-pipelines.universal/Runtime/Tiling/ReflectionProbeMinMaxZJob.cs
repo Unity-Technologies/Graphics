@@ -16,6 +16,8 @@ namespace UnityEngine.Rendering.Universal
         public bool reflectionProbeRotation;
         public NativeArray<float2> minMaxZs;
 
+        public float near;
+
         public void Execute(int index)
         {
             var minMax = math.float2(float.MaxValue, float.MinValue);
@@ -45,6 +47,8 @@ namespace UnityEngine.Rendering.Universal
                 minMax.y = math.max(minMax.y, cornerVS.z);
             }
 
+            // As in LightMinMaxZJob: a probe entirely closer than the near plane keeps max < min.
+            minMax.x = math.max(minMax.x, near);
             minMaxZs[index] = minMax;
         }
     }

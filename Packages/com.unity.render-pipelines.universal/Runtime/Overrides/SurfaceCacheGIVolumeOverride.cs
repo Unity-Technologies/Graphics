@@ -8,6 +8,9 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [Serializable, VolumeComponentMenu("Lighting/Surface Cache Global Illumination")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
+#if SURFACE_CACHE_SUPPORTED || UNITY_EDITOR
+    [VolumeRequiresRendererFeatures(typeof(SurfaceCacheGIRendererFeature))]
+#endif
     [DisplayInfo(name = "Surface Cache Global Illumination")]
     public class SurfaceCacheGIVolumeOverride : VolumeComponent
     {
@@ -78,6 +81,14 @@ namespace UnityEngine.Rendering.Universal
         [AdditionalProperty]
         [Tooltip("Number of punctual light candidates considered for each punctual light sample. Higher values reduce noise at a minor performance cost.")]
         public ClampedIntParameter lightTransportPunctualLightCandidateCount = new ClampedIntParameter(k_Presets[(int)k_defaultPresetQuality].lightTransportPunctualLightCandidateCount, 1, 32);
+
+        /// <summary>
+        /// Offsets ray origins along the surface normal, in world units. Increase this to fix dark artifacts when the ray tracing geometry
+        /// differs from the rasterized geometry, for example when an object is rasterized with a less detailed mesh LOD, because ray tracing always uses mesh LOD 0. High values can cause light leaking.
+        /// </summary>
+        [AdditionalProperty]
+        [Tooltip("Offsets ray origins along the surface normal, in world units. Increase this to fix dark artifacts when the ray tracing geometry differs from the rasterized geometry, for example when an object is rasterized with a less detailed mesh LOD, because ray tracing always uses mesh LOD 0. High values can cause light leaking.")]
+        public MinFloatParameter lightTransportRayTracingNormalBias = new MinFloatParameter(0.0f, 0.0f);
 
         // ============================
         // Patch Filtering Parameters

@@ -1,7 +1,6 @@
 #if SURFACE_CACHE_SUPPORTED || UNITY_EDITOR
 
 using System;
-using System.Text.RegularExpressions;
 using NUnit.Framework;
 using Unity.Collections;
 using UnityEngine.PathTracing.Core;
@@ -385,6 +384,34 @@ namespace UnityEngine.Rendering.Universal.Tests
             }
         }
 
+#if UNITY_EDITOR
+        // Preview-scene objects (e.g. the Prefab Mode stage) are filtered out of type and destroy dispatch, but not out of transform dispatch.
+        [Test]
+        public void UpdateMeshRenderer_PreviewSceneTransformChanged_RendererIsNotAdded()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var mesh = CreateQuadMesh();
+            var previewScene = UnityEditor.SceneManagement.EditorSceneManager.NewPreviewScene();
+            GameObject go = null;
+            try
+            {
+                go = CreateMeshRendererGameObject(mesh, out var renderer);
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(go, previewScene);
+
+                Update(env.Adapter, TransformChanges(renderer), env.World);
+                Assert.AreEqual(0, env.World.GetInstanceCount(), "A renderer in a preview scene should not be added to the world.");
+            }
+            finally
+            {
+                env.Dispose();
+                UnityEditor.SceneManagement.EditorSceneManager.ClosePreviewScene(previewScene);
+                if (go != null)
+                    Object.DestroyImmediate(go);
+                Object.DestroyImmediate(mesh);
+            }
+        }
+#endif
+
         [Test]
         public void Update_TransformChangedAndDestroyedInSameChangeSet_ObjectsAreRemoved()
         {
@@ -749,6 +776,31 @@ namespace UnityEngine.Rendering.Universal.Tests
                     Object.DestroyImmediate(lightGo);
             }
         }
+
+#if UNITY_EDITOR
+        [Test]
+        public void UpdateLight_PreviewSceneTransformChanged_LightIsNotAdded()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var previewScene = UnityEditor.SceneManagement.EditorSceneManager.NewPreviewScene();
+            GameObject lightGo = null;
+            try
+            {
+                lightGo = CreateLightGameObject(out var light);
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(lightGo, previewScene);
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { LightTransformChangedList = new Component[] { light } }, env.World);
+                Assert.AreEqual(0u, env.World.GetPunctualLightCount(), "A light in a preview scene should not be added to the world.");
+            }
+            finally
+            {
+                env.Dispose();
+                UnityEditor.SceneManagement.EditorSceneManager.ClosePreviewScene(previewScene);
+                if (lightGo != null)
+                    Object.DestroyImmediate(lightGo);
+            }
+        }
+#endif
 
         [Test]
         public void Update_NoGameObjectChanges_DoesNotAllocateGCMemory()
@@ -1237,6 +1289,34 @@ namespace UnityEngine.Rendering.Universal.Tests
                     Object.DestroyImmediate(terrainData);
             }
         }
+
+#if UNITY_EDITOR
+        [Test]
+        public void UpdateTerrain_PreviewSceneTransformChanged_TerrainIsNotAdded()
+        {
+            var env = CreateEnvironmentOrIgnore();
+            var previewScene = UnityEditor.SceneManagement.EditorSceneManager.NewPreviewScene();
+            GameObject go = null;
+            TerrainData terrainData = null;
+            try
+            {
+                go = CreateTerrainGameObject(out var terrain, out terrainData);
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(go, previewScene);
+
+                Update(env.Adapter, new SurfaceCacheWorldChangeSet { TerrainTransformChangedList = new Component[] { terrain } }, env.World);
+                Assert.AreEqual(0, env.World.GetInstanceCount(), "A terrain in a preview scene should not be added to the world.");
+            }
+            finally
+            {
+                env.Dispose();
+                UnityEditor.SceneManagement.EditorSceneManager.ClosePreviewScene(previewScene);
+                if (go != null)
+                    Object.DestroyImmediate(go);
+                if (terrainData != null)
+                    Object.DestroyImmediate(terrainData);
+            }
+        }
+#endif
 
         [Test]
         public void UpdateTerrain_DisabledAfterAdd_TerrainIsRemoved()
@@ -1814,23 +1894,24 @@ namespace UnityEngine.Rendering.Universal.Tests
         }
 
         const int k_ManyInstanceCount = 1000;
-        static readonly Regex k_MissingMetaPassError = new("does not have a 'Meta' shader pass");
 
-        // The adapter keeps track of the materials it already reported, so a material shared by many instances must
-        // not turn into one log entry (and one formatted message allocation) per instance.
         [Test]
-        public void UpdateEntityInstance_ManyAddedWithMaterialMissingMetaPass_LogsErrorOnce()
+        public void UpdateEntityInstance_ManyAddedWithMaterialMissingMetaPass_AddsMaskedOutInstancesWithoutLogging()
         {
             var env = CreateEnvironmentOrIgnore();
             var mesh = CreateQuadMesh();
             var materialMissingMetaPass = CreateMaterialMissingMetaPass();
             try
             {
-                LogAssert.Expect(LogType.Error, k_MissingMetaPassError);
                 Update(env.Adapter, CreateEntityAddedChangeSet(mesh, materialMissingMetaPass), env.World);
 
                 LogAssert.NoUnexpectedReceived();
                 Assert.AreEqual(k_ManyInstanceCount, env.World.GetInstanceCount());
+                Assert.AreEqual(1, env.World.GetMaterialCount());
+                foreach (var instance in env.World.GetAccelerationStructure().Instances.instances)
+                {
+                    Assert.AreEqual(0u, instance.instanceMask);
+                }
             }
             finally
             {

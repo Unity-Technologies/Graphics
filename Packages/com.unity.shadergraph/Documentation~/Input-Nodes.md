@@ -2,6 +2,12 @@
 
 Supply shaders with essential data such as constants, mesh attributes, gradients, matrices, deformation, PBR parameters, scene details, and texture sampling options.
 
+## 2D
+
+| **Topic** | **Description** |
+|-----------|-----------------|
+| [Active Shadow2D Light](active-shadow2d-light-node.md) | Outputs the position and radius of the 2D light that's casting the shadow, for use in Shadow2D shaders. |
+
 ## Basic
 
 | **Topic**                    | **Description**                                                      |

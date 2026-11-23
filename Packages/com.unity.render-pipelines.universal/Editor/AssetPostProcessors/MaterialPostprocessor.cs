@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using UnityEditor.Callbacks;
 using UnityEditor.Rendering.Analytics;
 using UnityEditor.Rendering.Universal.Analytics;
@@ -44,42 +45,48 @@ namespace UnityEditor.Rendering.Universal
         {
             EditorApplication.update += () =>
             {
-                if (GraphicsSettings.currentRenderPipeline is not UniversalRenderPipelineAsset universalRenderPipeline)
-                    return;
-
                 if (Time.renderedFrameCount > 0)
-                {
-                    bool fileExist = true;
-                    // We check the file existence only once to avoid IO operations every frame.
-                    if (s_NeedToCheckProjSettingExistence)
-                    {
-                        fileExist = System.IO.File.Exists(UniversalProjectSettings.filePath);
-                        s_NeedToCheckProjSettingExistence = false;
-                    }
-
-                    //This method is called at opening and when URP package change (update of manifest.json)
-                    var curUpgradeVersion = UniversalProjectSettings.materialVersionForUpgrade;
-
-                    if (curUpgradeVersion != MaterialPostprocessor.k_Upgraders.Length)
-                    {
-                        string commandLineOptions = Environment.CommandLine;
-                        bool inTestSuite = commandLineOptions.Contains("-testResults");
-                        bool isTemplate = EditorApplication.isCreateFromTemplate;
-                        if (!inTestSuite && fileExist && !isTemplate)
-                        {
-                            EditorUtility.DisplayDialog("URP Material upgrade", "The Materials in your Project were created using an older version of the Universal Render Pipeline (URP)." +
-                                " Unity must upgrade them to be compatible with your current version of URP. \n" +
-                                " Unity will re-import all of the Materials in your project, save the upgraded Materials to disk, and check them out in source control if needed.\n" +
-                                " Please see the Material upgrade guide in the URP documentation for more information.", "OK");
-                        }
-
-                        ReimportAllMaterials();
-                    }
-
-                    if (MaterialPostprocessor.s_NeedsSavingAssets)
-                        MaterialPostprocessor.SaveAssetsToDisk();
-                }
+                    UpgradeMaterialsIfNeeded();
             };
+
+            if (Application.isBatchMode && Environment.CommandLine.Contains("-quit"))
+                SynchronizationContext.Current?.Post(_ => UpgradeMaterialsIfNeeded(), null);
+        }
+
+        static void UpgradeMaterialsIfNeeded()
+        {
+            if (GraphicsSettings.currentRenderPipeline is not UniversalRenderPipelineAsset universalRenderPipeline)
+                return;
+
+            bool fileExist = true;
+            // We check the file existence only once to avoid IO operations every frame.
+            if (s_NeedToCheckProjSettingExistence)
+            {
+                fileExist = System.IO.File.Exists(UniversalProjectSettings.filePath);
+                s_NeedToCheckProjSettingExistence = false;
+            }
+
+            //This method is called at opening and when URP package change (update of manifest.json)
+            var curUpgradeVersion = UniversalProjectSettings.materialVersionForUpgrade;
+
+            if (curUpgradeVersion != MaterialPostprocessor.k_Upgraders.Length)
+            {
+                string commandLineOptions = Environment.CommandLine;
+                bool inTestSuite = commandLineOptions.Contains("-testResults");
+                bool isTemplate = EditorApplication.isCreateFromTemplate;
+                if (!inTestSuite && fileExist && !isTemplate && !Application.isBatchMode)
+                {
+                    EditorUtility.DisplayDialog("URP Material upgrade", "The Materials in your Project were created using an older version of the Universal Render Pipeline (URP)." +
+                        " Unity must upgrade them to be compatible with your current version of URP. \n" +
+                        " Unity will re-import all of the Materials in your project, save the upgraded Materials to disk, and check them out in source control if needed.\n" +
+                        " Please see the Material upgrade guide in the URP documentation for more information.", "OK");
+                }
+
+                ReimportAllMaterials();
+            }
+
+            if (MaterialPostprocessor.s_NeedsSavingAssets)
+                MaterialPostprocessor.SaveAssetsToDisk();
         }
     }
 

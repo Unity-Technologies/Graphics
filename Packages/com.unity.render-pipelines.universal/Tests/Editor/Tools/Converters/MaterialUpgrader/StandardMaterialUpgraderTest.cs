@@ -290,5 +290,81 @@ class StandardMaterialUpgraderTest : MaterialUpgraderTestBase<StandardUpgrader>
                 Assert.IsFalse(material.IsKeywordEnabled("_EMISSION"));
             }
         };
+
+        foreach (var testCase in EmissionUpgradeCases())
+            yield return testCase;
+    }
+
+    internal static IEnumerable EmissionUpgradeCases()
+    {
+        yield return new MaterialUpgradeTestCase()
+        {
+            name = "Given_BakedEmissionBuiltInMaterial_When_Upgrading_Then_TheMaterialURPDirectEmissionEnabled",
+            setup = material =>
+            {
+                material.SetColor("_EmissionColor", Color.white);
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmission;
+                material.EnableKeyword("_EMISSION");
+            },
+            verify = material =>
+            {
+                Assert.IsTrue((material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.BakedEmission) != 0);
+                Assert.IsTrue((material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.RealtimeDirectEmission) != 0);
+                Assert.IsTrue(material.IsKeywordEnabled("_EMISSION"));
+            }
+        };
+
+        yield return new MaterialUpgradeTestCase()
+        {
+            name = "Given_RealtimeEmissionBuiltInMaterial_When_Upgrading_Then_TheMaterialURPDirectEmissionEnabled",
+            setup = material =>
+            {
+                material.SetColor("_EmissionColor", Color.white);
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeIndirectEmission;
+                material.EnableKeyword("_EMISSION");
+            },
+            verify = material =>
+            {
+                Assert.IsTrue((material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.RealtimeIndirectEmission) != 0);
+                Assert.IsTrue((material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.RealtimeDirectEmission) != 0);
+                Assert.IsTrue(material.IsKeywordEnabled("_EMISSION"));
+            }
+        };
+
+        yield return new MaterialUpgradeTestCase()
+        {
+            name = "Given_NoEmissionBuiltInMaterial_When_Upgrading_Then_TheMaterialURPDirectEmissionDisabled",
+            setup = material =>
+            {
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.EmissiveIsBlack;
+                material.DisableKeyword("_EMISSION");
+            },
+            verify = material =>
+            {
+                Assert.IsTrue((material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.RealtimeDirectEmission) == 0);
+                Assert.IsFalse(material.IsKeywordEnabled("_EMISSION"));
+            }
+        };
+    }
+}
+
+[Category("Graphics Tools")]
+class StandardSpecularMaterialUpgraderTest : MaterialUpgraderTestBase<StandardUpgrader>
+{
+    [OneTimeSetUp]
+    public override void OneTimeSetUp()
+    {
+        m_Upgrader = new StandardUpgrader("Standard (Specular setup)");
+    }
+
+    public StandardSpecularMaterialUpgraderTest() : base("Standard (Specular setup)", "Universal Render Pipeline/Lit")
+    {
+    }
+
+    [Test]
+    [TestCaseSource(typeof(StandardMaterialUpgraderTest), nameof(StandardMaterialUpgraderTest.EmissionUpgradeCases))]
+    public void UpgradeStandardSpecularMaterial(MaterialUpgradeTestCase testCase)
+    {
+        UpgradeMaterial(testCase);
     }
 }

@@ -13,8 +13,8 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         const string k_InternalColorLutName = "_InternalColorGradingLut";
 
-        readonly Material m_LutBuilderLdr;
-        readonly Material m_LutBuilderHdr;
+        readonly PostProcessMaterial m_LutBuilderLdr;
+        readonly PostProcessMaterial m_LutBuilderHdr;
         internal readonly GraphicsFormat m_HdrLutFormat;
         internal readonly GraphicsFormat m_LdrLutFormat;
 
@@ -37,8 +37,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             profilingSampler = new ProfilingSampler("Blit Color LUT");
             renderPassEvent = evt;
 
-            m_LutBuilderLdr = PostProcessUtils.LoadShader(data.shaders.lutBuilderLdrPS, passName);
-            m_LutBuilderHdr = PostProcessUtils.LoadShader(data.shaders.lutBuilderHdrPS, passName);
+            m_LutBuilderLdr = new PostProcessMaterial(data.shaders.lutBuilderLdrPS, passName);
+            m_LutBuilderHdr = new PostProcessMaterial(data.shaders.lutBuilderHdrPS, passName);
 
             // Warm up lut format as IsFormatSupported adds GC pressure...
             // UUM-41070: We require `Linear | Render` but with the deprecated FormatUsage this was checking `Blend`
@@ -254,6 +254,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
 
+            bool hdrGrading = postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange;
+            (hdrGrading ? m_LutBuilderHdr : m_LutBuilderLdr).Validate();
+
             this.ConfigureDescriptor(in postProcessingData, out var lutDesc, out var filterMode);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -295,11 +298,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 passData.internalColorLut = internalColorLut;
                 builder.SetRenderAttachment(internalColorLut, 0, AccessFlags.WriteAll);
-                passData.lutBuilderLdr = m_LutBuilderLdr;
-                passData.lutBuilderHdr = m_LutBuilderHdr;
+                passData.lutBuilderLdr = m_LutBuilderLdr.material;
+                passData.lutBuilderHdr = m_LutBuilderHdr.material;
                 passData.allowColorGradingACESHDR = m_AllowColorGradingACESHDR;
                 passData.lutSize    = postProcessingData.lutSize;
-                passData.hdrGrading = postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange;
+                passData.hdrGrading = hdrGrading;
 
                 //  TODO RENDERGRAPH: culling? force culling off for testing
                 builder.AllowPassCulling(false);
@@ -329,8 +332,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         public void Cleanup()
         {
-            CoreUtils.Destroy(m_LutBuilderLdr);
-            CoreUtils.Destroy(m_LutBuilderHdr);
+            m_LutBuilderLdr.Dispose();
+            m_LutBuilderHdr.Dispose();
 #if ENABLE_VR && ENABLE_XR_MODULE
             m_QuadViewsColorLutHandle?.Release();
 #endif

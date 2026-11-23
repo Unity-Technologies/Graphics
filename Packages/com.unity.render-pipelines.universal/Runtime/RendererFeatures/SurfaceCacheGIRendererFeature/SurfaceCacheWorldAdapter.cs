@@ -277,7 +277,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 var material = (Material)changed[i];
                 var matEntityId = material.GetEntityId();
-                _sharedMaterials.RemoveMaterialMissingMetaPass(matEntityId);
                 if (_sharedMaterials.IsReferenced(matEntityId))
                 {
                     _sharedMaterials.Update(matEntityId, material, world);
@@ -291,6 +290,16 @@ namespace UnityEngine.Rendering.Universal
             //    and tracking. It is a lot of work and cost for little gain.
         }
 
+        // Preview scene objects (e.g. Prefab Mode) dispatch transform changes but never their destruction.
+        static bool IsInPreviewScene(Component component)
+        {
+#if UNITY_EDITOR
+            return UnityEditor.SceneManagement.EditorSceneManager.IsPreviewSceneObject(component);
+#else
+            return false;
+#endif
+        }
+
         interface IInstanceSource<TKey>
         {
             TKey Key { get; }
@@ -298,7 +307,6 @@ namespace UnityEngine.Rendering.Universal
             Mesh Mesh { get; }
             uint RenderingLayerMask { get; }
             Matrix4x4 LocalToWorld { get; }
-            string OwnerName { get; }
             // May fill and return the given scratch list. Assignments outside subMeshCount are dropped.
             IReadOnlyList<Material> GetMaterials(List<Material> scratch, int subMeshCount);
         }
@@ -315,7 +323,7 @@ namespace UnityEngine.Rendering.Universal
             public EntityId Key => _renderer.GetEntityId();
 
             // In an open subscene the live-converted entities are the source of truth, not the authoring renderers.
-            public bool Visible => _renderer.enabled && _renderer.gameObject.activeInHierarchy && !_renderer.gameObject.scene.isSubScene && IsInGlobalIlluminationLOD(_renderer);
+            public bool Visible => _renderer.enabled && _renderer.gameObject.activeInHierarchy && !_renderer.gameObject.scene.isSubScene && !IsInPreviewScene(_renderer) && IsInGlobalIlluminationLOD(_renderer);
 
             // A renderer outside any LODGroup contributes, matching an entity without a MeshLODComponent.
             static bool IsInGlobalIlluminationLOD(MeshRenderer renderer)
@@ -344,8 +352,6 @@ namespace UnityEngine.Rendering.Universal
             public uint RenderingLayerMask => _renderer.renderingLayerMask;
 
             public Matrix4x4 LocalToWorld => _renderer.transform.localToWorldMatrix;
-
-            public string OwnerName => _renderer.gameObject.name;
 
             public IReadOnlyList<Material> GetMaterials(List<Material> scratch, int subMeshCount)
             {
@@ -376,7 +382,6 @@ namespace UnityEngine.Rendering.Universal
 
             public uint RenderingLayerMask => _record.RenderingLayerMask;
             public Matrix4x4 LocalToWorld => _record.LocalToWorld;
-            public string OwnerName => _record.Key.ToString();
 
             // Pads the producer's sparse assignments to one entry per submesh; unassigned ones stay null and are
             // masked out downstream. Out-of-range assignments are dropped rather than padded to, because
@@ -629,7 +634,7 @@ namespace UnityEngine.Rendering.Universal
                 Span<MaterialHandle> acquiredMatHandles = stackalloc MaterialHandle[mesh.subMeshCount];
                 Span<EntityId> acquiredMatIds = stackalloc EntityId[mesh.subMeshCount];
                 Span<uint> masks = stackalloc uint[mesh.subMeshCount];
-                ResolveMaterialHandlesAndMasks(world, sharedMaterials, source, inputMats, acquiredMatHandles, acquiredMatIds, masks);
+                ResolveMaterialHandlesAndMasks(world, sharedMaterials, inputMats, acquiredMatHandles, acquiredMatIds, masks);
 
                 var localToWorld = source.LocalToWorld;
                 try
@@ -675,7 +680,7 @@ namespace UnityEngine.Rendering.Universal
                     Span<MaterialHandle> acquiredMatHandles = stackalloc MaterialHandle[mesh.subMeshCount];
                     Span<EntityId> acquiredMatIds = stackalloc EntityId[mesh.subMeshCount];
                     Span<uint> masks = stackalloc uint[mesh.subMeshCount];
-                    ResolveMaterialHandlesAndMasks(world, sharedMaterials, source, inputMats, acquiredMatHandles, acquiredMatIds, masks);
+                    ResolveMaterialHandlesAndMasks(world, sharedMaterials, inputMats, acquiredMatHandles, acquiredMatIds, masks);
 
                     world.UpdateInstanceMaterials(_handles[slot], acquiredMatHandles);
                     world.UpdateInstanceMask(_handles[slot], masks);
@@ -694,21 +699,15 @@ namespace UnityEngine.Rendering.Universal
                 ApplyTransform(slot, source.LocalToWorld, world);
             }
 
-            void ResolveMaterialHandlesAndMasks(SurfaceCacheWorld world, SharedMaterialSet sharedMaterials, in TSource source, IReadOnlyList<Material> inputMats, Span<MaterialHandle> acquiredMaterialHandles, Span<EntityId> acquiredMaterialEntityIds, Span<uint> masks)
+            void ResolveMaterialHandlesAndMasks(SurfaceCacheWorld world, SharedMaterialSet sharedMaterials, IReadOnlyList<Material> inputMats, Span<MaterialHandle> acquiredMaterialHandles, Span<EntityId> acquiredMaterialEntityIds, Span<uint> masks)
             {
                 for (int i = 0; i < acquiredMaterialHandles.Length; i++)
                 {
                     Material inputMat = i < inputMats.Count ? inputMats[i] : null;
 
-                    masks[i] = inputMat == null ? 0u : 1u;
+                    bool matIsUnsetOrNoMetaPass = inputMat == null || inputMat.FindPass("Meta") == -1;
 
-                    bool matIsSet = inputMat != null;
-                    bool matIsSetAndHasMetaPass = matIsSet && inputMat.FindPass("Meta") != -1;
-                    bool matIsUnsetOrNoMetaPass = !matIsSetAndHasMetaPass;
-                    bool matIsSetAndNoMetaPass = matIsSet && matIsUnsetOrNoMetaPass;
-
-                    if (matIsSetAndNoMetaPass && sharedMaterials.AddMaterialMissingMetaPass(inputMat.GetEntityId()))
-                        Debug.LogError($"The material '{inputMat.name}' used by '{source.OwnerName}' does not have a 'Meta' shader pass and cannot be used by Surface Cache Global Illumination. A fallback material will be used for this material instead.", inputMat);
+                    masks[i] = matIsUnsetOrNoMetaPass ? 0u : 1u;
 
                     // Acquiring the fallback even for unset materials buys the assumption that a handle always exists.
                     var acquiredMat = inputMat;
@@ -856,7 +855,7 @@ namespace UnityEngine.Rendering.Universal
                 bool isRegistered = _slots.TryGetValue(id, out int slot);
                 bool isInWorld = isRegistered && _inWorld[slot];
 
-                bool shouldBeRegistered = terrain.isActiveAndEnabled && terrain.terrainData != null;
+                bool shouldBeRegistered = terrain.isActiveAndEnabled && terrain.terrainData != null && !IsInPreviewScene(terrain);
                 bool matchesWorldFilter = (terrain.renderingLayerMask & renderingLayerMaskFilter) != 0;
                 bool shouldBeInWorld = shouldBeRegistered && matchesWorldFilter;
 
@@ -1011,7 +1010,7 @@ namespace UnityEngine.Rendering.Universal
                 Debug.Assert(terrainData != null);
                 var inputMaterial = terrain.splatBaseMaterial;
                 EntityId inputMatEntityId = inputMaterial != null ? inputMaterial.GetEntityId() : EntityId.None;
-                ResolveMaterialHandleAndMask(terrain, inputMaterial, inputMatEntityId, sharedMaterials, world, _fallbackMaterial,
+                ResolveMaterialHandleAndMask(inputMaterial, inputMatEntityId, sharedMaterials, world, _fallbackMaterial,
                     out EntityId acquiredMatEntityId, out MaterialHandle matHandle, out uint mask);
 
                 _handles[slot] = world.AddInstance(terrain, matHandle, mask, terrain.transform.localToWorldMatrix);
@@ -1040,7 +1039,7 @@ namespace UnityEngine.Rendering.Universal
                 var inputMatEntityId = inputMat != null ? inputMat.GetEntityId() : EntityId.None;
                 if (inputMatEntityId != _inputMaterialIds[slot])
                 {
-                    ResolveMaterialHandleAndMask(terrain, inputMat, inputMatEntityId, sharedMaterials, world, _fallbackMaterial,
+                    ResolveMaterialHandleAndMask(inputMat, inputMatEntityId, sharedMaterials, world, _fallbackMaterial,
                         out EntityId acquiredMatEntityId, out MaterialHandle acquiredMatHandle, out uint mask);
 
                     Span<MaterialHandle> matHandles = stackalloc MaterialHandle[1] { acquiredMatHandle };
@@ -1077,17 +1076,11 @@ namespace UnityEngine.Rendering.Universal
                 AddToWorld(slot, _components[slot], sharedMaterials, world);
             }
 
-            static void ResolveMaterialHandleAndMask(Terrain terrain, Material inputMat, EntityId inputMatEntityId, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world, Material fallbackMaterial, out EntityId acquiredMatEntityId, out MaterialHandle acquiredMatHandle, out uint mask)
+            static void ResolveMaterialHandleAndMask(Material inputMat, EntityId inputMatEntityId, SharedMaterialSet sharedMaterials, SurfaceCacheWorld world, Material fallbackMaterial, out EntityId acquiredMatEntityId, out MaterialHandle acquiredMatHandle, out uint mask)
             {
-                mask = inputMat == null ? 0u : 1u;
+                bool matIsUnsetOrNoMetaPass = inputMat == null || inputMat.FindPass("Meta") == -1;
 
-                bool matIsSet = inputMat != null;
-                bool matIsSetAndHasMetaPass = matIsSet && inputMat.FindPass("Meta") != -1;
-                bool matIsUnsetOrNoMetaPass = !matIsSetAndHasMetaPass;
-                bool matIsSetAndNoMetaPass = matIsSet && matIsUnsetOrNoMetaPass;
-
-                if (matIsSetAndNoMetaPass && sharedMaterials.AddMaterialMissingMetaPass(inputMatEntityId))
-                    Debug.LogError($"The material '{inputMat.name}' used by terrain '{terrain.gameObject.name}' does not have a 'Meta' shader pass and cannot be used by Surface Cache Global Illumination. A fallback material will be used for this material instead.", inputMat);
+                mask = matIsUnsetOrNoMetaPass ? 0u : 1u;
 
                 // Using fallback material when there is no input material is redundant, but we do it anyway
                 // because this buys us the simplifying assumption that we always have some material handle.
@@ -1134,7 +1127,7 @@ namespace UnityEngine.Rendering.Universal
                 bool isRegistered = _slots.TryGetValue(id, out int slot);
                 bool isInWorld = isRegistered && _inWorld[slot];
 
-                bool shouldBeRegistered = light.isActiveAndEnabled && !light.bakingOutput.isBaked;
+                bool shouldBeRegistered = light.isActiveAndEnabled && !light.bakingOutput.isBaked && !IsInPreviewScene(light);
                 bool matchesWorldFilter = ((uint)light.renderingLayerMask & renderingLayerMaskFilter) != 0;
                 bool shouldBeInWorld = shouldBeRegistered && matchesWorldFilter;
 
@@ -1266,7 +1259,6 @@ namespace UnityEngine.Rendering.Universal
 
             readonly Dictionary<EntityId, Entry> _entries = new();
             readonly HashSet<EntityId> _pendingMetaPassEvals = new();
-            readonly HashSet<EntityId> _materialsMissingMetaPass = new();
             readonly Material _fallbackMaterial;
 
             public SharedMaterialSet(Material fallbackMaterial)
@@ -1378,16 +1370,6 @@ namespace UnityEngine.Rendering.Universal
 
                     world.UpdateMaterial(entry.WorldHandle, in entry.Descriptor, kUVChannel);
                 }
-            }
-
-            public bool AddMaterialMissingMetaPass(EntityId matEntityId)
-            {
-                return _materialsMissingMetaPass.Add(matEntityId);
-            }
-
-            public void RemoveMaterialMissingMetaPass(EntityId matEntityId)
-            {
-                _materialsMissingMetaPass.Remove(matEntityId);
             }
 
             public bool IsReferenced(EntityId matEntityId)

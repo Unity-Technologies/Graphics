@@ -2,6 +2,7 @@
 
 #pragma kernel UpsampleMono DISABLE_TEXTURE2D_X_ARRAY
 #pragma kernel UpsampleSinglePassStereoInstancing
+#pragma multi_compile _ _GBUFFER_NORMALS_OCT
 
 #define GROUP_SHARED_CACHE
 

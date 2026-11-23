@@ -10,9 +10,8 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>Blits the final post-processed image to the camera target, applying FXAA, upscaling, or format conversion as the last rendering step.</summary>
         static readonly ProfilingSampler k_ProfilingSampler = ProfilingSampler.Create("Blit Final Post Processing", MarkerFlags.Default);
 
-        Material m_Material;
+        PostProcessMaterial m_Material;
         Texture2D[] m_FilmGrainTextures;
-        bool m_IsValid;
 
         public enum FilteringOperation
         {
@@ -34,8 +33,7 @@ namespace UnityEngine.Rendering.Universal
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
             this.profilingSampler = k_ProfilingSampler;
 
-            m_Material = PostProcessUtils.LoadShader(shader, passName);
-            m_IsValid = m_Material != null;
+            m_Material = new PostProcessMaterial(shader, passName);
             m_FilmGrainTextures = filmGrainTextures;
 
             // Defaults
@@ -48,8 +46,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Dispose()
         {
-            CoreUtils.Destroy(m_Material);
-            m_IsValid = false;
+            m_Material.Dispose();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -82,7 +79,7 @@ namespace UnityEngine.Rendering.Universal
         }
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            if (!m_IsValid)
+            if (!m_Material.Validate())
                 return;
 
             var tonemapping = volumeStack.GetComponent<Tonemapping>();
@@ -108,7 +105,7 @@ namespace UnityEngine.Rendering.Universal
                 if (m_RenderOverlayUI)
                     builder.UseTexture(resourceData.overlayUITexture, AccessFlags.Read);
 
-                passData.material = m_Material;
+                passData.material = m_Material.material;
                 passData.cameraData = cameraData;
 
                 passData.tonemapping = tonemapping;
@@ -201,7 +198,7 @@ namespace UnityEngine.Rendering.Universal
                     if (hdrColorEncoding)
                     {
                         PostProcessUtils.SetupHDROutput(material, cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, data.tonemapping, data.hdrOperations, cameraData.rendersOverlayUI);
-                        RenderingUtils.SetupOffscreenUIViewportParams(material, ref cameraData.pixelRect, cameraData.resolveFinalTarget);
+                        RenderingUtils.SetupOffscreenUIViewportParams(cameraData, material, ref cameraData.pixelRect, cameraData.resolveFinalTarget);
                     }
 
                     material.SetVector(ShaderConstants._SourceSize, PostProcessUtils.CalcShaderSourceSize(sourceTextureHdl));

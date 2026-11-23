@@ -82,3 +82,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   m_TextureType: 0
+  m_DepthBandsShader: {fileID: 4800000, guid: f7ceb50ed8d774f3ca49b3ee8f6a3f09, type: 3}

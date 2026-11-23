@@ -36,6 +36,7 @@ namespace UnityEditor.Rendering.Universal
             if (m_Mode.value.intValue == (int)ExposureVolume.Mode.Fixed)
             {
                 PropertyField(m_FixedExposure);
+                m_FixedExposure.value.floatValue = Mathf.Clamp(m_FixedExposure.value.floatValue, ExposureVolume.k_MinFixedExposure, ExposureVolume.k_MaxFixedExposure);
             }
         }
     }

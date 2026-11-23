@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.Universal
 {
     internal sealed class UberPostProcessPass : PostProcessPass
     {
-        Material m_Material;
+        PostProcessMaterial m_Material;
         Texture2D[] m_FilmGrainTextures;
 
         public enum FilteringOperation
@@ -20,7 +20,6 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_UserLut;
         FilteringOperation m_FilteringOperation;
         HDROutputUtils.Operation m_HdrOperations;
-        bool m_IsValid;
         bool m_IsFinalPass;
         bool m_RequireSRGBConversionBlit;
         bool m_RenderOverlayUI;
@@ -31,8 +30,7 @@ namespace UnityEngine.Rendering.Universal
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
             this.profilingSampler = URPProfilingSamplers.UberPostProcess;
 
-            m_Material = PostProcessUtils.LoadShader(shader, passName);
-            m_IsValid = m_Material != null;
+            m_Material = new PostProcessMaterial(shader, passName);
             m_FilmGrainTextures = filmGrainTextures;
 
             // Defaults
@@ -48,8 +46,7 @@ namespace UnityEngine.Rendering.Universal
         public override void Dispose()
         {
             m_UserLut?.Release();
-            CoreUtils.Destroy(m_Material);
-            m_IsValid = false;
+            m_Material.Dispose();
         }
 
         public void Setup(Texture ditherTexture,
@@ -102,7 +99,7 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            if(!m_IsValid)
+            if (!m_Material.Validate())
                 return;
 
             var colorLookup = volumeStack.GetComponent<ColorLookup>();
@@ -212,7 +209,7 @@ namespace UnityEngine.Rendering.Universal
                 if(bloomTexture.IsValid())
                     builder.UseTexture(bloomTexture, AccessFlags.Read);
 
-                passData.material = m_Material;
+                passData.material = m_Material.material;
                 passData.cameraData = cameraData;
                 passData.useFastSRGBLinearConversion = postProcessingData.useFastSRGBLinearConversion;
                 passData.requireSRGBConversionBlit = m_RequireSRGBConversionBlit;
@@ -306,7 +303,7 @@ namespace UnityEngine.Rendering.Universal
                     if(PostProcessUtils.RequireHDROutput(cameraData))
                     {
                         PostProcessUtils.SetupHDROutput(material, cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, data.tonemapping, data.hdrOperations, cameraData.rendersOverlayUI);
-                        RenderingUtils.SetupOffscreenUIViewportParams(material, ref cameraData.pixelRect, data.isActiveTargetBackBuffer);
+                        RenderingUtils.SetupOffscreenUIViewportParams(cameraData, material, ref cameraData.pixelRect, data.isActiveTargetBackBuffer);
                     }
 
 #if ENABLE_VR && ENABLE_XR_MODULE

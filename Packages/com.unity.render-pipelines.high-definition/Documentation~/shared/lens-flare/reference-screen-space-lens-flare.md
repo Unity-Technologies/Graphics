@@ -16,7 +16,7 @@ Use the **Flares** settings to control regular flares, reversed flares and warpe
 | ----------------------- | ----------------- | ------------------------------------------------------------ |
 | **Regular Multiplier**  |                   | Set the strength of regular flares. If the value is 0, HDRP doesn't calculate or render regular flares. The default is 1. |
 | **Reversed Multiplier** |                   | Set the strength of reversed flares. If the value is 0, HDRP doesn't calculate or render reversed flares. The default is 1. |
-| **Warped Multipler**    |                   | Set the strength of warped flares. If the value is 0, HDRP doesn't calculate or render warped flares. The default is 1. |
+| **Warped Multiplier**    |                   | Set the strength of warped flares. If the value is 0, HDRP doesn't calculate or render warped flares. The default is 1. |
 |                         | **Scale**         | Scale the width (**x**) and height (**y**) of warped flares. The defaults are 1. This property only appears if you open the **More** (⋮) menu and select **Show Additional Properties**. |
 | **Samples**             |                   | Set the number of times HDRP repeats the regular, reversed and warped flares. The range is 1 through 3. The default is 1. Increasing **Samples** has a big impact on performance. |
 |                         | **Sample Dimmer** | Set the strength of the lens flares HDRP adds if you set **Samples** to 2 or 3. The higher the value, the less intense the flares. This property only appears if you open the **More** (⋮) menu and select **Show Additional Properties**. |

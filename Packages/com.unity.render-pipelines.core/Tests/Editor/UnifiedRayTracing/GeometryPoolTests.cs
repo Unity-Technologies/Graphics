@@ -38,6 +38,24 @@ namespace UnityEngine.Rendering.UnifiedRayTracing.Tests
             return mesh;
         }
 
+        // LOD 0 is a strip of four triangles and LOD 1 a single triangle, both over the same six vertices.
+        static Mesh CreateTwoLevelMeshLodMesh()
+        {
+            var vertices = new Vector3[6];
+            for (int i = 0; i < vertices.Length; ++i)
+                vertices[i] = new Vector3(i, i % 2, 0.0f);
+
+            var indices = new[] { 0, 1, 2, 1, 2, 3, 2, 3, 4, 3, 4, 5, 0, 2, 4 };
+
+            var mesh = new Mesh { indexFormat = IndexFormat.UInt32 };
+            mesh.vertices = vertices;
+            mesh.SetIndices(indices, MeshTopology.Triangles, 0);
+            mesh.lodCount = 2;
+            mesh.SetLods(new[] { new MeshLodRange(0, 12), new MeshLodRange(12, 3) }, 0);
+            mesh.UploadMeshData(false);
+            return mesh;
+        }
+
         static void AssertPoolContainsMesh(GeometryPool pool, GeometryPoolHandle handle, Mesh mesh)
         {
             var meshChunk = pool.GetEntryGeomAllocation(handle).meshChunks[0];
@@ -106,6 +124,25 @@ namespace UnityEngine.Rendering.UnifiedRayTracing.Tests
                 pool.Dispose();
                 UnityEngine.Object.DestroyImmediate(firstMesh);
                 UnityEngine.Object.DestroyImmediate(secondMesh);
+            }
+        }
+
+        [Test]
+        public void Register_MeshWithMeshLods_StoresOnlyLevelZero()
+        {
+            var mesh = CreateTwoLevelMeshLodMesh();
+            var pool = new GeometryPool(GeometryPoolDesc.NewDefault(), m_Resources.geometryPoolKernels, m_Resources.copyBuffer);
+            try
+            {
+                Assert.IsTrue(pool.Register(mesh, out var handle));
+                pool.SendGpuCommands();
+
+                AssertPoolContainsMesh(pool, handle, mesh);
+            }
+            finally
+            {
+                pool.Dispose();
+                UnityEngine.Object.DestroyImmediate(mesh);
             }
         }
     }

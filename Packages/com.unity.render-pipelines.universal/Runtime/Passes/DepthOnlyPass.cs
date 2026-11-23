@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         // Statics
         private static readonly ShaderTagId k_ShaderTagId = new ShaderTagId("DepthOnly");
-        private static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
+        internal static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
 
         /// <summary>
         /// Creates a new <c>DepthOnlyPass</c> instance.
