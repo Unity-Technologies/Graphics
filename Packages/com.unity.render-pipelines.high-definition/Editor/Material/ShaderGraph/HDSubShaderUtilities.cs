@@ -187,8 +187,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 overrideReferenceName = kTransparentCullMode,
                 floatType = FloatType.Enum,
                 value = (int)transparentCullMode,
-                enumNames = { "Front", "Back" },
-                enumValues = { (int)TransparentCullMode.Front, (int)TransparentCullMode.Back },
+                enumNames = new() { "Front", "Back" },
+                enumValues = new() { (int)TransparentCullMode.Front, (int)TransparentCullMode.Back },
                 hidden = true,
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
@@ -242,8 +242,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 overrideReferenceName = kTessellationMode,
                 floatType = FloatType.Enum,
                 value = (int)tessellationMode,
-                enumNames = { "None", "Phong" },
-                enumValues = { (int)TessellationMode.None, (int)TessellationMode.Phong },
+                enumNames = new() { "None", "Phong" },
+                enumValues = new() { (int)TessellationMode.None, (int)TessellationMode.Phong },
                 hidden = true,
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
@@ -270,7 +270,7 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddToggleProperty("_DoubleSidedEnable", mode != DoubleSidedMode.Disabled);
             collector.AddShaderProperty(new Vector1ShaderProperty
             {
-                enumNames = { "Flip", "Mirror", "None" }, // values will be 0, 1 and 2
+                enumNames = new() { "Flip", "Mirror", "None" }, // values will be 0, 1 and 2
                 floatType = FloatType.Enum,
                 overrideReferenceName = "_DoubleSidedNormalMode",
                 hidden = true,
@@ -288,7 +288,7 @@ namespace UnityEditor.Rendering.HighDefinition
             });
             collector.AddShaderProperty(new Vector1ShaderProperty
             {
-                enumNames = { "Auto", "On", "Off" }, // values will be 0, 1 and 2
+                enumNames = new() { "Auto", "On", "Off" }, // values will be 0, 1 and 2
                 floatType = FloatType.Enum,
                 overrideReferenceName = "_DoubleSidedGIMode",
                 hidden = true,

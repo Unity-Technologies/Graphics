@@ -97,13 +97,24 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [IgnoreGraphicsTest("4075_PhysicalCamera-gateFit", "Instability https://jira.unity3d.com/browse/UUM-100651", runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.WindowsPlayer }, graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Direct3D11 })]
         [IgnoreGraphicsTest("4075_PhysicalCamera-gateFit", "Unstable: https://jira.unity3d.com/browse/UUM-100651")]
         [IgnoreGraphicsTest(
-            "4060_CustomPostProcess|8207_InstancingAPIs|8212_Fullscreen|9700_CustomPass_FullScreen|9702_CustomPass_API|9703_SampleColorBuffer_InjectionPoints_Scaling|9931-ScreenCoordOverrideCustomPostProcess|1104_Unlit_Distortion_Compose|1206_Lit_Transparent_Distortion|1805_Depth_Pre_Post_Unlit|4012_MotionBlur_CameraOnly|4038_Bloom|5014_VolumetricCloudsBanding|9006_StencilUsage|9304_MotionVectorsPrecomputedAndCustomVelocity|9601_SkinnedMeshBatching-Off|9602_SkinnedMeshBatching-On|",
+            "4060_CustomPostProcess|8207_InstancingAPIs|8212_Fullscreen|9700_CustomPass_FullScreen|9702_CustomPass_API|9703_SampleColorBuffer_InjectionPoints_Scaling|9931-ScreenCoordOverrideCustomPostProcess|1104_Unlit_Distortion_Compose|1206_Lit_Transparent_Distortion|1805_Depth_Pre_Post_Unlit|4038_Bloom|5014_VolumetricCloudsBanding|9304_MotionVectorsPrecomputedAndCustomVelocity|9601_SkinnedMeshBatching-Off|9602_SkinnedMeshBatching-On",
             "Image difference when updating from GTF8 to GTF9",
             runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.WindowsEditor, RuntimePlatform.LinuxEditor })]
         [IgnoreGraphicsTest(
             "4061_CustomPostProcessMotionVectors|2120_APV_Baking|2121_APV_Baking_Sky_Occlusion|2122_APV_Baking_Sky_Occlusion_And_Direction|2123_APV_Baking_Shadowmask|2405_EnlightenDynamicAreaLights|2106_GI_EmissionSG|3010_MipMapMode|3011_MipMapMode|3012_MipMapMode|1227_Lit_Planar_Triplanar_ObjectSpace|1705_Decals-stress-test|4110_DRS-FSR2-With-CustomPass|4111_DRS-DLSS-With-CustomPass|2319_Mixed_Cached_ShadowMap_Area",
             "Image difference when updating from GTF8 to GTF9",
-            runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.LinuxEditor })]
+            runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.WindowsEditor, RuntimePlatform.LinuxEditor })]
+        // XR reuses the non-XR reference images, so the XR job cannot be targeted on its own.
+        [IgnoreGraphicsTest(
+            "3006_TileCluster_Cluster$",
+            "Localized tile/cluster artifact in the XR playmode job: https://jira.unity3d.com/browse/UUM-144350",
+            runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.WindowsEditor },
+            graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Direct3D11, GraphicsDeviceType.Direct3D12 })]
+        [IgnoreGraphicsTest(
+            "3004_QuadOverdraw$",
+            "Disabled for instability: https://jira.unity3d.com/browse/UUM-134754",
+            runtimePlatforms: new RuntimePlatform[] { RuntimePlatform.WindowsEditor },
+            graphicsDeviceTypes: new GraphicsDeviceType[] { GraphicsDeviceType.Direct3D12 })]
         [UnityTest, SceneGraphicsTest(@"Assets/GraphicTests/Scenes/^[0-9]+")]
         [Timeout(450 * 1000)] // Set timeout to 450 sec. to handle complex scenes with many shaders (previous timeout was 300s)
         public IEnumerator Run(SceneGraphicsTestCase testCase)

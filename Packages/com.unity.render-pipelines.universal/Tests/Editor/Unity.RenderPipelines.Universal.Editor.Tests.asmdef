@@ -24,6 +24,12 @@
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.modules.physics2d",
+            "expression": "0.0.0",
+            "define": "USING_PHYSICS2D"
+        }
+    ],
     "noEngineReferences": false
 }

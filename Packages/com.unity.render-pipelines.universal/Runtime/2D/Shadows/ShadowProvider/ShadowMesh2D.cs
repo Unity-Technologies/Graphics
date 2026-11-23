@@ -318,8 +318,11 @@ namespace UnityEngine.Rendering.Universal
 
         public override void SetShape(NativeArray<Vector3> vertices, NativeArray<int> indices, ShadowShape2D.OutlineTopology outlineTopology, ShadowShape2D.WindingOrder windingOrder = ShadowShape2D.WindingOrder.Clockwise, bool allowTrimming = true,  bool createInteriorGeometry = false)
         {
-            if (AreDegenerateVertices(vertices))
+            if (AreDegenerateVertices(vertices) || indices == null || indices.Length == 0)
+            {
+                m_Mesh?.Clear();
                 return;
+            }
 
             if (m_TrimEdge == k_TrimEdgeUninitialized)
                 m_TrimEdge = m_InitialTrim;
@@ -332,12 +335,6 @@ namespace UnityEngine.Rendering.Universal
 
             if (m_Mesh == null)
                 m_Mesh = new Mesh();
-
-            if (indices.Length == 0)
-            {
-                m_Mesh.Clear();
-                return;
-            }
 
             if (outlineTopology == ShadowShape2D.OutlineTopology.Triangles)
             {
@@ -412,6 +409,17 @@ namespace UnityEngine.Rendering.Universal
             var minBound = transform.TransformPoint(m_LocalBounds.min);
             var center = 0.5f * (maxBound + minBound);
             var radius = Vector3.Magnitude(maxBound - center);
+
+            m_BoundingSphere = new BoundingSphere(center, radius);
+        }
+
+        // Sets the bounding sphere from world bounds. Only the x and y extents size it, so the bounds'
+        // z depth cannot inflate it. The center's z is given by the caller.
+        internal void SetBoundingSphere(Bounds worldBounds, float z)
+        {
+            var center = new Vector3(worldBounds.center.x, worldBounds.center.y, z);
+            var extents = worldBounds.extents;
+            var radius = new Vector2(extents.x, extents.y).magnitude;
 
             m_BoundingSphere = new BoundingSphere(center, radius);
         }

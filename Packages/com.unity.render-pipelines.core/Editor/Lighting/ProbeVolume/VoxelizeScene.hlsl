@@ -23,7 +23,7 @@ CBUFFER_END
 #define unity_ObjectToWorld _TreeInstanceToWorld[unity_InstanceID]
 #endif
 
-RWTexture3D<float>  _Output : register(u4);
+RWTexture3D<float4> _Output : register(u4);
 float3              _OutputSize;
 float3              _VolumeWorldOffset;
 float3              _VolumeSize;
