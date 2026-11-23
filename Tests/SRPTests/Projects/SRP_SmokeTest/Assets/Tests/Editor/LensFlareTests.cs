@@ -2,6 +2,8 @@ using System.IO;
 using NUnit.Framework;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.TestTools;
+using UnityEngine;
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -337,6 +339,9 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test, GraphicsTest]
+        [UnityPlatform(exclude = new RuntimePlatform[] {
+            RuntimePlatform.WindowsEditor // Disabled for Instability https://unitycorp.atlassian.net/browse/UUM-163051
+        })]
         public void FlareRendersToColorURP(
             GraphicsTestCase testCase,
             [Values(SRPLensFlareType.Circle, SRPLensFlareType.Polygon, SRPLensFlareType.Ring)] SRPLensFlareType flareType
