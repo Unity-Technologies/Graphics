@@ -134,10 +134,7 @@ float4 SampleProbeOcclusion(TEXTURE3D_PARAM(SHVolumeTexture, SHVolumeSampler), f
     return SAMPLE_TEXTURE3D(SHVolumeTexture, SHVolumeSampler, texCoord);
 }
 
-// Following functions are to sample enlighten lightmaps (or lightmaps encoded the same way as our
-// enlighten implementation). They assume use of RGB9E5 for dynamic illuminance map and RGBM for baked ones.
-// It is required for other platform that aren't supporting this format to implement variant of these functions
-// (But these kind of platform should use regular render loop and not news shaders).
+// Following functions sample baked lightmaps and decode them with DecodeLightmap().
 
 // TODO: This is the max value allowed for emissive (bad name - but keep for now to retrieve it) (It is 8^2.2 (gamma) and 8 is the limit of punctual light slider...), comme from UnityCg.cginc. Fix it!
 // Ask Jesper if this can be change for HDRenderPipeline
@@ -262,7 +259,6 @@ float4 SampleLightmapBicubic(TEXTURE2D_LIGHTMAP_PARAM(tex, smp), LIGHTMAP_EXTRA_
                            weights[1].x * SAMPLE_TEXTURE2D_LIGHTMAP(tex, smp, (ic + float2(offsets[1].x, offsets[1].y) - 0.5) * texSize.zw LIGHTMAP_SLICE_ARG_USE).rgba);
 }
 
-// isStaticLightmap mean it is not an Enlighten map
 real3 SampleSingleLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSampler), LIGHTMAP_EXTRA_ARGS, float4 transform, bool isStaticLightmap)
 {
     real4 decodeInstructions = real4(LIGHTMAP_HDR_MULTIPLIER, LIGHTMAP_HDR_EXPONENT, 0.0, 0.0);
@@ -274,7 +270,9 @@ real3 SampleSingleLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSampler
 #else
     real4 encodedIlluminance = SAMPLE_TEXTURE2D_LIGHTMAP(lightmapTex, lightmapSampler, LIGHTMAP_EXTRA_ARGS_USE).rgba;
 #endif
-    // Remark: static lightmap is RGBM for now, dynamic lightmap is RGB9E5
+    // Remark: static lightmaps are encoded as RGBM, dLDR or full HDR,
+    // selected by the Lightmap Encoding player setting and platform support (UNITY_LIGHTMAP_*_ENCODING).
+    // isStaticLightmap = false skips decoding; it was the Enlighten realtime lightmap path and is kept only for API compatibility.
     real3 illuminance = isStaticLightmap ? DecodeLightmap(encodedIlluminance, decodeInstructions) : encodedIlluminance.rgb;
 
     return illuminance;
@@ -289,7 +287,7 @@ real3 SampleSingleLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSampler
 void SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSampler), TEXTURE2D_LIGHTMAP_PARAM(lightmapDirTex, lightmapDirSampler), LIGHTMAP_EXTRA_ARGS, float4 transform,
     float3 normalWS, float3 backNormalWS, bool isStaticLightmap, inout real3 bakeDiffuseLighting, inout real3 backBakeDiffuseLighting)
 {
-     // In directional mode Enlighten bakes dominant light direction
+    // In directional mode the lightmapper bakes dominant light direction
     // in a way, that using it for half Lambert and then dividing by a "rebalancing coefficient"
     // gives a result close to plain diffuse response lightmaps, but normalmapped.
 

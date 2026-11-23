@@ -78,25 +78,15 @@ void UnityEditorVizData(float3 positionOS, float2 uv0, float2 uv1, float2 uv2, f
 
 void UnityEditorVizData(float3 positionOS, float2 uv0, float2 uv1, float2 uv2, out float2 VizUV, out float4 LightCoord)
 {
-    float4 st = unity_LightmapST;
-    if (unity_MetaVertexControl.y)
-        st = unity_DynamicLightmapST;
-    UnityEditorVizData(positionOS, uv0, uv1, uv2, st, VizUV, LightCoord);
+    UnityEditorVizData(positionOS, uv0, uv1, uv2, unity_LightmapST, VizUV, LightCoord);
 }
 
-float4 UnityMetaVertexPosition(float3 vertex, float2 uv1, float2 uv2, float4 lightmapST, float4 dynlightmapST)
+float4 UnityMetaVertexPosition(float3 vertex, float2 uv1, float2 uv2, float4 lightmapST)
 {
 #ifndef EDITOR_VISUALIZATION
     if (unity_MetaVertexControl.x)
     {
         vertex.xy = uv1 * lightmapST.xy + lightmapST.zw;
-        // OpenGL right now needs to actually use incoming vertex position,
-        // so use it in a very dummy way
-        vertex.z = vertex.z > 0 ? REAL_MIN : 0.0f;
-    }
-    if (unity_MetaVertexControl.y)
-    {
-        vertex.xy = uv2 * dynlightmapST.xy + dynlightmapST.zw;
         // OpenGL right now needs to actually use incoming vertex position,
         // so use it in a very dummy way
         vertex.z = vertex.z > 0 ? REAL_MIN : 0.0f;
@@ -107,9 +97,15 @@ float4 UnityMetaVertexPosition(float3 vertex, float2 uv1, float2 uv2, float4 lig
 #endif
 }
 
+// Deprecated: Enlighten realtime GI was removed, so dynlightmapST is ignored.
+float4 UnityMetaVertexPosition(float3 vertex, float2 uv1, float2 uv2, float4 lightmapST, float4 dynlightmapST)
+{
+    return UnityMetaVertexPosition(vertex, uv1, uv2, lightmapST);
+}
+
 float4 UnityMetaVertexPosition(float3 vertex, float2 uv1, float2 uv2)
 {
-    return UnityMetaVertexPosition(vertex, uv1, uv2, unity_LightmapST, unity_DynamicLightmapST);
+    return UnityMetaVertexPosition(vertex, uv1, uv2, unity_LightmapST);
 }
 
 float unity_OneOverOutputBoost;
