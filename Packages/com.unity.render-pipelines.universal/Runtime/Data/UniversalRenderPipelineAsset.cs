@@ -535,6 +535,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] LightRenderingMode m_MainLightRenderingMode = LightRenderingMode.PerPixel;
         [SerializeField] bool m_MainLightShadowsSupported = true;
         [SerializeField] ShadowResolution m_MainLightShadowmapResolution = ShadowResolution._2048;
+        [SerializeField] DepthBits m_MainLightShadowmapDepthBits = DepthBits.Depth16;
 
         // Additional lights settings
         [SerializeField] LightRenderingMode m_AdditionalLightsRenderingMode = LightRenderingMode.PerPixel;
@@ -547,6 +548,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int m_AdditionalLightsPerObjectLimit = 4;
         [SerializeField] bool m_AdditionalLightShadowsSupported = false;
         [SerializeField] ShadowResolution m_AdditionalLightsShadowmapResolution = ShadowResolution._2048;
+        [SerializeField] DepthBits m_AdditionalLightsShadowmapDepthBits = DepthBits.Depth16;
 
         [SerializeField] int m_AdditionalLightsShadowResolutionTierLow = AdditionalLightsDefaultShadowResolutionTierLow;
         [SerializeField] int m_AdditionalLightsShadowResolutionTierMedium = AdditionalLightsDefaultShadowResolutionTierMedium;
@@ -1423,6 +1425,15 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// The depth buffer precision of the main light shadow map.
+        /// </summary>
+        public DepthBits mainLightShadowmapDepthBits
+        {
+            get => m_MainLightShadowmapDepthBits;
+            set => m_MainLightShadowmapDepthBits = value;
+        }
+
+        /// <summary>
         /// Specifies the <c>LightRenderingMode</c> for the additional lights used by this <c>UniversalRenderPipelineAsset</c>.
         /// </summary>
         /// <see cref="LightRenderingMode"/>
@@ -1463,6 +1474,15 @@ namespace UnityEngine.Rendering.Universal
         {
             get => (int)m_AdditionalLightsShadowmapResolution;
             set => m_AdditionalLightsShadowmapResolution = (ShadowResolution)value;
+        }
+
+        /// <summary>
+        /// The depth buffer precision of the additional lights shadow map atlas.
+        /// </summary>
+        public DepthBits additionalLightsShadowmapDepthBits
+        {
+            get => m_AdditionalLightsShadowmapDepthBits;
+            set => m_AdditionalLightsShadowmapDepthBits = value;
         }
 
         /// <summary>
@@ -2108,6 +2128,8 @@ namespace UnityEngine.Rendering.Universal
         static void UpgradeAsset(EntityId assetInstanceID)
         {
             UniversalRenderPipelineAsset asset = EditorUtility.EntityIdToObject(assetInstanceID) as UniversalRenderPipelineAsset;
+            if (asset == null)
+                return;
 
             if (asset.k_AssetPreviousVersion < 5)
             {

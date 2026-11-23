@@ -648,7 +648,18 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// The number of bits used.
         /// </summary>
+        [Obsolete("Use mainLightShadowmapDepthBits or additionalLightsShadowmapDepthBits. #from(7000.0)", false)]
         public ref int shadowmapDepthBufferBits => ref frameData.Get<UniversalShadowData>().shadowmapDepthBufferBits;
+
+        /// <summary>
+        /// The depth buffer precision of the main light shadow map.
+        /// </summary>
+        public ref DepthBits mainLightShadowmapDepthBits => ref frameData.Get<UniversalShadowData>().mainLightShadowmapDepthBits;
+
+        /// <summary>
+        /// The depth buffer precision of the additional lights shadow map atlas.
+        /// </summary>
+        public ref DepthBits additionalLightsShadowmapDepthBits => ref frameData.Get<UniversalShadowData>().additionalLightsShadowmapDepthBits;
 
         /// <summary>
         /// A list of shadow bias.
@@ -663,6 +674,12 @@ namespace UnityEngine.Rendering.Universal
         internal ref ShadowDepthBiasMode depthBiasMode => ref frameData.Get<UniversalShadowData>().depthBiasMode;
 
         internal ref ShadowNormalBiasMode normalBiasMode => ref frameData.Get<UniversalShadowData>().normalBiasMode;
+
+        internal ref GraphicsFormat mainLightShadowmapFormat => ref frameData.Get<UniversalShadowData>().mainLightShadowmapFormat;
+
+        internal ref GraphicsFormat additionalLightsShadowmapFormat => ref frameData.Get<UniversalShadowData>().additionalLightsShadowmapFormat;
+
+        internal ref bool mainLightReceiverNormalBiasSkipped => ref frameData.Get<UniversalShadowData>().mainLightReceiverNormalBiasSkipped;
 
         internal ref float softShadowKernelRadiusPercent => ref frameData.Get<UniversalShadowData>().softShadowKernelRadiusPercent;
 

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
@@ -61,6 +62,13 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent mainLightRenderingModeText = L10n.TextContent("Main Light", "Main light is the brightest directional light.", null, null);
             public static GUIContent supportsMainLightShadowsText = L10n.TextContent("Cast Shadows", "If enabled, the main light can be a shadow casting light.", null, null);
             public static GUIContent mainLightShadowmapResolutionText = L10n.TextContent("Shadow Resolution", "Resolution of the main light shadowmap texture. If cascades are enabled, cascades will be packed into an atlas and this setting controls the maximum shadows atlas resolution.", null, null);
+            public static GUIContent mainLightShadowmapDepthBits = L10n.TextContent("Precision", "Bit depth of the main light shadow map. 32-bit slightly tightens shadow contact but uses twice the memory and bandwidth of 16-bit.", null, null);
+            public static GUIContent[] shadowmapDepthBitsNames =
+            {
+                L10n.TextContent("16 bit", null, null, null),
+                L10n.TextContent("32 bit", null, null, null)
+            };
+            public static int[] shadowmapDepthBitsValues = { (int)DepthBits.Depth16, (int)DepthBits.Depth32 };
 
             // Probe volumes
             public static readonly GUIContent lightProbeSystemContent = L10n.TextContent("Light Probe System", "What system to use for Light Probes.", null, null);
@@ -77,6 +85,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent perObjectLimit = L10n.TextContent("Per Object Limit", "Maximum amount of additional lights. These lights are sorted and culled per-object.", null, null);
             public static GUIContent supportsAdditionalShadowsText = L10n.TextContent("Cast Shadows", "If enabled, shadows will be supported for spot and point lights.", null, null);
             public static GUIContent additionalLightsShadowmapResolution = L10n.TextContent("Shadow Atlas Resolution", "All additional lights are packed into a single shadowmap atlas. This setting controls the atlas size.", null, null);
+            public static GUIContent additionalLightsShadowmapDepthBits = L10n.TextContent("Precision", "Bit depth of the additional lights shadow map. 32-bit keeps shadows attached to objects that are far from the light but uses twice the memory and bandwidth of 16-bit.", null, null);
             public static GUIContent additionalLightsShadowResolutionTiers = L10n.TextContent("Shadow Resolution Tiers", $"Additional Lights Shadow Resolution Tiers. Rounded to the next power of two, and clamped to be at least {UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution}.", null, null);
             public static GUIContent[] additionalLightsShadowResolutionTierNames =
             {

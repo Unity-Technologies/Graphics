@@ -196,7 +196,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             using var profScope = new ProfilingScope(s_ProfilingSetupSampler);
 
-            m_ShadowmapDepthStencilFormat = ShadowUtils.GetShadowmapDepthStencilFormat(stencilBuffer);
+            m_ShadowmapDepthStencilFormat = ShadowUtils.GetShadowmapDepthStencilFormat(shadowData.mainLightShadowmapDepthBits, stencilBuffer);
+            shadowData.mainLightShadowmapFormat = m_ShadowmapDepthStencilFormat;
 
             bool isOffscreenDepthTexture = cameraData.camera.targetTexture != null && cameraData.camera.targetTexture.format == RenderTextureFormat.Depth;
             bool willRenderShadowGeometry = shadowsEnabledByCamera && !isOffscreenDepthTexture && ShouldRenderShadowGeometry(renderingData, cameraData, lightData, shadowData);

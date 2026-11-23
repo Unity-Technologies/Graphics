@@ -573,7 +573,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Populate shadowData with empty buffer info for TransparentSettingsPass
             shadowData.emptyAdditionalLightShadowsBuffer = m_EmptyAdditionalLightShadowsBuffer;
 
-            shadowmapDepthStencilFormat = ShadowUtils.GetShadowmapDepthStencilFormat(stencilBuffer);
+            shadowmapDepthStencilFormat = ShadowUtils.GetShadowmapDepthStencilFormat(shadowData.additionalLightsShadowmapDepthBits, stencilBuffer);
+            shadowData.additionalLightsShadowmapFormat = shadowmapDepthStencilFormat;
 
             // Per frame, so the rotation keeps advancing while a cached atlas is reused
             m_PCSSTemporalFrameIndex = ShadowUtils.GetPCSSTemporalFrameIndex(cameraData);

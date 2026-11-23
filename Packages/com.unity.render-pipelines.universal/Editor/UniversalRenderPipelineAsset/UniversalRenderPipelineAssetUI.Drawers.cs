@@ -619,6 +619,7 @@ namespace UnityEditor.Rendering.Universal
             disableGroup |= serialized.mainLightShadowsSupportedProp.hasMultipleDifferentValues || !serialized.mainLightShadowsSupportedProp.boolValue;
             EditorGUI.BeginDisabledGroup(disableGroup);
             EditorGUILayout.PropertyField(serialized.mainLightShadowmapResolutionProp, Styles.mainLightShadowmapResolutionText);
+            EditorGUILayout.IntPopup(serialized.mainLightShadowmapDepthBitsProp, Styles.shadowmapDepthBitsNames, Styles.shadowmapDepthBitsValues, Styles.mainLightShadowmapDepthBits);
             EditorGUI.EndDisabledGroup();
 
             EditorGUI.indentLevel--;
@@ -700,6 +701,7 @@ namespace UnityEditor.Rendering.Universal
             disableGroup |= serialized.additionalLightShadowsSupportedProp.hasMultipleDifferentValues || !serialized.additionalLightShadowsSupportedProp.boolValue;
             EditorGUI.BeginDisabledGroup(disableGroup);
             EditorGUILayout.PropertyField(serialized.additionalLightShadowmapResolutionProp, Styles.additionalLightsShadowmapResolution);
+            EditorGUILayout.IntPopup(serialized.additionalLightsShadowmapDepthBitsProp, Styles.shadowmapDepthBitsNames, Styles.shadowmapDepthBitsValues, Styles.additionalLightsShadowmapDepthBits);
             DrawShadowResolutionTierSettings(serialized, ownerEditor);
             EditorGUI.EndDisabledGroup();
 

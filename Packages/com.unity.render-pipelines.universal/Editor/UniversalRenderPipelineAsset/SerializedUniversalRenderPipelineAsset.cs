@@ -30,6 +30,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty mainLightRenderingModeProp { get; }
         public SerializedProperty mainLightShadowsSupportedProp { get; }
         public SerializedProperty mainLightShadowmapResolutionProp { get; }
+        public SerializedProperty mainLightShadowmapDepthBitsProp { get; }
 
         public SerializedProperty shEvalModeProp { get; }
 
@@ -46,6 +47,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty additionalLightsPerObjectLimitProp { get; }
         public SerializedProperty additionalLightShadowsSupportedProp { get; }
         public SerializedProperty additionalLightShadowmapResolutionProp { get; }
+        public SerializedProperty additionalLightsShadowmapDepthBitsProp { get; }
 
         public SerializedProperty additionalLightsShadowResolutionTierLowProp { get; }
         public SerializedProperty additionalLightsShadowResolutionTierMediumProp { get; }
@@ -137,11 +139,13 @@ namespace UnityEditor.Rendering.Universal
             mainLightRenderingModeProp = serializedObject.FindProperty("m_MainLightRenderingMode");
             mainLightShadowsSupportedProp = serializedObject.FindProperty("m_MainLightShadowsSupported");
             mainLightShadowmapResolutionProp = serializedObject.FindProperty("m_MainLightShadowmapResolution");
+            mainLightShadowmapDepthBitsProp = serializedObject.FindProperty("m_MainLightShadowmapDepthBits");
 
             additionalLightsRenderingModeProp = serializedObject.FindProperty("m_AdditionalLightsRenderingMode");
             additionalLightsPerObjectLimitProp = serializedObject.FindProperty("m_AdditionalLightsPerObjectLimit");
             additionalLightShadowsSupportedProp = serializedObject.FindProperty("m_AdditionalLightShadowsSupported");
             additionalLightShadowmapResolutionProp = serializedObject.FindProperty("m_AdditionalLightsShadowmapResolution");
+            additionalLightsShadowmapDepthBitsProp = serializedObject.FindProperty("m_AdditionalLightsShadowmapDepthBits");
 
             additionalLightsShadowResolutionTierLowProp = serializedObject.FindProperty("m_AdditionalLightsShadowResolutionTierLow");
             additionalLightsShadowResolutionTierMediumProp = serializedObject.FindProperty("m_AdditionalLightsShadowResolutionTierMedium");

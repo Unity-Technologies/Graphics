@@ -9,6 +9,7 @@ public class ChangeShadowCascadeSettings : MonoBehaviour
     public float cascade2Split = 0.25f;
     public Vector2 cascade3Split = new Vector2(0.154f, 0.478f);
     public Vector3 cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
+    public float maxShadowDistance;
 
     UniversalRenderPipelineAsset m_Asset;
     VolumeProfile m_CreatedProfile;
@@ -17,7 +18,7 @@ public class ChangeShadowCascadeSettings : MonoBehaviour
 
     void Awake()
     {
-        m_Asset = GraphicsSettings.defaultRenderPipeline as UniversalRenderPipelineAsset;
+        m_Asset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
 
         var profile = m_Asset.volumeProfile;
         if (profile == null)
@@ -42,6 +43,8 @@ public class ChangeShadowCascadeSettings : MonoBehaviour
         shadows.cascadeSplit0.Override(splits.x);
         shadows.cascadeSplit1.Override(splits.y);
         shadows.cascadeSplit2.Override(splits.z);
+        if (maxShadowDistance > 0.0f)
+            shadows.maxShadowDistance.Override(maxShadowDistance);
 
         NotifyVolumeManager();
     }

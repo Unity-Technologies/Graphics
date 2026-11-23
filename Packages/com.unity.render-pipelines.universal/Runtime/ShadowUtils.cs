@@ -277,6 +277,11 @@ namespace UnityEngine.Rendering.Universal
         // Covers receivers facing the light head-on (N.L near 1) in the slope-scale mode with caster normal bias, where both the slope term and the normal bias vanish.
         const float k_SlopeScaleCasterDepthBias = 0.05f;
 
+        // Shadow maps with more than 16 bit depth no longer round away the receiver's own depth error. 0.001 texels was the smallest caster offset
+        // or receiver normal bias that removed it in head-on measurements, so both values keep a 5x margin.
+        const float k_HighPrecisionMinCasterDepthBias = 0.005f;
+        const float k_HighPrecisionReceiverNormalBiasThreshold = 0.005f;
+
         internal static ShadowDepthBiasMode GetConfiguredDepthBiasMode(URPShadowBiasSettings shadowBiasSettings)
         {
             return shadowBiasSettings != null ? shadowBiasSettings.depthBiasMode : ShadowDepthBiasMode.Legacy;
@@ -498,10 +503,13 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="shadowData"></param>
         /// <param name="lightProjectionMatrix"></param>
         /// <param name="shadowResolution"></param>
-        /// <returns>The depth and normal bias from a visible light. In the slope-scale depth bias mode the x component (depth bias) is a small fixed texel-scaled caster offset, or 0 in the shadow-receiver normal bias mode; retrieve the rasterizer bias with GetSlopeScaleDepthBias instead. In the shadow-receiver normal bias mode the y component (normal bias) is 0; retrieve the world-space sampling offset with GetReceiverNormalBias instead.</returns>
+        /// <returns>The depth and normal bias from a visible light. In the slope-scale depth bias mode the x component (depth bias) is a small fixed texel-scaled caster offset, or 0 in the shadow-receiver normal bias mode unless the shadow map has more than 16 bit depth and the receiver normal bias is close to 0 or, for a main light that uses Screen Space Shadows, not applied; retrieve the rasterizer bias with GetSlopeScaleDepthBias instead. In the shadow-receiver normal bias mode the y component (normal bias) is 0; retrieve the world-space sampling offset with GetReceiverNormalBias instead.</returns>
         public static Vector4 GetShadowBias(ref VisibleLight shadowLight, int shadowLightIndex, ref ShadowData shadowData, Matrix4x4 lightProjectionMatrix, float shadowResolution)
         {
-            return GetShadowBias(ref shadowLight, shadowLightIndex, shadowData.bias, shadowData.supportsSoftShadows, shadowData.depthBiasMode, shadowData.normalBiasMode, shadowData.softShadowKernelRadiusPercent, lightProjectionMatrix, shadowResolution, UniversalRenderPipeline.asset);
+            bool highPrecisionShadowmap = shadowLight.lightType == LightType.Directional
+                ? IsHighPrecisionShadowmap(shadowData.mainLightShadowmapFormat, shadowData.mainLightShadowmapDepthBits)
+                : IsHighPrecisionShadowmap(shadowData.additionalLightsShadowmapFormat, shadowData.additionalLightsShadowmapDepthBits);
+            return GetShadowBias(ref shadowLight, shadowLightIndex, shadowData.bias, shadowData.supportsSoftShadows, shadowData.depthBiasMode, shadowData.normalBiasMode, shadowData.softShadowKernelRadiusPercent, lightProjectionMatrix, shadowResolution, highPrecisionShadowmap, shadowData.mainLightReceiverNormalBiasSkipped, UniversalRenderPipeline.asset);
         }
 
         /// <summary>
@@ -512,10 +520,28 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="shadowData"></param>
         /// <param name="lightProjectionMatrix"></param>
         /// <param name="shadowResolution"></param>
-        /// <returns>The depth and normal bias from a visible light. In the slope-scale depth bias mode the x component (depth bias) is a small fixed texel-scaled caster offset, or 0 in the shadow-receiver normal bias mode; retrieve the rasterizer bias with GetSlopeScaleDepthBias instead. In the shadow-receiver normal bias mode the y component (normal bias) is 0; retrieve the world-space sampling offset with GetReceiverNormalBias instead.</returns>
+        /// <returns>The depth and normal bias from a visible light. In the slope-scale depth bias mode the x component (depth bias) is a small fixed texel-scaled caster offset, or 0 in the shadow-receiver normal bias mode unless the shadow map has more than 16 bit depth and the receiver normal bias is close to 0 or, for a main light that uses Screen Space Shadows, not applied; retrieve the rasterizer bias with GetSlopeScaleDepthBias instead. In the shadow-receiver normal bias mode the y component (normal bias) is 0; retrieve the world-space sampling offset with GetReceiverNormalBias instead.</returns>
         public static Vector4 GetShadowBias(ref VisibleLight shadowLight, int shadowLightIndex, UniversalShadowData shadowData, Matrix4x4 lightProjectionMatrix, float shadowResolution)
         {
-            return GetShadowBias(ref shadowLight, shadowLightIndex, shadowData.bias, shadowData.supportsSoftShadows, shadowData.depthBiasMode, shadowData.normalBiasMode, shadowData.softShadowKernelRadiusPercent, lightProjectionMatrix, shadowResolution, UniversalRenderPipeline.asset);
+            bool highPrecisionShadowmap = shadowLight.lightType == LightType.Directional
+                ? IsHighPrecisionShadowmap(shadowData.mainLightShadowmapFormat, shadowData.mainLightShadowmapDepthBits)
+                : IsHighPrecisionShadowmap(shadowData.additionalLightsShadowmapFormat, shadowData.additionalLightsShadowmapDepthBits);
+            return GetShadowBias(ref shadowLight, shadowLightIndex, shadowData.bias, shadowData.supportsSoftShadows, shadowData.depthBiasMode, shadowData.normalBiasMode, shadowData.softShadowKernelRadiusPercent, lightProjectionMatrix, shadowResolution, highPrecisionShadowmap, shadowData.mainLightReceiverNormalBiasSkipped, UniversalRenderPipeline.asset);
+        }
+
+        internal static bool IsHighPrecisionShadowmap(DepthBits depthBits)
+        {
+            return (int)depthBits > 16;
+        }
+
+        internal static bool IsHighPrecisionShadowmap(GraphicsFormat shadowmapFormat)
+        {
+            return GraphicsFormatUtility.GetDepthBits(shadowmapFormat) > 16;
+        }
+
+        internal static bool IsHighPrecisionShadowmap(GraphicsFormat shadowmapFormat, DepthBits requestedDepthBits)
+        {
+            return shadowmapFormat != GraphicsFormat.None ? IsHighPrecisionShadowmap(shadowmapFormat) : IsHighPrecisionShadowmap(requestedDepthBits);
         }
 
         static float GetShadowTexelSizeInWorldSpace(ref VisibleLight shadowLight, Matrix4x4 lightProjectionMatrix, float shadowResolution, float receiverBiasTexels = 0.0f)
@@ -606,7 +632,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static Vector4 GetShadowBias(ref VisibleLight shadowLight, int shadowLightIndex, List<Vector4> bias, bool supportsSoftShadows, ShadowDepthBiasMode depthBiasMode, ShadowNormalBiasMode normalBiasMode, float softShadowKernelRadiusPercent, Matrix4x4 lightProjectionMatrix, float shadowResolution, UniversalRenderPipelineAsset asset)
+        static Vector4 GetShadowBias(ref VisibleLight shadowLight, int shadowLightIndex, List<Vector4> bias, bool supportsSoftShadows, ShadowDepthBiasMode depthBiasMode, ShadowNormalBiasMode normalBiasMode, float softShadowKernelRadiusPercent, Matrix4x4 lightProjectionMatrix, float shadowResolution, bool highPrecisionShadowmap, bool mainLightReceiverNormalBiasSkipped, UniversalRenderPipelineAsset asset)
         {
             if (bias == null || shadowLightIndex < 0 || shadowLightIndex >= bias.Count)
             {
@@ -621,7 +647,8 @@ namespace UnityEngine.Rendering.Universal
                 ? bias[shadowLightIndex].y * softShadowKernelRadius
                 : 0.0f;
             float texelSize = GetShadowTexelSizeInWorldSpace(ref shadowLight, lightProjectionMatrix, shadowResolution, receiverBiasTexels);
-            float depthBias = GetCasterDepthBias(bias[shadowLightIndex].x, depthBiasMode, normalBiasMode, texelSize);
+            float appliedReceiverNormalBias = shadowLight.lightType == LightType.Directional && mainLightReceiverNormalBiasSkipped ? 0.0f : bias[shadowLightIndex].y;
+            float depthBias = GetCasterDepthBias(bias[shadowLightIndex].x, appliedReceiverNormalBias, depthBiasMode, normalBiasMode, texelSize, highPrecisionShadowmap);
             float normalBias = GetCasterNormalBias(bias[shadowLightIndex].y, normalBiasMode, texelSize, shadowLight.lightType);
 
             depthBias *= softShadowKernelRadius;
@@ -630,17 +657,22 @@ namespace UnityEngine.Rendering.Universal
             return new Vector4(depthBias, normalBias, (float)shadowLight.lightType, 0.0f);
         }
 
-        internal static float GetCasterDepthBias(float depthBias, ShadowDepthBiasMode depthBiasMode, ShadowNormalBiasMode normalBiasMode, float texelSize)
+        internal static float GetCasterDepthBias(float depthBias, float normalBias, ShadowDepthBiasMode depthBiasMode, ShadowNormalBiasMode normalBiasMode, float texelSize, bool highPrecisionShadowmap)
         {
+            bool receiverCoversHeadOn = normalBiasMode == ShadowNormalBiasMode.Receiver && normalBias >= k_HighPrecisionReceiverNormalBiasThreshold;
+            float minDepthBias = highPrecisionShadowmap && !receiverCoversHeadOn ? k_HighPrecisionMinCasterDepthBias : 0.0f;
             switch (depthBiasMode)
             {
                 case ShadowDepthBiasMode.SlopeScale:
-                    return normalBiasMode == ShadowNormalBiasMode.Caster ? -k_SlopeScaleCasterDepthBias * texelSize : 0.0f;
+                {
+                    float casterDepthBias = normalBiasMode == ShadowNormalBiasMode.Caster ? k_SlopeScaleCasterDepthBias : 0.0f;
+                    return -Mathf.Max(casterDepthBias, minDepthBias) * texelSize;
+                }
                 case ShadowDepthBiasMode.Legacy:
-                    return -depthBias * texelSize;
+                    return -Mathf.Max(depthBias, minDepthBias) * texelSize;
                 default:
                     Debug.Assert(false, "Unexpected depth bias mode.");
-                    return -depthBias * texelSize;
+                    return -Mathf.Max(depthBias, minDepthBias) * texelSize;
             }
         }
 
@@ -1337,31 +1369,65 @@ namespace UnityEngine.Rendering.Universal
             return softShadow ? kMinimumPunctualLightSoftShadowResolution : kMinimumPunctualLightHardShadowResolution;
         }
 
+        static readonly GraphicsFormat[] s_ShadowmapDepthFormats = { GraphicsFormat.D16_UNorm, GraphicsFormat.D24_UNorm, GraphicsFormat.D32_SFloat };
+        static readonly GraphicsFormat[] s_ShadowmapDepthStencilFormats = { GraphicsFormat.D16_UNorm_S8_UInt, GraphicsFormat.D24_UNorm_S8_UInt, GraphicsFormat.D32_SFloat_S8_UInt };
+        static readonly Func<GraphicsFormat, bool> s_IsShadowmapFormatSupported = format => SystemInfo.IsFormatSupported(format, GraphicsFormatUsage.Render);
         static bool s_WarnedNoShadowmapStencilFormat;
 
-        internal static GraphicsFormat GetShadowmapDepthStencilFormat(bool stencilBuffer)
+        static GraphicsFormat GetRequestedShadowmapDepthStencilFormat(DepthBits depthBits, bool stencilBuffer)
         {
-            if (stencilBuffer)
+            GraphicsFormat[] candidates = stencilBuffer ? s_ShadowmapDepthStencilFormats : s_ShadowmapDepthFormats;
+            foreach (GraphicsFormat candidate in candidates)
             {
-                // If we need stencil bits, pick whichever supported format is the smallest
-                if (SystemInfo.IsFormatSupported(GraphicsFormat.D16_UNorm_S8_UInt, GraphicsFormatUsage.Render))
-                    return GraphicsFormat.D16_UNorm_S8_UInt;
-                if (SystemInfo.IsFormatSupported(GraphicsFormat.D24_UNorm_S8_UInt, GraphicsFormatUsage.Render))
-                    return GraphicsFormat.D24_UNorm_S8_UInt;
-                if (SystemInfo.IsFormatSupported(GraphicsFormat.D32_SFloat_S8_UInt, GraphicsFormatUsage.Render))
-                    return GraphicsFormat.D32_SFloat_S8_UInt;
+                if (GraphicsFormatUtility.GetDepthBits(candidate) >= (int)depthBits)
+                    return candidate;
+            }
 
-                // No depth-stencil format is supported here: the shadowmap falls back to depth-only and
-                // stencil writes silently no-op. Warn once so an enabled Shadowmap Stencil toggle that
-                // can't be honored on this device isn't invisible.
-                if (!s_WarnedNoShadowmapStencilFormat)
+            return candidates[candidates.Length - 1];
+        }
+
+        static bool TryGetSupportedShadowmapFormat(GraphicsFormat[] candidates, int minimumDepthBits, Func<GraphicsFormat, bool> isFormatSupported, out GraphicsFormat format)
+        {
+            foreach (GraphicsFormat candidate in candidates)
+            {
+                if (GraphicsFormatUtility.GetDepthBits(candidate) >= minimumDepthBits && isFormatSupported(candidate))
                 {
-                    s_WarnedNoShadowmapStencilFormat = true;
-                    Debug.LogWarning("Shadowmap Stencil is enabled but this device supports no depth-stencil shadowmap format; falling back to a depth-only shadowmap (stencil writes will have no effect).");
+                    format = candidate;
+                    return true;
                 }
             }
 
-            return GraphicsFormatUtility.GetDepthStencilFormat(16);
+            format = GraphicsFormat.None;
+            return false;
+        }
+
+        internal static GraphicsFormat SelectShadowmapDepthStencilFormat(DepthBits depthBits, bool stencilBuffer, Func<GraphicsFormat, bool> isFormatSupported)
+        {
+            GraphicsFormat requested = GetRequestedShadowmapDepthStencilFormat(depthBits, stencilBuffer);
+            if (isFormatSupported(requested))
+                return requested;
+
+            int minimumDepthBits = GraphicsFormatUtility.GetDepthBits(requested);
+            if (stencilBuffer && TryGetSupportedShadowmapFormat(s_ShadowmapDepthStencilFormats, minimumDepthBits, isFormatSupported, out GraphicsFormat format))
+                return format;
+            if (TryGetSupportedShadowmapFormat(s_ShadowmapDepthFormats, minimumDepthBits, isFormatSupported, out format))
+                return format;
+            if (!stencilBuffer && TryGetSupportedShadowmapFormat(s_ShadowmapDepthStencilFormats, minimumDepthBits, isFormatSupported, out format))
+                return format;
+
+            return requested;
+        }
+
+        internal static GraphicsFormat GetShadowmapDepthStencilFormat(DepthBits depthBits, bool stencilBuffer)
+        {
+            GraphicsFormat format = SelectShadowmapDepthStencilFormat(depthBits, stencilBuffer, s_IsShadowmapFormatSupported);
+            if (stencilBuffer && !GraphicsFormatUtility.IsStencilFormat(format) && !s_WarnedNoShadowmapStencilFormat)
+            {
+                s_WarnedNoShadowmapStencilFormat = true;
+                Debug.LogWarning($"Shadowmap Stencil is enabled, but this device doesn’t support any depth-stencil shadow map format. URP uses {format} instead, so stencil writes have no effect. To remove this warning, disable Shadowmap Stencil.");
+            }
+
+            return format;
         }
     }
 }

@@ -2452,7 +2452,11 @@ namespace UnityEngine.Rendering.Universal
             s_ShadowBiasData.Clear();
             s_ShadowResolutionData.Clear();
 
-            shadowData.shadowmapDepthBufferBits = 16;
+            shadowData.mainLightShadowmapDepthBits = urpAsset.mainLightShadowmapDepthBits;
+            shadowData.additionalLightsShadowmapDepthBits = urpAsset.additionalLightsShadowmapDepthBits;
+#pragma warning disable 618
+            shadowData.shadowmapDepthBufferBits = (int)shadowData.mainLightShadowmapDepthBits;
+#pragma warning restore 618
             var shadowsVolume = GetShadowsVolume(VolumeManager.instance.stack);
             shadowData.mainLightShadowCascadeBorder = shadowsVolume.lastCascadeBorder.value;
             shadowData.mainLightShadowCascadesCount = shadowsVolume.cascadeCount.value;

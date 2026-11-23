@@ -28,17 +28,57 @@ namespace UnityEngine.Rendering.Universal.Tests
             Assert.That(ShadowUtils.GetSlopeScaleDepthBias(normalizedSlopeScale, depthBiasMode, softShadowKernelRadius), Is.EqualTo(expected).Within(k_Tolerance));
         }
 
-        [Description("The legacy mode pushes casters away from the light by the bias value in texels. The slope-scale mode keeps a fixed 0.05 texel push while the caster normal bias mode is active, because the slope term and the caster normal bias both vanish on receivers facing the light head-on. The receiver normal bias mode covers those receivers itself, so the push is dropped there.")]
-        [TestCase(ShadowDepthBiasMode.Legacy, ShadowNormalBiasMode.Caster, 1.0f, 2.0f, -2.0f)]
-        [TestCase(ShadowDepthBiasMode.Legacy, ShadowNormalBiasMode.Receiver, 0.05f, 2.0f, -0.1f)]
-        [TestCase(ShadowDepthBiasMode.Legacy, ShadowNormalBiasMode.Caster, 0.0f, 2.0f, 0.0f)]
-        [TestCase(ShadowDepthBiasMode.SlopeScale, ShadowNormalBiasMode.Caster, 0.0f, 2.0f, -0.1f)]
-        [TestCase(ShadowDepthBiasMode.SlopeScale, ShadowNormalBiasMode.Caster, 1.0f, 2.0f, -0.1f)]
-        [TestCase(ShadowDepthBiasMode.SlopeScale, ShadowNormalBiasMode.Caster, 0.5f, 0.4f, -0.02f)]
-        [TestCase(ShadowDepthBiasMode.SlopeScale, ShadowNormalBiasMode.Receiver, 1.0f, 2.0f, 0.0f)]
-        public void GetCasterDepthBias_MapsModesAndTexelSizeToCasterOffset(ShadowDepthBiasMode depthBiasMode, ShadowNormalBiasMode normalBiasMode, float depthBias, float texelSize, float expected)
+        [Description("The legacy mode pushes casters away from the light by the bias value in texels. The slope-scale mode keeps a fixed 0.05 texel push while the caster normal bias mode is active, because the slope term and the caster normal bias both vanish on receivers facing the light head-on. The receiver normal bias mode covers those receivers itself, so the push is dropped there on a 16-bit shadow map.")]
+        [TestCase(ShadowDepthBiasMode.Legacy, ShadowNormalBiasMode.Caster, 1.0f, 2.0f, false, -2.0f)]
+        [TestCase(ShadowDepthBiasMode.Legacy, ShadowNormalBiasMode.Receiver, 0.05f, 2.0f, false, -0.1f)]
+        [TestCase(ShadowDepthBiasMode.Legacy, ShadowNormalBiasMode.Caster, 0.0f, 2.0f, false, 0.0f)]
+        [TestCase(ShadowDepthBiasMode.SlopeScale, ShadowNormalBiasMode.Caster, 0.0f, 2.0f, false, -0.1f)]
+        [TestCase(ShadowDepthBiasMode.SlopeScale, ShadowNormalBiasMode.Caster, 1.0f, 2.0f, false, -0.1f)]
+        [TestCase(ShadowDepthBiasMode.SlopeScale, ShadowNormalBiasMode.Caster, 0.5f, 0.4f, false, -0.02f)]
+        [TestCase(ShadowDepthBiasMode.SlopeScale, ShadowNormalBiasMode.Receiver, 1.0f, 2.0f, false, 0.0f)]
+        public void GetCasterDepthBias_MapsModesAndTexelSizeToCasterOffset(ShadowDepthBiasMode depthBiasMode, ShadowNormalBiasMode normalBiasMode, float depthBias, float texelSize, bool highPrecisionShadowmap, float expected)
         {
-            Assert.That(ShadowUtils.GetCasterDepthBias(depthBias, depthBiasMode, normalBiasMode, texelSize), Is.EqualTo(expected).Within(k_Tolerance));
+            Assert.That(ShadowUtils.GetCasterDepthBias(depthBias, 0.0f, depthBiasMode, normalBiasMode, texelSize, highPrecisionShadowmap), Is.EqualTo(expected).Within(k_Tolerance));
+        }
+
+        [Description("A 16-bit shadow map rounds the caster depth and so hides the receiver's own depth error, while a finer shadow map stores it. On a shadow map finer than 16 bit a mode with nothing else covering receivers facing the light head-on keeps a caster push of at least 0.005 texels, and larger legacy bias values pass through unchanged. A receiver normal bias of at least 0.005 covers those receivers, so the push is dropped there.")]
+        [TestCase(ShadowDepthBiasMode.Legacy, ShadowNormalBiasMode.Caster, 0.0f, 0.25f, 2.0f, -0.01f)]
+        [TestCase(ShadowDepthBiasMode.Legacy, ShadowNormalBiasMode.Caster, 0.002f, 0.25f, 2.0f, -0.01f)]
+        [TestCase(ShadowDepthBiasMode.Legacy, ShadowNormalBiasMode.Caster, 1.0f, 0.25f, 2.0f, -2.0f)]
+        [TestCase(ShadowDepthBiasMode.Legacy, ShadowNormalBiasMode.Receiver, 0.0f, 0.0f, 2.0f, -0.01f)]
+        [TestCase(ShadowDepthBiasMode.Legacy, ShadowNormalBiasMode.Receiver, 0.0f, 1.0f, 2.0f, 0.0f)]
+        [TestCase(ShadowDepthBiasMode.SlopeScale, ShadowNormalBiasMode.Caster, 1.0f, 0.25f, 2.0f, -0.1f)]
+        [TestCase(ShadowDepthBiasMode.SlopeScale, ShadowNormalBiasMode.Receiver, 1.0f, 0.0f, 2.0f, -0.01f)]
+        [TestCase(ShadowDepthBiasMode.SlopeScale, ShadowNormalBiasMode.Receiver, 1.0f, 0.004f, 2.0f, -0.01f)]
+        [TestCase(ShadowDepthBiasMode.SlopeScale, ShadowNormalBiasMode.Receiver, 1.0f, 0.005f, 2.0f, 0.0f)]
+        [TestCase(ShadowDepthBiasMode.SlopeScale, ShadowNormalBiasMode.Receiver, 1.0f, 1.0f, 2.0f, 0.0f)]
+        [TestCase(ShadowDepthBiasMode.SlopeScale, ShadowNormalBiasMode.Receiver, 0.0f, 0.0f, 0.4f, -0.002f)]
+        public void GetCasterDepthBias_KeepsAMinimumCasterOffsetOnHighPrecisionShadowmaps(ShadowDepthBiasMode depthBiasMode, ShadowNormalBiasMode normalBiasMode, float depthBias, float normalBias, float texelSize, float expected)
+        {
+            Assert.That(ShadowUtils.GetCasterDepthBias(depthBias, normalBias, depthBiasMode, normalBiasMode, texelSize, highPrecisionShadowmap: true), Is.EqualTo(expected).Within(k_Tolerance));
+        }
+
+        [Description("The minimum caster offset applies to depth formats finer than 16-bit UNorm, which includes the 24-bit formats a 16-bit request falls back to, and not to the 16-bit formats themselves.")]
+        [TestCase(GraphicsFormat.D16_UNorm, false)]
+        [TestCase(GraphicsFormat.D16_UNorm_S8_UInt, false)]
+        [TestCase(GraphicsFormat.D24_UNorm, true)]
+        [TestCase(GraphicsFormat.D24_UNorm_S8_UInt, true)]
+        [TestCase(GraphicsFormat.D32_SFloat, true)]
+        [TestCase(GraphicsFormat.D32_SFloat_S8_UInt, true)]
+        public void IsHighPrecisionShadowmap_IsTrueForFormatsFinerThan16Bit(GraphicsFormat format, bool expected)
+        {
+            Assert.That(ShadowUtils.IsHighPrecisionShadowmap(format), Is.EqualTo(expected));
+        }
+
+        [Description("Once the shadow caster pass has created the shadow map, the precision comes from its actual format, so a 16-bit request that fell back to a 24-bit format counts as high precision. Before that the format is unknown and the requested precision decides.")]
+        [TestCase(GraphicsFormat.D24_UNorm_S8_UInt, DepthBits.Depth16, true)]
+        [TestCase(GraphicsFormat.D16_UNorm, DepthBits.Depth16, false)]
+        [TestCase(GraphicsFormat.D32_SFloat, DepthBits.Depth32, true)]
+        [TestCase(GraphicsFormat.None, DepthBits.Depth16, false)]
+        [TestCase(GraphicsFormat.None, DepthBits.Depth32, true)]
+        public void IsHighPrecisionShadowmap_PrefersTheActualFormatOverTheRequestedPrecision(GraphicsFormat format, DepthBits requestedDepthBits, bool expected)
+        {
+            Assert.That(ShadowUtils.IsHighPrecisionShadowmap(format, requestedDepthBits), Is.EqualTo(expected));
         }
 
         [Description("The returned resolution is the largest power-of-two fraction of the smaller atlas side at which the requested number of tiles fits. The tiles are counted per axis, so atlas sides that are not multiples of the resolution do not inflate the count.")]

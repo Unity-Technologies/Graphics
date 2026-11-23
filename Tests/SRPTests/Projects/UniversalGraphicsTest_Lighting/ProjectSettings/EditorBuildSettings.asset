@@ -213,6 +213,9 @@ EditorBuildSettings:
     path: Assets/Scenes/271_Lighting_PCSS_AdditionalLights_DeferredPlus.unity
     guid: 621e6679848f4d23adef798571fcb17e
   - enabled: 1
+    path: Assets/Scenes/272_ShadowmapPrecision.unity
+    guid: 79ae78ec1d3ff2244a286fdc20edfe8c
+  - enabled: 1
     path: Assets/Scenes/353_LightProbeUsageOff.unity
     guid: 2933fd527d4464c46953f2a7c025e3c6
   m_configObjects:
