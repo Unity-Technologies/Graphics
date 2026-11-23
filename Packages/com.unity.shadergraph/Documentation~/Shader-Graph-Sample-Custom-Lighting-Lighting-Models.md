@@ -27,9 +27,17 @@ This lighting model does very simple lighting and leaves out most lighting featu
 
 This lighting model is an example of custom behavior type you can create when you can control the lighting model. The main directional light renders the scene in grayscale with no color. Color is introduced with point lights, which allows you to control where the scene has color based on where you place the point lights in the scene.
 
+### Lit Cook Torrance
+
+This lighting model uses the Cook Torrance formula for specular highlights, which works well for brushed metal surfaces. It uses the same Lambert diffuse lighting, ambient lighting, reflections, and fog as the URP lighting model. It calculates lighting from the main light only.
+
+### Lit Oren Nayar
+
+This lighting model uses the Oren Nayar formula for diffuse lighting, which simulates rough surfaces such as clay or plaster. It uses the same ambient lighting, reflections, and fog as the URP lighting model, but doesn't calculate specular highlights. It calculates lighting from the main light only.
+
 ### Lit Simple
 
-This lighting model is the same as the URP lighting model, except it uses the Blinn formula for the specular highlights. This makes it slightly cheaper to render than standard URP while looking fairly similar. If you still need all of the lighting features (specular, fog, screen space ambient occlusion, reflections, etc), but you want to make the lighting cheaper, this may be a good choice.
+This lighting model is the same as the URP lighting model, except it uses the Blinn formula for the specular highlights. The Blinn formula makes it slightly cheaper to render than standard URP while looking fairly similar. If you need the full set of lighting features, including specular, fog, screen space ambient occlusion, and reflections, but want cheaper lighting, use this lighting model.
 
 ### Lit Toon
 
