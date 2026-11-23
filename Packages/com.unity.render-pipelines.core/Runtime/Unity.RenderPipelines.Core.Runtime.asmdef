@@ -51,6 +51,11 @@
             "define": "ENABLE_METALFX_MODULE"
         },
         {
+            "name": "com.unity.modules.intelxess",
+            "expression": "1.0.0",
+            "define": "ENABLE_INTELXESS_MODULE"
+        },
+        {
             "name": "com.unity.modules.physics",
             "expression": "1.0.0",
             "define": "ENABLE_PHYSICS_MODULE"
