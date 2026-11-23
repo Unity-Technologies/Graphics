@@ -586,6 +586,10 @@ namespace UnityEngine.Rendering.Universal
                 RTDesc.width = Mathf.Max(1, RTDesc.width);
                 RTDesc.height = Mathf.Max(1, RTDesc.height);
 
+                RTDesc.depthStencilFormat = destination.depthStencilFormat;
+                if (RTDesc.depthStencilFormat == GraphicsFormat.None)
+                    RTDesc.depthStencilFormat = CoreUtils.GetDefaultDepthStencilFormat();
+
                 //if mip is 0 and target is Texture2D we can immediately render to the requested destination
                 if(destination.dimension != TextureDimension.Tex2D || mipLevel != 0)
                 {
@@ -1419,6 +1423,11 @@ namespace UnityEngine.Rendering.Universal
             bool needsAlphaChannel = Graphics.preserveFramebufferAlpha;
 
             cameraData.hdrColorBufferPrecision = asset ? asset.hdrColorBufferPrecision : HDRColorBufferPrecision._32Bits;
+            
+            Vector2Int backbufferSize = RenderingUtils.GetScreenBackbufferSize(camera);
+            cameraData.backbufferWidth = backbufferSize.x;
+            cameraData.backbufferHeight = backbufferSize.y;
+            
             cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(camera, cameraData,
                 cameraData.isHdrEnabled, cameraData.hdrColorBufferPrecision, msaaSamples, needsAlphaChannel, cameraData.requiresOpaqueTexture);
 

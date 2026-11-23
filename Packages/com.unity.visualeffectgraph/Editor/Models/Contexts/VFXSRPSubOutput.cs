@@ -60,6 +60,12 @@ namespace UnityEditor.VFX
             }
         }
 
+        // Empty when the render pipeline has no shader tag to advertise
+        public virtual string GetRenderPipelineTagStr()
+        {
+            return string.Empty;
+        }
+
         public virtual string GetRenderQueueStr()
         {
             var baseRenderQueue = string.Empty;

@@ -61,6 +61,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public void Cleanup()
         {
 #if ENABLE_AMD && ENABLE_AMD_MODULE
+            if (m_CameraStates.cameras.Count > 0)
+                WaitForGPUIdle();
             foreach (var cameraState in m_CameraStates.cameras.Values)
                 m_CameraStates.InvalidateState(cameraState);
             CleanupCameraStates();
@@ -395,6 +397,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             Graphics.ExecuteCommandBuffer(m_CommandBuffer);
             m_CameraStates.CleanupCameraStates();
+        }
+
+        private static void WaitForGPUIdle()
+        {
+            using var syncBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Raw, 1, sizeof(uint));
+            AsyncGPUReadback.Request(syncBuffer).WaitForCompletion();
         }
 
         private void InternalAMDSetupDRSScaling(bool enableAutomaticSettings, Camera camera, in HDAdditionalCameraData hdCam, XRPass xrPass, ref GlobalDynamicResolutionSettings dynamicResolutionSettings)

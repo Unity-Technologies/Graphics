@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using UnityEditor.Callbacks;
 using UnityEditor.Rendering.Analytics;
 using UnityEditor.Rendering.HighDefinition.Analytics;
@@ -115,86 +116,92 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorApplication.update += () =>
             {
                 if (Time.renderedFrameCount > 0)
-                {
-                    if (!HDRenderPipeline.isReady)
-                        return;
-
-                    bool reimportAllHDShaderGraphsTriggered = false;
-                    bool reimportAllMaterialsTriggered = false;
-                    bool fileExist = true;
-                    // We check the file existence only once to avoid IO operations every frame.
-                    if (s_NeedToCheckProjSettingExistence)
-                    {
-                        fileExist = System.IO.File.Exists(HDProjectSettings.filePath);
-                        s_NeedToCheckProjSettingExistence = false;
-                    }
-
-                    //This method is called at opening and when HDRP package change (update of manifest.json)
-                    int curMaterialVersion = HDProjectSettings.materialVersionForUpgrade;
-                    bool scanMaterialsForUpgradeNeeded = (curMaterialVersion < MaterialPostprocessor.k_Migrations.Length)
-                        || (HDProjectSettings.pluginSubTargetLastSeenMaterialVersionsSum < HDShaderUtils.GetHDPluginSubTargetMaterialVersionsSum());
-
-                    var curHDSubTargetVersion = HDProjectSettings.hdShaderGraphLastSeenVersion;
-                    bool scanHDShaderGraphsForUpgradeNeeded = (curHDSubTargetVersion < MigrationDescription.LastVersion<ShaderGraphVersion>())
-                        || (HDProjectSettings.pluginSubTargetLastSeenSubTargetVersionsSum < HDShaderUtils.GetHDPluginSubTargetVersionsSum());
-
-                    // First test if scan for shadergraph version upgrade might be needed (triggered through their importer)
-                    // We do shadergraphs first as the HDMetaData object might need to be updated and the material update might depend
-                    // on it.
-                    // Note: this auto-update is disabled by default for now.
-                    if (s_AutoReimportProjectShaderGraphsOnVersionUpdate && scanHDShaderGraphsForUpgradeNeeded)
-                    {
-                        string commandLineOptions = System.Environment.CommandLine;
-                        bool inTestSuite = commandLineOptions.Contains("-testResults");
-                        if (!inTestSuite && fileExist && !Application.isBatchMode)
-                        {
-                            EditorUtility.DisplayDialog("HDRP ShaderGraph scan for upgrade", "The ShaderGraphs with HDRP SubTarget in your Project were created using an older version of the High Definition Render Pipeline (HDRP)." +
-                                " Unity must upgrade them to be compatible with your current version of HDRP. \n" +
-                                " Unity will re-import all of the HDRP ShaderGraphs in your project, save them to disk, and check them out in source control if needed.\n" +
-                                " Please see the Material upgrade guide in the HDRP documentation for more information.", "OK");
-                        }
-
-                        // When we open a project from scratch all the material have been converted and we don't need to do it two time.
-                        // However if we update with an open editor from the package manager we must call reimport.
-                        // As we can't know, we are always calling reimport resulting in unecessary work when opening a project.
-                        ReimportAllHDShaderGraphs();
-                        reimportAllHDShaderGraphsTriggered = true;
-                    }
-                    // we do else here, as we want to first call SaveAssetsToDisk() for shadergraphs, as it updates the HDProjectSettings version sentinels
-                    // (tocheck: it's probably safe to also do materials right after)
-                    else if (scanMaterialsForUpgradeNeeded)
-                    {
-                        string commandLineOptions = System.Environment.CommandLine;
-                        bool inTestSuite = commandLineOptions.Contains("-testResults");
-                        if (!inTestSuite && fileExist && !Application.isBatchMode)
-                        {
-                            EditorUtility.DisplayDialog("HDRP Material upgrade", "The Materials in your Project were created using an older version of the High Definition Render Pipeline (HDRP)." +
-                                " Unity must upgrade them to be compatible with your current version of HDRP. \n" +
-                                " Unity will re-import all of the Materials in your project, save the upgraded Materials to disk, and check them out in source control if needed.\n" +
-                                " Please see the Material upgrade guide in the HDRP documentation for more information.", "OK");
-                        }
-
-                        // When we open a project from scratch all the material have been converted and we don't need to do it two time.
-                        // However if we update with an open editor from the package manager we must call reimport.
-                        // As we can't know, we are always calling reimport resulting in unecessary work when opening a project.
-                        ReimportAllMaterials();
-                        reimportAllMaterialsTriggered = true;
-                    }
-
-                    // Note: A reimport all above should really have gone through all .mat or .shadergraph, because the SaveAssetsToDisk() call will update
-                    // our versions in HDProjectSettings on which we base the version change detection and trigger the scan for reimport.
-                    // We can still have these two flags set at the same time, however, if the user multi-selects .mat and .shadergraph,
-                    // as the MaterialPostProcessor.OnPostprocessAllAssets() will be called for both and set both of those flags if needed.
-                    // This should be safe however since by the time we reach this point here, we already checked if we needed a re-import scan just
-                    // above.
-                    if (MaterialPostprocessor.s_NeedsSavingAssets)
-                    {
-                        MaterialPostprocessor.SaveAssetsToDisk(updateMaterialLastSeenVersions: reimportAllMaterialsTriggered, updateShaderGraphLastSeenVersions: reimportAllHDShaderGraphsTriggered);
-                        reimportAllHDShaderGraphsTriggered = false;
-                        reimportAllMaterialsTriggered = false;
-                    }
-                }
+                    UpgradeMaterialsIfNeeded();
             };
+
+            if (Application.isBatchMode && Environment.CommandLine.Contains("-quit"))
+                SynchronizationContext.Current?.Post(_ => UpgradeMaterialsIfNeeded(), null);
+        }
+
+        static void UpgradeMaterialsIfNeeded()
+        {
+            if (!HDRenderPipeline.isReady)
+                return;
+
+            bool reimportAllHDShaderGraphsTriggered = false;
+            bool reimportAllMaterialsTriggered = false;
+            bool fileExist = true;
+            // We check the file existence only once to avoid IO operations every frame.
+            if (s_NeedToCheckProjSettingExistence)
+            {
+                fileExist = System.IO.File.Exists(HDProjectSettings.filePath);
+                s_NeedToCheckProjSettingExistence = false;
+            }
+
+            //This method is called at opening and when HDRP package change (update of manifest.json)
+            int curMaterialVersion = HDProjectSettings.materialVersionForUpgrade;
+            bool scanMaterialsForUpgradeNeeded = (curMaterialVersion < MaterialPostprocessor.k_Migrations.Length)
+                || (HDProjectSettings.pluginSubTargetLastSeenMaterialVersionsSum < HDShaderUtils.GetHDPluginSubTargetMaterialVersionsSum());
+
+            var curHDSubTargetVersion = HDProjectSettings.hdShaderGraphLastSeenVersion;
+            bool scanHDShaderGraphsForUpgradeNeeded = (curHDSubTargetVersion < MigrationDescription.LastVersion<ShaderGraphVersion>())
+                || (HDProjectSettings.pluginSubTargetLastSeenSubTargetVersionsSum < HDShaderUtils.GetHDPluginSubTargetVersionsSum());
+
+            // First test if scan for shadergraph version upgrade might be needed (triggered through their importer)
+            // We do shadergraphs first as the HDMetaData object might need to be updated and the material update might depend
+            // on it.
+            // Note: this auto-update is disabled by default for now.
+            if (s_AutoReimportProjectShaderGraphsOnVersionUpdate && scanHDShaderGraphsForUpgradeNeeded)
+            {
+                string commandLineOptions = System.Environment.CommandLine;
+                bool inTestSuite = commandLineOptions.Contains("-testResults");
+                if (!inTestSuite && fileExist && !Application.isBatchMode)
+                {
+                    EditorUtility.DisplayDialog("HDRP ShaderGraph scan for upgrade", "The ShaderGraphs with HDRP SubTarget in your Project were created using an older version of the High Definition Render Pipeline (HDRP)." +
+                        " Unity must upgrade them to be compatible with your current version of HDRP. \n" +
+                        " Unity will re-import all of the HDRP ShaderGraphs in your project, save them to disk, and check them out in source control if needed.\n" +
+                        " Please see the Material upgrade guide in the HDRP documentation for more information.", "OK");
+                }
+
+                // When we open a project from scratch all the material have been converted and we don't need to do it two time.
+                // However if we update with an open editor from the package manager we must call reimport.
+                // As we can't know, we are always calling reimport resulting in unecessary work when opening a project.
+                ReimportAllHDShaderGraphs();
+                reimportAllHDShaderGraphsTriggered = true;
+            }
+            // we do else here, as we want to first call SaveAssetsToDisk() for shadergraphs, as it updates the HDProjectSettings version sentinels
+            // (tocheck: it's probably safe to also do materials right after)
+            else if (scanMaterialsForUpgradeNeeded)
+            {
+                string commandLineOptions = System.Environment.CommandLine;
+                bool inTestSuite = commandLineOptions.Contains("-testResults");
+                if (!inTestSuite && fileExist && !Application.isBatchMode)
+                {
+                    EditorUtility.DisplayDialog("HDRP Material upgrade", "The Materials in your Project were created using an older version of the High Definition Render Pipeline (HDRP)." +
+                        " Unity must upgrade them to be compatible with your current version of HDRP. \n" +
+                        " Unity will re-import all of the Materials in your project, save the upgraded Materials to disk, and check them out in source control if needed.\n" +
+                        " Please see the Material upgrade guide in the HDRP documentation for more information.", "OK");
+                }
+
+                // When we open a project from scratch all the material have been converted and we don't need to do it two time.
+                // However if we update with an open editor from the package manager we must call reimport.
+                // As we can't know, we are always calling reimport resulting in unecessary work when opening a project.
+                ReimportAllMaterials();
+                reimportAllMaterialsTriggered = true;
+            }
+
+            // Note: A reimport all above should really have gone through all .mat or .shadergraph, because the SaveAssetsToDisk() call will update
+            // our versions in HDProjectSettings on which we base the version change detection and trigger the scan for reimport.
+            // We can still have these two flags set at the same time, however, if the user multi-selects .mat and .shadergraph,
+            // as the MaterialPostProcessor.OnPostprocessAllAssets() will be called for both and set both of those flags if needed.
+            // This should be safe however since by the time we reach this point here, we already checked if we needed a re-import scan just
+            // above.
+            if (MaterialPostprocessor.s_NeedsSavingAssets)
+            {
+                MaterialPostprocessor.SaveAssetsToDisk(updateMaterialLastSeenVersions: reimportAllMaterialsTriggered, updateShaderGraphLastSeenVersions: reimportAllHDShaderGraphsTriggered);
+                reimportAllHDShaderGraphsTriggered = false;
+                reimportAllMaterialsTriggered = false;
+            }
         }
     }
 

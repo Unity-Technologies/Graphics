@@ -1765,8 +1765,8 @@ namespace UnityEngine.Rendering.Universal
                 //NOTE: Careful what you use here as many of the properties bake-in the camera rect so for example
                 //cameraData.cameraTargetDescriptor.width is the width of the rectangle but not the actual render target
                 //same with cameraData.camera.pixelWidth
-                importInfo.width = Screen.width;
-                importInfo.height = Screen.height;
+                importInfo.width = cameraData.backbufferWidth;
+                importInfo.height = cameraData.backbufferHeight;
                 importInfo.volumeDepth = 1;
                 importInfo.msaaSamples = numSamples;
                 importInfo.format = cameraData.cameraTargetDescriptor.graphicsFormat;
@@ -2010,8 +2010,10 @@ namespace UnityEngine.Rendering.Universal
         void CreateOffscreenUITexture(RenderGraph renderGraph, TextureDesc descriptor)
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-            DrawScreenSpaceUIPass.ConfigureOffscreenUITextureDesc(ref descriptor);
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            DrawScreenSpaceUIPass.ConfigureOffscreenUITextureDesc(ref descriptor, cameraData);
             RenderingUtils.ReAllocateHandleIfNeeded(ref m_OffscreenUIColorHandle, descriptor, name: "_OverlayUITexture");
+
             // Clear the texture to avoid stale data from previous frames
             ImportResourceParams importParams = new ImportResourceParams();
             importParams.clearOnFirstUse = true;

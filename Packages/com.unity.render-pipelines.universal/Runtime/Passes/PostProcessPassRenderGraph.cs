@@ -2349,7 +2349,7 @@ namespace UnityEngine.Rendering.Universal
                     settings.hdrOperations |= HDROutputUtils.Operation.ColorConversion;
 
                 SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, material, settings.hdrOperations, cameraData.rendersOverlayUI);
-                RenderingUtils.SetupOffscreenUIViewportParams(material, ref cameraData.pixelRect, cameraData.resolveFinalTarget);
+                RenderingUtils.SetupOffscreenUIViewportParams(cameraData, material, ref cameraData.pixelRect, cameraData.resolveFinalTarget);
             }
             DebugHandler debugHandler = ScriptableRenderPass.GetActiveDebugHandler(cameraData);
             bool resolveToDebugScreen = debugHandler != null && debugHandler.WriteToDebugScreenTexture(cameraData.resolveFinalTarget);
@@ -2911,7 +2911,7 @@ namespace UnityEngine.Rendering.Universal
                     HDROutputUtils.Operation hdrOperations = !m_HasFinalPass && m_EnableColorEncodingIfNeeded ? HDROutputUtils.Operation.ColorEncoding : HDROutputUtils.Operation.None;
 
                     SetupHDROutput(cameraData.hdrDisplayInformation, cameraData.hdrDisplayColorGamut, m_Materials.uber, hdrOperations, cameraData.rendersOverlayUI);
-                    RenderingUtils.SetupOffscreenUIViewportParams(m_Materials.uber, ref cameraData.pixelRect, resourceData.isActiveTargetBackBuffer);
+                    RenderingUtils.SetupOffscreenUIViewportParams(cameraData, m_Materials.uber, ref cameraData.pixelRect, resourceData.isActiveTargetBackBuffer);
                 }
 
                 bool enableAlphaOutput = cameraData.isAlphaOutputEnabled;

@@ -169,6 +169,26 @@ namespace UnityEngine.Rendering.Universal
             return allowDepth;
         }
 
+        static bool ShouldImportBackBufferDepth(ContextContainer frameData, Renderer2DData rendererData, bool createColorTexture)
+        {
+            if (IsDepthUsageAllowed(frameData, rendererData))
+                return true;
+
+            // OpenGL binds the default framebuffer's depth with its color even when no pass uses it, so it must still be cleared (UUM-159093)
+            var deviceType = SystemInfo.graphicsDeviceType;
+            if (deviceType != GraphicsDeviceType.OpenGLES3 && deviceType != GraphicsDeviceType.OpenGLCore)
+                return false;
+
+            // Only when the 2D passes draw straight into the back buffer, since they are what attach and clear it
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+            bool isBackBuffer = cameraData.targetTexture == null && !createColorTexture;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            isBackBuffer &= !cameraData.xr.enabled;
+#endif
+
+            return isBackBuffer && Graphics.backBufferHasDepthStencil;
+        }
+
         private bool IsPixelPerfectCameraEnabled(UniversalCameraData cameraData, out PixelPerfectCamera ppc)
         {
             ppc = null;
@@ -321,11 +341,8 @@ namespace UnityEngine.Rendering.Universal
                 // in some cases we disable multisampling for optimization purpose
                 int numSamples = AdjustAndGetScreenMSAASamples(renderGraph, m_CreateColorTexture);
 
-                //NOTE: Careful what you use here as many of the properties bake-in the camera rect so for example
-                //cameraData.cameraTargetDescriptor.width is the width of the rectangle but not the actual render target
-                //same with cameraData.camera.pixelWidth
-                output.importInfo.width = Screen.width;
-                output.importInfo.height = Screen.height;
+                output.importInfo.width = cameraData.backbufferWidth;
+                output.importInfo.height = cameraData.backbufferHeight;
                 output.importInfo.volumeDepth = 1;
                 output.importInfo.msaaSamples = numSamples;
                 output.importInfo.format = cameraData.cameraTargetDescriptor.graphicsFormat;
@@ -498,10 +515,7 @@ namespace UnityEngine.Rendering.Universal
                     depthDescriptor.depthStencilFormat = CoreUtils.GetDefaultDepthStencilFormat();
 
                     RenderingUtils.ReAllocateHandleIfNeeded(ref s_RenderGraphCameraDepthHandle, depthDescriptor, FilterMode.Point, TextureWrapMode.Clamp, name: "_CameraDepthAttachment");
-                    commonResourceData.activeDepthID = ActiveID.Camera;
                 }
-                else
-                    commonResourceData.activeDepthID = ActiveID.BackBuffer;
             }
             else // Overlay camera
             {
@@ -515,8 +529,10 @@ namespace UnityEngine.Rendering.Universal
                 m_CreateDepthTexture = baseRenderer.m_CreateDepthTexture;
 
                 commonResourceData.activeColorID = m_CreateColorTexture ? ActiveID.Camera : ActiveID.BackBuffer;
-                commonResourceData.activeDepthID = m_CreateDepthTexture ? ActiveID.Camera : ActiveID.BackBuffer;
             }
+
+            // An intermediate color target is never paired with the back buffer depth
+            commonResourceData.activeDepthID = m_CreateDepthTexture || m_CreateColorTexture ? ActiveID.Camera : ActiveID.BackBuffer;
 
             ImportResourceSummary importSummary = GetImportResourceSummary(renderGraph, cameraData);
 
@@ -554,7 +570,7 @@ namespace UnityEngine.Rendering.Universal
 
             commonResourceData.backBufferColor = renderGraph.ImportTexture(m_RenderGraphBackbufferColorHandle, importSummary.importInfo, importSummary.backBufferColorParams);
 
-            if (IsDepthUsageAllowed(frameData, m_Renderer2DData))
+            if (ShouldImportBackBufferDepth(frameData, m_Renderer2DData, m_CreateColorTexture))
             {
                 if (m_RenderGraphBackbufferDepthHandle == null)
                 {
@@ -691,8 +707,9 @@ namespace UnityEngine.Rendering.Universal
         void CreateOffscreenUITexture(RenderGraph renderGraph, in RenderTextureDescriptor descriptor)
         {
             UniversalResourceData resourceData = frameData.Get<CommonResourceData>();
+            UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             TextureDesc textureDesc = new TextureDesc(descriptor);
-            DrawScreenSpaceUIPass.ConfigureOffscreenUITextureDesc(ref textureDesc);
+            DrawScreenSpaceUIPass.ConfigureOffscreenUITextureDesc(ref textureDesc, cameraData);
             RenderingUtils.ReAllocateHandleIfNeeded(ref s_OffscreenUIColorHandle, textureDesc, name: "_OverlayUITexture");
             resourceData.overlayUITexture = renderGraph.ImportTexture(s_OffscreenUIColorHandle);
         }

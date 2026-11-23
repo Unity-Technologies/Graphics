@@ -655,5 +655,35 @@ namespace UnityEditor.VFX.Test
             yield return null;
 
         }
+
+#if VFX_TESTS_HAS_URP
+        [UnityTest]
+        public IEnumerator Check_Classic_Output_Has_Universal_Pipeline_Tag()
+        {
+            // This assembly doesn't reference the URP runtime, so match the asset type or any base type by name.
+            var isUniversalPipeline = false;
+            for (var type = UnityEngine.Rendering.GraphicsSettings.currentRenderPipelineAssetType; type != null && !isUniversalPipeline; type = type.BaseType)
+                isUniversalPipeline = type.Name == "UniversalRenderPipelineAsset";
+            if (!isUniversalPipeline)
+                Assert.Ignore("Requires URP as the active render pipeline");
+
+            var vfxGraph = VFXTestCommon.CreateGraph_And_System();
+            foreach (var yield in VFXTestCommon.CheckCompilation(vfxGraph))
+            {
+                yield return yield;
+            }
+
+            var path = AssetDatabase.GetAssetPath(vfxGraph);
+            var shaders = AssetDatabase.LoadAllAssetsAtPath(path).OfType<Shader>().ToArray();
+            Assert.AreNotEqual(0, shaders.Length);
+            var renderPipelineTag = new UnityEngine.Rendering.ShaderTagId("RenderPipeline");
+            foreach (var shader in shaders)
+            {
+                Assert.AreNotEqual(0, shader.subshaderCount, shader.name);
+                for (int i = 0; i < shader.subshaderCount; ++i)
+                    Assert.AreEqual("UniversalPipeline", shader.FindSubshaderTagValue(i, renderPipelineTag).name, $"{shader.name} SubShader {i}");
+            }
+        }
+#endif
     }
 }
