@@ -74,9 +74,9 @@ namespace UnityEngine.Rendering.Universal.Tests
             if (UniversalRenderer.PlatformRequiresExplicitMsaaResolve())
                 IgnoreWithLog("Platform resolves MSAA explicitly (no multisampled back buffer); the real back buffer MSAA request is always 1, so there is nothing to test here.");
 
-            // Under XR, URP renders into the XR-owned back buffer and never multisamples it directly, so the
-            // optimization is inactive. A global gate (rather than URP's per-camera xr.enabled check) is enough
-            // to skip the device XR and mock-XR jobs, where the fixture is meaningless.
+            // Under XR, the cameras here render into the XR eye textures, not the real back buffer, so this
+            // fixture's checks don't apply (XRDisplayMSAATests covers the eye textures). A global gate (rather
+            // than URP's per-camera xr.enabled check) is enough to skip the device XR and mock-XR jobs.
             if (XRSystem.displayActive || XRGraphicsAutomatedTests.enabled)
                 IgnoreWithLog("XR is active; URP renders into the XR-owned back buffer and never multisamples it directly, so there is nothing to test here.");
 

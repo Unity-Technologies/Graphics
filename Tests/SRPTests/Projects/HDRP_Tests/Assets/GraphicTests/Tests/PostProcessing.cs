@@ -124,7 +124,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             RuntimePlatform.WindowsEditor
         )]
         [IgnoreGraphicsTest(
-            "^(?!.*(4088_DRS-DLSS-Hardware|4089_DRS-DLSS-Software|4090_DRS-Hardware|4096_DRS-TAAU-Hardware|4100_DRS-STP-Hardware|4102_DRS-CAS-AfterPost|4103_DRS-DLSS-AfterPost|4104_DRS-STP-AfterPost|4106_DRS-TAAU-AfterPost|4107_DRS-FSR2-Hardware|4109_DRS-FSR2-AfterPost|4110_DRS-FSR2-With-CustomPass|4111_DRS-DLSS-With-CustomPass)).*",
+            "^(?!.*(4088_DRS-DLSS-Hardware|4089_DRS-DLSS-Software|4090_DRS-Hardware|4096_DRS-TAAU-Hardware|4100_DRS-STP-Hardware|4102_DRS-CAS-AfterPost|4103_DRS-DLSS-AfterPost|4104_DRS-STP-AfterPost|4106_DRS-TAAU-AfterPost|4107_DRS-FSR2-Hardware|4109_DRS-FSR2-AfterPost|4110_DRS-FSR2-With-CustomPass|4111_DRS-DLSS-With-CustomPass|4112_AlphaUpscaling-FP16Alpha)).*",
             "Upscaler-only job — non-upscaler tests excluded when ENABLE_UPSCALER_FRAMEWORK is defined",
             UpscalerFrameworkContext.UpscalerFrameworkEnabled
         )]

@@ -683,6 +683,8 @@ namespace UnityEngine.Rendering
             foreach (var data in loadedSceneDataList)
             {
                 var cells = m_BakingSet.GetSceneCellIndexList(data.sceneGUID);
+                if (cells == null)
+                    continue;
 
                 var numberOfCells = cells.Count;
 

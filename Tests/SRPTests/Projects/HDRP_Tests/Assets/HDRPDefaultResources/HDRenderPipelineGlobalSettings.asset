@@ -211,6 +211,7 @@ MonoBehaviour:
       - rid: 1748197788746514448
       - rid: 1748197788746514449
       - rid: 6636147933899653120
+      - rid: 7830723193898795008
     m_RuntimeSettings:
       m_List: []
   renderingLayerNames:
@@ -1192,3 +1193,7 @@ MonoBehaviour:
       data:
         m_Version: 1
         m_EnableMaskAndCurrentWaterDecals: 1
+    - rid: 7830723193898795008
+      type: {class: AlphaUpscaler/RuntimeResources, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Core.Runtime}
+      data:
+        m_AlphaUpscaleCS: {fileID: 7200000, guid: f10c23179af641eea368ee165b2e97cf, type: 3}

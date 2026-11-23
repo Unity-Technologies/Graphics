@@ -1,3 +1,6 @@
+#if ENABLE_UIELEMENTS_MODULE && UNITY_ENABLE_CHECKS
+#define ENABLE_RENDERING_DEBUGGER_UI
+#endif
 #if ENABLE_RENDERING_DEBUGGER_UI
 using NUnit.Framework;
 using UnityEngine.Rendering;
@@ -62,6 +65,51 @@ namespace UnityEditor.Rendering.Tests
         {
             float result = DebugUI.DebugUIStepperHelper.RoundToPrecision(12345.0f, 100.0f);
             Assert.AreEqual(12345.0f, result, 0.01f);
+        }
+
+        [TestCase(-5, ExpectedResult = 10)]
+        [TestCase(15, ExpectedResult = 15)]
+        [TestCase(25, ExpectedResult = 20)]
+        public int IntField_ValidateValue_ClampsToMinMax(int value)
+        {
+            var field = new DebugUI.IntField { min = () => 10, max = () => 20 };
+            return field.ValidateValue(value);
+        }
+
+        [TestCase(int.MinValue, ExpectedResult = int.MinValue)]
+        [TestCase(int.MaxValue, ExpectedResult = int.MaxValue)]
+        [TestCase(123456789, ExpectedResult = 123456789)]
+        public int IntField_ValidateValue_PreservesValueWithinFullRange(int value)
+        {
+            var field = new DebugUI.IntField { min = () => int.MinValue, max = () => int.MaxValue };
+            return field.ValidateValue(value);
+        }
+
+        [TestCase(5u, ExpectedResult = 10u)]
+        [TestCase(15u, ExpectedResult = 15u)]
+        [TestCase(25u, ExpectedResult = 20u)]
+        public uint UIntField_ValidateValue_ClampsToMinMax(uint value)
+        {
+            var field = new DebugUI.UIntField { min = () => 10u, max = () => 20u };
+            return field.ValidateValue(value);
+        }
+
+        [TestCase(0u, ExpectedResult = 0u)]
+        [TestCase(uint.MaxValue, ExpectedResult = uint.MaxValue)]
+        [TestCase(123456789u, ExpectedResult = 123456789u)]
+        public uint UIntField_ValidateValue_PreservesValueWithinFullRange(uint value)
+        {
+            var field = new DebugUI.UIntField { min = () => 0u, max = () => uint.MaxValue };
+            return field.ValidateValue(value);
+        }
+
+        [TestCase(-5f, ExpectedResult = 10f)]
+        [TestCase(15.5f, ExpectedResult = 15.5f)]
+        [TestCase(25f, ExpectedResult = 20f)]
+        public float FloatField_ValidateValue_ClampsToMinMax(float value)
+        {
+            var field = new DebugUI.FloatField { min = () => 10f, max = () => 20f };
+            return field.ValidateValue(value);
         }
     }
 }

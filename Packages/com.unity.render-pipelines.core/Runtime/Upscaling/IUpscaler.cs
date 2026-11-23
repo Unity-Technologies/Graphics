@@ -178,6 +178,11 @@ namespace UnityEngine.Rendering
         bool supportsSharpening { get; }
 
         /// <summary>
+        /// Returns true if the alpha channel of the upscaler's output is valid.
+        /// </summary>
+        bool supportsAlphaUpscaling { get; }
+
+        /// <summary>
         /// Returns true if the upscaler exposes a quality mode that can dictate the render resolution (e.g. the
         /// DLSS/FSR presets). When false, the upscaler has no opinion on resolution and the pipeline drives the render
         /// resolution (e.g. STP, spatial filters), which is equivalent to <see cref="UpscalerResolutionMode.CustomScaling"/>.
@@ -266,6 +271,9 @@ namespace UnityEngine.Rendering
 
         /// <inheritdoc cref="IUpscaler.supportsSharpening"/>
         public abstract bool supportsSharpening { get; }
+
+        /// <inheritdoc cref="IUpscaler.supportsAlphaUpscaling"/>
+        public virtual bool supportsAlphaUpscaling => false;
 
         /// <inheritdoc cref="IUpscaler.hasQualityMode"/>
         public virtual bool hasQualityMode => false;

@@ -29,6 +29,8 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         private NativeList<Block> m_freeBlocks;
         private NativeList<Block> m_usedBlocks;
         private NativeList<int> m_freeSlots;
+        private NativeHashMap<int, int> m_freeBlockStarts;
+        private NativeHashMap<int, int> m_freeBlockEnds;
 
         public int freeElementsCount => m_FreeElementCount;
         public int freeBlocks => m_freeBlocks.Length;
@@ -44,7 +46,19 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                 m_freeBlocks = new NativeList<Block>(Allocator.Persistent);
             else
                 m_freeBlocks.Clear();
-            m_freeBlocks.Add(new Block() { offset = 0, count = m_FreeElementCount });
+
+            if (!m_freeBlockStarts.IsCreated)
+                m_freeBlockStarts = new NativeHashMap<int, int>(64, Allocator.Persistent);
+            else
+                m_freeBlockStarts.Clear();
+
+            if (!m_freeBlockEnds.IsCreated)
+                m_freeBlockEnds = new NativeHashMap<int, int>(64, Allocator.Persistent);
+            else
+                m_freeBlockEnds.Clear();
+
+            if (m_FreeElementCount > 0)
+                AddFreeBlockEntry(new Block() { offset = 0, count = m_FreeElementCount });
 
             if (!m_usedBlocks.IsCreated)
                 m_usedBlocks = new NativeList<Block>(Allocator.Persistent);
@@ -90,20 +104,21 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             m_FreeElementCount += addedElements;
             m_MaxElementCount = newCapacity;
 
-            int blockToMerge = m_freeBlocks.Length;
-            m_freeBlocks.Add(new Block() { offset = oldCapacity, count = addedElements });
-
-            while (blockToMerge != -1)
-                blockToMerge = MergeBlockFrontBack(blockToMerge);
+            AddAndCoalesceFreeBlock(new Block() { offset = oldCapacity, count = addedElements });
 
             return m_MaxElementCount;
+        }
+
+        private int TailFreeBlockCount()
+        {
+            return m_freeBlockEnds.TryGetValue(m_MaxElementCount, out int index) ? m_freeBlocks[index].count : 0;
         }
 
         public bool GetExpectedGrowthToFitAllocation(int elementCounts, int maxAllowedCapacity, out int newCapacity)
         {
             newCapacity = 0;
 
-            var additionalRequiredElements = m_freeBlocks.IsEmpty ? elementCounts : math.max(elementCounts - m_freeBlocks[m_freeBlocks.Length - 1].count, 0);
+            var additionalRequiredElements = math.max(elementCounts - TailFreeBlockCount(), 0);
             if (maxAllowedCapacity < capacity || (maxAllowedCapacity - capacity) < additionalRequiredElements)
                 return false;
 
@@ -120,7 +135,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         {
             oldCapacity = capacity;
 
-            var additionalRequiredElements = m_freeBlocks.IsEmpty ? elementCounts : math.max(elementCounts - m_freeBlocks[m_freeBlocks.Length - 1].count, 0);
+            var additionalRequiredElements = math.max(elementCounts - TailFreeBlockCount(), 0);
             if (maxAllowedCapacity < capacity || (maxAllowedCapacity - capacity) < additionalRequiredElements)
             {
                 newCapacity = capacity;
@@ -145,11 +160,21 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                 m_usedBlocks.Dispose();
             if (m_freeSlots.IsCreated)
                 m_freeSlots.Dispose();
+            if (m_freeBlockStarts.IsCreated)
+                m_freeBlockStarts.Dispose();
+            if (m_freeBlockEnds.IsCreated)
+                m_freeBlockEnds.Dispose();
         }
 
         public Allocation Allocate(int elementCounts)
         {
-            if (elementCounts > m_FreeElementCount || m_freeBlocks.IsEmpty)
+            if (elementCounts < 0 || elementCounts > m_FreeElementCount)
+                return Allocation.Invalid;
+
+            if (elementCounts == 0)
+                return new Allocation() { handle = AllocateHandle(Block.Invalid), block = Block.Invalid };
+
+            if (m_freeBlocks.IsEmpty)
                 return Allocation.Invalid;
 
             int selectedBlock = -1;
@@ -163,6 +188,9 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                 {
                     currentBlockCount = block.count;
                     selectedBlock = b;
+
+                    if (block.count == elementCounts)
+                        break;
                 }
             }
 
@@ -177,58 +205,30 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             allocationBlock.count = elementCounts;
 
             if (split.count > 0)
-                m_freeBlocks[selectedBlock] = split;
+                SetFreeBlock(selectedBlock, split);
             else
-                m_freeBlocks.RemoveAtSwapBack(selectedBlock);
+                RemoveFreeBlockAt(selectedBlock);
 
+            m_FreeElementCount -= elementCounts;
+            return new Allocation() { handle = AllocateHandle(allocationBlock), block = allocationBlock };
+        }
+
+        private int AllocateHandle(in Block block)
+        {
             int allocationHandle;
             if (m_freeSlots.IsEmpty)
             {
                 allocationHandle = m_usedBlocks.Length;
-                m_usedBlocks.Add(allocationBlock);
+                m_usedBlocks.Add(block);
             }
             else
             {
                 allocationHandle = m_freeSlots[m_freeSlots.Length - 1];
                 m_freeSlots.RemoveAtSwapBack(m_freeSlots.Length - 1);
-                m_usedBlocks[allocationHandle] = allocationBlock;
+                m_usedBlocks[allocationHandle] = block;
             }
 
-            m_FreeElementCount -= elementCounts;
-            return new Allocation() { handle = allocationHandle, block = allocationBlock };
-        }
-
-        private int MergeBlockFrontBack(int freeBlockId)
-        {
-            Block targetBlock = m_freeBlocks[freeBlockId];
-            for (int i = 0; i < m_freeBlocks.Length; ++i)
-            {
-                if (i == freeBlockId)
-                    continue;
-
-                Block freeBlock = m_freeBlocks[i];
-                bool mergeTargetBlock = false;
-                if (targetBlock.offset == (freeBlock.offset + freeBlock.count))
-                {
-                    freeBlock.count += targetBlock.count;
-                    mergeTargetBlock = true;
-                }
-                else if (freeBlock.offset == (targetBlock.offset + targetBlock.count))
-                {
-                    freeBlock.offset = targetBlock.offset;
-                    freeBlock.count += targetBlock.count;
-                    mergeTargetBlock = true;
-                }
-
-                if (mergeTargetBlock)
-                {
-                    m_freeBlocks[i] = freeBlock;
-                    m_freeBlocks.RemoveAtSwapBack(freeBlockId);
-                    return i == m_freeBlocks.Length ? freeBlockId : i;
-                }
-            }
-
-            return -1;
+            return allocationHandle;
         }
 
         public void FreeAllocation(in Allocation allocation)
@@ -238,11 +238,8 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             m_freeSlots.Add(allocation.handle);
             m_usedBlocks[allocation.handle] = Block.Invalid;
 
-            int blockToMerge = m_freeBlocks.Length;
-            m_freeBlocks.Add(allocation.block);
-
-            while (blockToMerge != -1)
-                blockToMerge = MergeBlockFrontBack(blockToMerge);
+            if (allocation.block.count > 0)
+                AddAndCoalesceFreeBlock(allocation.block);
 
             m_FreeElementCount += allocation.block.count;
         }
@@ -261,24 +258,99 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             for (int i = 1; i < count; ++i)
             {
                 Block block = new Block { offset = allocation.block.offset + i * newAllocsSize, count = newAllocsSize };
-
-                int allocationHandle;
-                if (m_freeSlots.IsEmpty)
-                {
-                    allocationHandle = m_usedBlocks.Length;
-                    m_usedBlocks.Add(block);
-                }
-                else
-                {
-                    allocationHandle = m_freeSlots[m_freeSlots.Length - 1];
-                    m_freeSlots.RemoveAtSwapBack(m_freeSlots.Length - 1);
-                    m_usedBlocks[allocationHandle] = block;
-                }
-
-                newAllocs[i] = new Allocation() { handle = allocationHandle, block = block };
+                newAllocs[i] = new Allocation() { handle = AllocateHandle(block), block = block };
             }
 
             return newAllocs;
         }
+
+        private static int BlockEnd(in Block block)
+        {
+            return block.offset + block.count;
+        }
+
+        private void AddAndCoalesceFreeBlock(Block block)
+        {
+            if (m_freeBlockEnds.TryGetValue(block.offset, out int predecessorIndex))
+            {
+                Block predecessor = m_freeBlocks[predecessorIndex];
+                RemoveFreeBlockAt(predecessorIndex);
+                block.offset = predecessor.offset;
+                block.count += predecessor.count;
+            }
+
+            if (m_freeBlockStarts.TryGetValue(BlockEnd(block), out int successorIndex))
+            {
+                Block successor = m_freeBlocks[successorIndex];
+                RemoveFreeBlockAt(successorIndex);
+                block.count += successor.count;
+            }
+
+            AddFreeBlockEntry(block);
+        }
+
+        private void AddFreeBlockEntry(in Block block)
+        {
+            m_freeBlockStarts.Add(block.offset, m_freeBlocks.Length);
+            m_freeBlockEnds.Add(BlockEnd(block), m_freeBlocks.Length);
+            m_freeBlocks.Add(block);
+        }
+
+        private void SetFreeBlock(int index, in Block newBlock)
+        {
+            Block oldBlock = m_freeBlocks[index];
+            m_freeBlockStarts.Remove(oldBlock.offset);
+            m_freeBlockEnds.Remove(BlockEnd(oldBlock));
+            m_freeBlockStarts.Add(newBlock.offset, index);
+            m_freeBlockEnds.Add(BlockEnd(newBlock), index);
+            m_freeBlocks[index] = newBlock;
+        }
+
+        private void RemoveFreeBlockAt(int index)
+        {
+            Block removed = m_freeBlocks[index];
+            m_freeBlockStarts.Remove(removed.offset);
+            m_freeBlockEnds.Remove(BlockEnd(removed));
+
+            int last = m_freeBlocks.Length - 1;
+            if (index != last)
+            {
+                Block moved = m_freeBlocks[last];
+                m_freeBlockStarts[moved.offset] = index;
+                m_freeBlockEnds[BlockEnd(moved)] = index;
+            }
+
+            m_freeBlocks.RemoveAtSwapBack(index);
+        }
+
+#if UNITY_EDITOR || UNITY_ENABLE_CHECKS
+        internal void ValidateInvariants()
+        {
+            if (m_freeBlockStarts.Count != m_freeBlocks.Length || m_freeBlockEnds.Count != m_freeBlocks.Length)
+                throw new InvalidOperationException($"Boundary map counts ({m_freeBlockStarts.Count}, {m_freeBlockEnds.Count}) do not match free block count ({m_freeBlocks.Length}).");
+
+            int totalFreeCount = 0;
+            for (int i = 0; i < m_freeBlocks.Length; ++i)
+            {
+                Block block = m_freeBlocks[i];
+
+                if (block.count <= 0)
+                    throw new InvalidOperationException($"Free block {i} has non-positive count {block.count}.");
+                if (block.offset < 0 || BlockEnd(block) > m_MaxElementCount)
+                    throw new InvalidOperationException($"Free block {i} [{block.offset}, {BlockEnd(block)}) is outside capacity {m_MaxElementCount}.");
+                if (!m_freeBlockStarts.TryGetValue(block.offset, out int startIndex) || startIndex != i)
+                    throw new InvalidOperationException($"Start map entry for free block {i} is missing or stale.");
+                if (!m_freeBlockEnds.TryGetValue(BlockEnd(block), out int endIndex) || endIndex != i)
+                    throw new InvalidOperationException($"End map entry for free block {i} is missing or stale.");
+                if (m_freeBlockStarts.ContainsKey(BlockEnd(block)))
+                    throw new InvalidOperationException($"Free block {i} is adjacent to an unmerged free block.");
+
+                totalFreeCount += block.count;
+            }
+
+            if (totalFreeCount != m_FreeElementCount)
+                throw new InvalidOperationException($"Sum of free block counts ({totalFreeCount}) does not match freeElementsCount ({m_FreeElementCount}).");
+        }
+#endif
     }
 }

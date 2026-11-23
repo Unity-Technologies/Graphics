@@ -6,8 +6,7 @@ namespace UnityEngine.Rendering.Universal
 {
     internal sealed class LensFlareDataDrivenPostProcessPass : PostProcessPass
     {
-        Material m_Material;
-        bool m_IsValid;
+        PostProcessMaterial m_Material;
 
         const string k_passNameOcclusion = "Blit Lens Flare Occlusion";
 
@@ -16,14 +15,12 @@ namespace UnityEngine.Rendering.Universal
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
             this.profilingSampler = URPProfilingSamplers.LensFlareDataDriven;
 
-            m_Material = PostProcessUtils.LoadShader(shader, passName);
-            m_IsValid = m_Material != null;
+            m_Material = new PostProcessMaterial(shader, passName);
         }
 
         public override void Dispose()
         {
-            CoreUtils.Destroy(m_Material);
-            m_IsValid = false;
+            m_Material.Dispose();
         }
 
         private class LensFlarePassData
@@ -41,11 +38,11 @@ namespace UnityEngine.Rendering.Universal
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            if (!m_IsValid)
-                return;
-
             var postProcessingData = frameData.Get<UniversalPostProcessingData>();
             if (LensFlareCommonSRP.Instance.IsEmpty() || !postProcessingData.supportDataDrivenLensFlare)
+                return;
+
+            if (!m_Material.Validate())
                 return;
 
             var cameraData = frameData.Get<UniversalCameraData>();
@@ -55,7 +52,7 @@ namespace UnityEngine.Rendering.Universal
             var destinationTexture = resourceData.cameraColor;
 
             // Reset keywords
-            m_Material.shaderKeywords = null;
+            m_Material.material.shaderKeywords = null;
 
             var desc = destinationTexture.GetDescriptor(renderGraph);
 
@@ -76,7 +73,7 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTexture(occlusionHandle, AccessFlags.Write);
                 passData.cameraData = cameraData;
                 passData.viewport = cameraData.pixelRect;
-                passData.material = m_Material;
+                passData.material = m_Material.material;
                 passData.width = (float)dstDesc.width;
                 passData.height = (float)dstDesc.height;
                 if (paniniProjection.IsActive())
@@ -171,7 +168,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.destinationTexture = destination;
                 builder.UseTexture(destination, AccessFlags.Write);
                 passData.cameraData = cameraData;
-                passData.material = m_Material;
+                passData.material = m_Material.material;
                 passData.width = (float)srcDesc.width;
                 passData.height = (float)srcDesc.height;
                 passData.viewport.x = 0.0f;

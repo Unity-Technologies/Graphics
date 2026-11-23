@@ -289,8 +289,8 @@ namespace UnityEngine.Rendering
             /// <returns>Validated value.</returns>
             public override int ValidateValue(int value)
             {
-                if (min != null) value = Mathf.Max(value, min());
-                if (max != null) value = Mathf.Min(value, max());
+                if (min != null) value = Math.Max(value, min());
+                if (max != null) value = Math.Min(value, max());
                 return value;
             }
 
@@ -386,8 +386,8 @@ namespace UnityEngine.Rendering
             /// <returns>Validated value.</returns>
             public override uint ValidateValue(uint value)
             {
-                if (min != null) value = (uint)Mathf.Max(value, min());
-                if (max != null) value = (uint)Mathf.Min(value, max());
+                if (min != null) value = Math.Max(value, min());
+                if (max != null) value = Math.Min(value, max());
                 return value;
             }
 

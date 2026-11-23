@@ -671,7 +671,7 @@ namespace UnityEngine.Rendering.Universal
                 s_RequiresIntermediateAttachments = RequiresIntermediateAttachments(cameraData, in renderPassInputs, requireCopyFromDepth, applyPostProcessing, m_DrawOverlayUIPass.RequiresComposition());
 
             // Report this camera's real back buffer MSAA need to the pipeline.
-            ReportRealBackbufferMSAA(cameraData, s_RequiresIntermediateAttachments);
+            ReportDisplayTargetMSAA(cameraData, s_RequiresIntermediateAttachments);
 
             CreateRenderGraphCameraRenderTargets(renderGraph, isCameraTargetOffscreenDepth, s_RequiresIntermediateAttachments, depthTextureIsDepthFormat);
 
@@ -1903,7 +1903,7 @@ namespace UnityEngine.Rendering.Universal
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            DrawScreenSpaceUIPass.ConfigureOffscreenUITextureDesc(ref descriptor);
+            DrawScreenSpaceUIPass.ConfigureOffscreenUITextureDesc(ref descriptor, cameraData);
             RenderingUtils.ReAllocateHandleIfNeeded(ref s_OffscreenUIColorHandle, descriptor, name: "_OverlayUITexture");
 
             // Clear the texture to avoid stale data from previous frames

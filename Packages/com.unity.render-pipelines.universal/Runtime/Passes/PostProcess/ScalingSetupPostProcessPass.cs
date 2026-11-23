@@ -8,8 +8,7 @@ namespace UnityEngine.Rendering.Universal
     {
         public const string k_TargetName = "SetupUpscaling";
 
-        Material m_Material;
-        bool m_IsValid;
+        PostProcessMaterial m_Material;
 
         HDROutputUtils.Operation m_HdrOperations;
 
@@ -18,8 +17,7 @@ namespace UnityEngine.Rendering.Universal
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
             this.profilingSampler = new ProfilingSampler("Setup Final Post Processing");
 
-            m_Material = PostProcessUtils.LoadShader(shader, passName);
-            m_IsValid = m_Material != null;
+            m_Material = new PostProcessMaterial(shader, passName);
 
             // Defaults
             m_HdrOperations = HDROutputUtils.Operation.None; // HDR disabled.
@@ -27,8 +25,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Dispose()
         {
-            CoreUtils.Destroy(m_Material);
-            m_IsValid = false;
+            m_Material.Dispose();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -49,7 +46,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            if (!m_IsValid)
+            if (!m_Material.Validate())
                 return;
 
             var tonemapping = volumeStack.GetComponent<Tonemapping>();
@@ -78,7 +75,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.sourceTexture = sourceTexture;
                 builder.UseTexture(sourceTexture, AccessFlags.Read);
 
-                passData.material = m_Material;
+                passData.material = m_Material.material;
                 passData.cameraData = cameraData;
                 passData.tonemapping = tonemapping;
                 passData.hdrOperations = m_HdrOperations;

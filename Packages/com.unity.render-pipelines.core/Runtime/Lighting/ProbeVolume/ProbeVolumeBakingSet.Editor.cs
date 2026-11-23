@@ -618,8 +618,10 @@ namespace UnityEngine.Rendering
                 {
                     GameObject go = new GameObject("ProbeVolumePerSceneData");
                     go.hideFlags |= HideFlags.HideInHierarchy;
-                    var perSceneData = go.AddComponent<ProbeVolumePerSceneData>();
+
+                    // Move before adding the component so OnEnable picks up the GUID of the target scene
                     SceneManager.MoveGameObjectToScene(go, scene);
+                    go.AddComponent<ProbeVolumePerSceneData>();
                 }
             }
         }

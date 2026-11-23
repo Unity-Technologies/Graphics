@@ -14,15 +14,14 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>Generates bloom mipmap chain using dual filtering (downsample then upsample with tent filter) for efficient wide-radius bloom.</summary>
         static readonly ProfilingSampler k_ProfilingSamplerDual = ProfilingSampler.Create("Blit Bloom Mipmaps (Dual)", MarkerFlags.Default);
 
-        Material m_Material;
-        Material[] m_MaterialPyramid;
+        PostProcessMaterial m_Material;
+        PostProcessMaterial[] m_MaterialPyramid;
 
         // Cached bloom params from previous frame to avoid unnecessary material updates
         MaterialParams m_PrevParams;
 
         BloomMipPyramid m_MipPyramid;
 
-        bool m_IsValid;
         bool m_IsDependency;
 
         public BloomMipPyramid mipPyramid => m_MipPyramid;
@@ -35,18 +34,13 @@ namespace UnityEngine.Rendering.Universal
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
             this.profilingSampler = URPProfilingSamplers.Bloom;
 
-            m_Material = PostProcessUtils.LoadShader(shader, passName, logLevel: LogType.Log);
+            m_Material = new PostProcessMaterial(shader, passName);
 
             // Array for bloom pyramid materials.
             // Materials are references in the command buffer, so we need a separate material for each mip level.
-            m_MaterialPyramid = new Material[k_MaxPyramidSize];
+            m_MaterialPyramid = new PostProcessMaterial[k_MaxPyramidSize];
             for (uint i = 0; i < k_MaxPyramidSize; ++i)
-                m_MaterialPyramid[i] = PostProcessUtils.LoadShader(shader, passName, logLevel: LogType.Log);
-
-            // Check if the pass init was successful.
-            m_IsValid = m_Material != null;
-            for(int i = 0; i < k_MaxPyramidSize; i++)
-                m_IsValid &= m_MaterialPyramid[i] != null;
+                m_MaterialPyramid[i] = new PostProcessMaterial(shader, passName);
 
             m_MipPyramid = new BloomMipPyramid(k_MaxPyramidSize);
 
@@ -55,9 +49,9 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Dispose()
         {
-            CoreUtils.Destroy(m_Material);
+            m_Material.Dispose();
             for(int i = 0; i < k_MaxPyramidSize; i++)
-                CoreUtils.Destroy(m_MaterialPyramid[i]);
+                m_MaterialPyramid[i].Dispose();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -69,7 +63,7 @@ namespace UnityEngine.Rendering.Universal
         private class BloomPassData
         {
             internal Material material;
-            internal Material[] mipMaterials;
+            internal PostProcessMaterial[] mipMaterials;
 
             internal TextureHandle sourceTexture;
 
@@ -78,11 +72,12 @@ namespace UnityEngine.Rendering.Universal
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            if (!m_IsValid)
-                return;
-
             var bloom = volumeStack.GetComponent<Bloom>();
             if (!bloom.IsActive() && !m_IsDependency)
+                return;
+
+            // The pyramid materials use the same shader, so they are valid if m_Material is.
+            if (!m_Material.Validate())
                 return;
 
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
@@ -120,18 +115,18 @@ namespace UnityEngine.Rendering.Universal
                 // Setting keywords can be somewhat expensive on low-end platforms.
                 // Previous params are cached to avoid setting the same keywords every frame.
                 bool paramsDirty = !m_PrevParams.Equals(ref newParams);
-                bool isParamsPropertySet = m_Material.HasProperty(ShaderConstants._Params);
+                bool isParamsPropertySet = m_Material.material.HasProperty(ShaderConstants._Params);
                 if (paramsDirty || !isParamsPropertySet)
                 {
-                    m_Material.SetVector(ShaderConstants._Params, newParams.parameters);
-                    m_Material.SetVector(ShaderConstants._Params2, newParams.parameters2);
-                    CoreUtils.SetKeyword(m_Material, ShaderKeywordStrings.BloomHQ, newParams.highQualityFiltering);
-                    CoreUtils.SetKeyword(m_Material, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, newParams.enableAlphaOutput);
+                    m_Material.material.SetVector(ShaderConstants._Params, newParams.parameters);
+                    m_Material.material.SetVector(ShaderConstants._Params2, newParams.parameters2);
+                    CoreUtils.SetKeyword(m_Material.material, ShaderKeywordStrings.BloomHQ, newParams.highQualityFiltering);
+                    CoreUtils.SetKeyword(m_Material.material, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, newParams.enableAlphaOutput);
 
                     // These materials are duplicate just to allow different bloom blits to use different textures.
                     for (uint i = 0; i < k_MaxPyramidSize; ++i)
                     {
-                        var materialPyramid = m_MaterialPyramid[i];
+                        var materialPyramid = m_MaterialPyramid[i].material;
                         materialPyramid.SetVector(ShaderConstants._Params, newParams.parameters);
                         CoreUtils.SetKeyword(materialPyramid, ShaderKeywordStrings.BloomHQ, newParams.highQualityFiltering);
                         CoreUtils.SetKeyword(materialPyramid, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, newParams.enableAlphaOutput);
@@ -206,7 +201,7 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = renderGraph.AddUnsafePass<BloomPassData>(passName, out var passData, profilingSampler))
             {
                 passData.sourceTexture = source;
-                passData.material = m_Material;
+                passData.material = m_Material.material;
                 passData.mipMaterials = m_MaterialPyramid;
                 passData.mipPyramid = m_MipPyramid;
 
@@ -271,7 +266,7 @@ namespace UnityEngine.Rendering.Universal
                             // gets overriden by the time the render func is executed.
                             // Material is a reference, so all the blits would share the same material state in the cmdbuf.
                             // NOTE: another option would be to use cmd.SetGlobalTexture().
-                            var upMaterial = data.mipMaterials[i];
+                            var upMaterial = data.mipMaterials[i].material;
                             upMaterial.SetTexture(ShaderConstants._SourceTexLowMip, lowMip);
 
                             Blitter.BlitCameraTexture(cmd, highMip, dst, loadAction, storeAction, upMaterial, ShaderPass.k_Upsample);
@@ -290,7 +285,7 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = renderGraph.AddUnsafePass<BloomPassData>(k_PassNameKawase, out var passData, k_ProfilingSamplerKawase))
             {
                 passData.sourceTexture = source;
-                passData.material = m_Material;
+                passData.material = m_Material.material;
                 passData.mipMaterials = m_MaterialPyramid;
                 passData.mipPyramid = m_MipPyramid;
 
@@ -325,7 +320,7 @@ namespace UnityEngine.Rendering.Universal
                         {
                             TextureHandle src = ((i & 1) == 0) ? mipDownTextures[0] : mipUpTextures[0];
                             TextureHandle dst = ((i & 1) == 0) ? mipUpTextures[0] : mipDownTextures[0];
-                            Material mat = data.mipMaterials[i];
+                            Material mat = data.mipMaterials[i].material;
 
                             Blitter.BlitCameraTexture(cmd, src, dst, loadAction, storeAction, mat, ShaderPass.k_Kawase);
                         }
@@ -344,7 +339,7 @@ namespace UnityEngine.Rendering.Universal
             using (var builder = renderGraph.AddUnsafePass<BloomPassData>(k_PassNameDual, out var passData, k_ProfilingSamplerDual))
             {
                 passData.sourceTexture = source;
-                passData.material = m_Material;
+                passData.material = m_Material.material;
                 passData.mipMaterials = m_MaterialPyramid;
                 passData.mipPyramid = m_MipPyramid;
 

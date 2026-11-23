@@ -2213,6 +2213,265 @@ namespace UnityEditor.VFX.Test
             Assert.AreNotEqual("Speed", uniqueName);
             Assert.IsFalse(existingNames.Contains(uniqueName));
         }
+
+        [TestCase("New Vector 3", ExpectedResult = "New Vector 3 (1)")]
+        [TestCase("X (1)", ExpectedResult = "X (2)")]
+        [TestCase("Speed 2", ExpectedResult = "Speed 2 (1)")]
+        [TestCase("SPEED 2", ExpectedResult = "SPEED 2 (1)")]
+        [TestCase("X (-1)", ExpectedResult = "X (-1) (1)")]
+        [TestCase("X ( 1)", ExpectedResult = "X ( 1) (1)")]
+        public string MakeNameUnique_WithSpaces_OnlyReadsParenthesizedCounter(string name)
+        {
+            var existingNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "New Vector 3", "X (1)", "Speed 2", "X (-1)", "X ( 1)" };
+
+            return VFXParameterController.MakeNameUnique(name, existingNames, true, VFXParameterController.kMaxExposedNameLength, null);
+        }
+
+        [Test]
+        public void MakeNameUnique_WithConflictAtMaxLength_CutsNameToFitCounter()
+        {
+            var name = new string('a', VFXParameterController.kMaxExposedNameLength);
+            var existingNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { name };
+
+            string uniqueName = VFXParameterController.MakeNameUnique(name, existingNames, true, VFXParameterController.kMaxExposedNameLength, null);
+
+            Assert.AreEqual(new string('a', VFXParameterController.kMaxExposedNameLength - 4) + " (1)", uniqueName);
+        }
+
+        [TestCase("Seed", ExpectedResult = "Seed_1")]
+        [TestCase("Speed_1", ExpectedResult = "Speed_2")]
+        public string MakeNameUnique_WithoutSpaces_AppendsUnderscoreCounter(string name)
+        {
+            var existingNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Seed", "Speed_1" };
+
+            return VFXParameterController.MakeNameUnique(name, existingNames, false, VFXParameterController.kMaxExposedNameLength, null);
+        }
+
+        [TestCase("Group (2147483647)", true, ExpectedResult = "Group (2147483648)")]
+        [TestCase("X (99999999999999999999)", true, ExpectedResult = "X (100000000000000000000)")]
+        [TestCase("Seed_2147483647", false, ExpectedResult = "Seed_2147483648")]
+        [TestCase("Seed_99999999999999999999", false, ExpectedResult = "Seed_100000000000000000000")]
+        public string MakeNameUnique_WithCounterBeyondInt_IncrementsCounter(string name, bool allowSpace)
+        {
+            var existingNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { name };
+
+            return VFXParameterController.MakeNameUnique(name, existingNames, allowSpace, VFXParameterController.kMaxExposedNameLength, null);
+        }
+
+        [TestCase("_free", ExpectedResult = "_free")]
+        [TestCase("_velocity", ExpectedResult = "_velocity_1")]
+        [TestCase("velocity_", ExpectedResult = "velocity__1")]
+        [TestCase("_1", ExpectedResult = "_2")]
+        [TestCase("___", ExpectedResult = null)]
+        public string MakeNameUnique_WithoutSpaces_KeepsUnderscores(string name)
+        {
+            var existingNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "_velocity", "velocity_", "_1" };
+
+            return VFXParameterController.MakeNameUnique(name, existingNames, false, VFXParameterController.kMaxExposedNameLength, null);
+        }
+
+        [TestCase("\tSpeed", ExpectedResult = "Speed")]
+        [TestCase("Speed ", ExpectedResult = "Speed")]
+        [TestCase(" \nSpeed \t", ExpectedResult = "Speed")]
+        [TestCase("Taken\t", ExpectedResult = "Taken (1)")]
+        [TestCase("\t", ExpectedResult = null)]
+        public string MakeNameUnique_WithSpaces_TrimsWhitespace(string name)
+        {
+            var existingNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Taken" };
+
+            return VFXParameterController.MakeNameUnique(name, existingNames, true, VFXParameterController.kMaxExposedNameLength, null);
+        }
+
+        [Test]
+        public void MakeNameUnique_WithCutEndingInWhitespace_DropsWhitespaceBeforeCounter()
+        {
+            var prefix = new string('a', VFXParameterController.kMaxExposedNameLength - 6);
+            string name = prefix + " b (9)";
+            var existingNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { name };
+
+            string uniqueName = VFXParameterController.MakeNameUnique(name, existingNames, true, VFXParameterController.kMaxExposedNameLength, null);
+
+            Assert.AreEqual(prefix + " (10)", uniqueName);
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void MakeNameUnique_WithCounterFillingMaxLength_RestartsCounter(bool allowSpace)
+        {
+            int maxLength = VFXParameterController.kMaxExposedNameLength;
+            string name = allowSpace ? "a (" + new string('9', maxLength - 4) + ")" : "a_" + new string('9', maxLength - 2);
+            var existingNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { name };
+
+            string uniqueName = VFXParameterController.MakeNameUnique(name, existingNames, allowSpace, maxLength, null);
+
+            string expectedName = allowSpace ? name.Substring(0, maxLength - 4) + " (1)" : name.Substring(0, maxLength - 2) + "_1";
+            Assert.AreEqual(expectedName, uniqueName);
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void MakeNameUnique_DuplicatedTenTimesAtMaxLength_CountsFromOne(bool allowSpace)
+        {
+            int maxLength = VFXParameterController.kMaxExposedNameLength;
+            string name = allowSpace ? "a (" + new string('9', maxLength - 4) + ")" : "a_" + new string('9', maxLength - 2);
+            var existingNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { name };
+
+            string uniqueName = null;
+            for (int i = 0; i < 10; ++i)
+            {
+                uniqueName = VFXParameterController.MakeNameUnique(name, existingNames, allowSpace, maxLength, null);
+                Assert.LessOrEqual(uniqueName.Length, maxLength);
+                existingNames.Add(uniqueName);
+            }
+
+            string expectedName = allowSpace ? name.Substring(0, maxLength - 5) + " (10)" : name.Substring(0, maxLength - 3) + "_10";
+            Assert.AreEqual(expectedName, uniqueName);
+        }
+
+        [Test]
+        public void AddVFXParameter_Vector3Twice_KeepsTypeNameInDefaultName()
+        {
+            VFXModelDescriptorParameters vector3Descriptor = VFXLibrary.GetParameters().First(x => x.modelType == typeof(Vector3));
+
+            VFXParameter first = m_ViewController.AddVFXParameter(Vector2.zero, vector3Descriptor.variant);
+            m_ViewController.ApplyChanges();
+            VFXParameter second = m_ViewController.AddVFXParameter(Vector2.zero, vector3Descriptor.variant);
+            m_ViewController.ApplyChanges();
+
+            Assert.AreEqual("New Vector 3", first.exposedName);
+            Assert.AreEqual("New Vector 3 (1)", second.exposedName);
+        }
+
+        [Test]
+        public void OpenGraph_WithDuplicateParameterNames_UsesParenthesizedCounter()
+        {
+            VFXModelDescriptorParameters floatDescriptor = VFXLibrary.GetParameters().First(x => x.modelType == typeof(float));
+
+            VFXParameter first = m_ViewController.AddVFXParameter(Vector2.zero, floatDescriptor.variant);
+            m_ViewController.ApplyChanges();
+            VFXParameter second = m_ViewController.AddVFXParameter(Vector2.zero, floatDescriptor.variant);
+            m_ViewController.ApplyChanges();
+            VFXParameter third = m_ViewController.AddVFXParameter(Vector2.zero, floatDescriptor.variant);
+            m_ViewController.ApplyChanges();
+
+            first.SetSettingValue("m_ExposedName", "Speed");
+            second.SetSettingValue("m_ExposedName", "Speed");
+            third.SetSettingValue("m_ExposedName", "_Value_");
+
+            // A new controller sanitizes the parameter names of the graph
+            VisualEffectResource resource = m_ViewController.model;
+            m_ViewController.useCount--;
+            m_ViewController = VFXViewController.GetController(resource);
+            m_ViewController.useCount++;
+
+            Assert.AreEqual("Speed", first.exposedName);
+            Assert.AreEqual("Speed (1)", second.exposedName);
+            Assert.AreEqual("_Value_", third.exposedName);
+        }
+
+        [Test]
+        public void OpenGraph_WithDuplicateName_DoesNotTakeNameOfLaterParameter()
+        {
+            VFXModelDescriptorParameters floatDescriptor = VFXLibrary.GetParameters().First(x => x.modelType == typeof(float));
+
+            VFXParameter first = m_ViewController.AddVFXParameter(Vector2.zero, floatDescriptor.variant);
+            m_ViewController.ApplyChanges();
+            VFXParameter second = m_ViewController.AddVFXParameter(Vector2.zero, floatDescriptor.variant);
+            m_ViewController.ApplyChanges();
+            VFXParameter third = m_ViewController.AddVFXParameter(Vector2.zero, floatDescriptor.variant);
+            m_ViewController.ApplyChanges();
+
+            first.SetSettingValue("m_ExposedName", "Speed");
+            second.SetSettingValue("m_ExposedName", "Speed");
+            third.SetSettingValue("m_ExposedName", "Speed (1)");
+
+            // A new controller sanitizes the parameter names of the graph
+            VisualEffectResource resource = m_ViewController.model;
+            m_ViewController.useCount--;
+            m_ViewController = VFXViewController.GetController(resource);
+            m_ViewController.useCount++;
+
+            Assert.AreEqual("Speed", first.exposedName);
+            Assert.AreEqual("Speed (2)", second.exposedName);
+            Assert.AreEqual("Speed (1)", third.exposedName);
+        }
+
+        [Test]
+        public void OpenGraph_WithOverLengthName_DoesNotTakeNameOfLaterParameter()
+        {
+            var longName = new string('a', VFXParameterController.kMaxExposedNameLength);
+            string cutName = new('a', VFXParameterController.kMaxExposedNameLength - 4);
+            VFXModelDescriptorParameters floatDescriptor = VFXLibrary.GetParameters().First(x => x.modelType == typeof(float));
+
+            VFXParameter original = m_ViewController.AddVFXParameter(Vector2.zero, floatDescriptor.variant);
+            m_ViewController.ApplyChanges();
+            VFXParameter copy = m_ViewController.AddVFXParameter(Vector2.zero, floatDescriptor.variant);
+            m_ViewController.ApplyChanges();
+            VFXParameter later = m_ViewController.AddVFXParameter(Vector2.zero, floatDescriptor.variant);
+            m_ViewController.ApplyChanges();
+
+            // Duplicating a category didn't apply the length limit to the copied parameters
+            original.SetSettingValue("m_ExposedName", longName);
+            copy.SetSettingValue("m_ExposedName", longName + " 1");
+            later.SetSettingValue("m_ExposedName", cutName + " (1)");
+
+            // A new controller sanitizes the parameter names of the graph
+            VisualEffectResource resource = m_ViewController.model;
+            m_ViewController.useCount--;
+            m_ViewController = VFXViewController.GetController(resource);
+            m_ViewController.useCount++;
+
+            Assert.AreEqual(longName, original.exposedName);
+            Assert.AreEqual(cutName + " (2)", copy.exposedName);
+            Assert.AreEqual(cutName + " (1)", later.exposedName);
+        }
+
+        [Test]
+        public void OpenGraph_WithOverLengthFirstName_CutsName()
+        {
+            string cutName = new('a', VFXParameterController.kMaxExposedNameLength - 4);
+            VFXModelDescriptorParameters floatDescriptor = VFXLibrary.GetParameters().First(x => x.modelType == typeof(float));
+
+            VFXParameter first = m_ViewController.AddVFXParameter(Vector2.zero, floatDescriptor.variant);
+            m_ViewController.ApplyChanges();
+            VFXParameter second = m_ViewController.AddVFXParameter(Vector2.zero, floatDescriptor.variant);
+            m_ViewController.ApplyChanges();
+
+            first.SetSettingValue("m_ExposedName", new string('a', VFXParameterController.kMaxExposedNameLength + 1));
+            second.SetSettingValue("m_ExposedName", "Speed");
+
+            // A new controller sanitizes the parameter names of the graph
+            VisualEffectResource resource = m_ViewController.model;
+            m_ViewController.useCount--;
+            m_ViewController = VFXViewController.GetController(resource);
+            m_ViewController.useCount++;
+
+            Assert.AreEqual(cutName + " (1)", first.exposedName);
+            Assert.AreEqual("Speed", second.exposedName);
+        }
+
+        [Test]
+        public void OpenGraph_WithWhitespaceAroundName_TrimsName()
+        {
+            VFXModelDescriptorParameters floatDescriptor = VFXLibrary.GetParameters().First(x => x.modelType == typeof(float));
+
+            VFXParameter first = m_ViewController.AddVFXParameter(Vector2.zero, floatDescriptor.variant);
+            m_ViewController.ApplyChanges();
+            VFXParameter second = m_ViewController.AddVFXParameter(Vector2.zero, floatDescriptor.variant);
+            m_ViewController.ApplyChanges();
+
+            first.SetSettingValue("m_ExposedName", "Speed ");
+            second.SetSettingValue("m_ExposedName", "\tAngle");
+
+            // A new controller sanitizes the parameter names of the graph
+            VisualEffectResource resource = m_ViewController.model;
+            m_ViewController.useCount--;
+            m_ViewController = VFXViewController.GetController(resource);
+            m_ViewController.useCount++;
+
+            Assert.AreEqual("Speed", first.exposedName);
+            Assert.AreEqual("Angle", second.exposedName);
+        }
     }
 }
 #endif

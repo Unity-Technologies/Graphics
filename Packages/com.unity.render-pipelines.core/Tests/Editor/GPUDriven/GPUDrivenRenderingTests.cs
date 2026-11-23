@@ -1219,6 +1219,56 @@ namespace UnityEngine.Rendering.Tests
             ShutdownGPUResidentDrawer();
             dummyWindAsset = null;
         }
+
+        [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
+        public void TestRendererReparentedUnderInactiveParentIsRemovedAndRestored()
+        {
+            InitializeGPUResidentDrawer();
+
+            var simpleDotsMat = new Material(Shader.Find("Unlit/SimpleDots"));
+            var activeParent = new GameObject("ActiveParent");
+            var inactiveParent = new GameObject("InactiveParent");
+            inactiveParent.SetActive(false);
+
+            var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var renderer = cube.GetComponent<MeshRenderer>();
+            renderer.material = simpleDotsMat;
+            cube.transform.SetParent(activeParent.transform);
+
+            var instanceIDs = new NativeArray<EntityId>(1, Allocator.TempJob);
+            instanceIDs[0] = renderer.GetEntityId();
+            var instances = new NativeArray<InstanceHandle>(1, Allocator.TempJob);
+            instances[0] = InstanceHandle.Invalid;
+
+            m_GPUResidentDrawer.m_WorldProcessor.Update();
+            m_InstanceDataSystem.QueryRendererInstances(instanceIDs, instances);
+            Assert.IsTrue(instances[0].isValid, "Renderer under an active parent should be registered in GRD.");
+
+            cube.transform.SetParent(inactiveParent.transform);
+            Assert.IsTrue(cube.activeSelf);
+            Assert.IsFalse(cube.activeInHierarchy);
+            instances[0] = InstanceHandle.Invalid;
+
+            m_GPUResidentDrawer.m_WorldProcessor.Update();
+            m_InstanceDataSystem.QueryRendererInstances(instanceIDs, instances);
+            Assert.IsFalse(instances[0].isValid, "Renderer reparented under an inactive parent should be removed from GRD.");
+
+            cube.transform.SetParent(activeParent.transform);
+            instances[0] = InstanceHandle.Invalid;
+
+            m_GPUResidentDrawer.m_WorldProcessor.Update();
+            m_InstanceDataSystem.QueryRendererInstances(instanceIDs, instances);
+
+            Assert.IsTrue(instances[0].isValid, "Renderer reparented back under an active parent should be registered again.");
+
+            instances.Dispose();
+            instanceIDs.Dispose();
+            GameObject.DestroyImmediate(cube);
+            GameObject.DestroyImmediate(activeParent);
+            GameObject.DestroyImmediate(inactiveParent);
+            Object.DestroyImmediate(simpleDotsMat);
+            ShutdownGPUResidentDrawer();
+        }
     }
 }
 #endif

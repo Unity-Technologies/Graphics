@@ -81,6 +81,8 @@ namespace UnityEngine.Rendering.Universal
             for (var index = itemStart; index < itemEnd; index++)
             {
                 var minMax = minMaxZs[itemOffset + index];
+                // Empty depth range, e.g. an item entirely closer than the near plane; skipping it also keeps log2 away from non-positive depths.
+                if (minMax.x > minMax.y) continue;
                 var minBin = math.max((int)((isOrthographic ? minMax.x : math.log2(minMax.x)) * zBinScale + zBinOffset), binStart);
                 var maxBin = math.min((int)((isOrthographic ? minMax.y : math.log2(minMax.y)) * zBinScale + zBinOffset), binEnd);
 

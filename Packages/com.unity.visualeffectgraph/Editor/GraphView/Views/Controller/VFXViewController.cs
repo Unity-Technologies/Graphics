@@ -1245,7 +1245,7 @@ namespace UnityEditor.VFX.UI
                 order = m_ParameterControllers.Keys.Select(t => t.order).Max() + 1;
             }
             parameter.order = order;
-            var candidateName = $"New {ObjectNames.NicifyVariableName(type.UserFriendlyName())}";
+            string candidateName = VFXParameterController.GetDefaultExposedName(type);
             parameter.SetSettingValue("m_ExposedName", VFXParameterController.MakeNameUnique(this, candidateName, VFXParameterController.kMaxExposedNameLength));
 
             if (!type.IsPrimitive)
@@ -1296,7 +1296,7 @@ namespace UnityEditor.VFX.UI
                 if (newNode is VFXParameter newParameter)
                 {
                     // Set an exposed name on a new parameter so that uniqueness is ensured
-                    m_ParameterControllers[newParameter].exposedName = $"New {ObjectNames.NicifyVariableName(newParameter.type.UserFriendlyName())}";
+                    m_ParameterControllers[newParameter].exposedName = VFXParameterController.GetDefaultExposedName(newParameter.type);
                 }
 
                 NotifyChange(AnyThing);
@@ -1451,22 +1451,29 @@ namespace UnityEditor.VFX.UI
         void Sanitize()
         {
             VFXParameter[] parameters = m_ParameterControllers.Keys.OrderBy(t => t.order).ToArray();
-            if (parameters.Length > 0)
+
+            // A parameter keeps its name unless an earlier parameter has it or it breaks the naming rules
+            var takenNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var renamedParameters = new List<VFXParameter>();
+            for (int i = 0; i < parameters.Length; ++i)
             {
-                var existingNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                VFXParameter parameter = parameters[i];
+                m_ParameterControllers[parameter].order = i;
 
-                existingNames.Add(parameters[0].exposedName);
-                m_ParameterControllers[parameters[0]].order = 0;
+                string exposedName = parameter.exposedName;
+                string candidateName = VFXParameterController.MakeNameUnique(exposedName, takenNames, true, VFXParameterController.kMaxExposedNameLength);
+                if (candidateName == null || candidateName == exposedName)
+                    takenNames.Add(exposedName);
+                else
+                    renamedParameters.Add(parameter);
+            }
 
-                for (int i = 1; i < parameters.Length; ++i)
-                {
-                    var controller = m_ParameterControllers[parameters[i]];
-                    controller.order = i;
-
-                    controller.CheckNameUnique(existingNames);
-
-                    existingNames.Add(parameters[i].exposedName);
-                }
+            // New names avoid every kept name, including those of later parameters
+            foreach (var parameter in renamedParameters)
+            {
+                string newName = VFXParameterController.MakeNameUnique(parameter.exposedName, takenNames, true, VFXParameterController.kMaxExposedNameLength);
+                takenNames.Add(newName);
+                parameter.SetSettingValue("m_ExposedName", newName);
             }
         }
 
