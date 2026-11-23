@@ -8,6 +8,7 @@ using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.TestTools;
 
 namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
 {
@@ -196,6 +197,9 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
         }
 
         [Test]
+        [UnityPlatform(exclude = new RuntimePlatform[] {
+            RuntimePlatform.LinuxEditor // Disabled for Instability https://unitycorp.atlassian.net/browse/UUM-162552
+        })]
         public void InputAndBaseNodes_AreShownOutsideTheStacks()
         {
             Open();
