@@ -1840,7 +1840,7 @@ namespace UnityEngine.Rendering.Universal
             SupportedRenderingFeatures.active.rendersUIOverlay = true;
         }
 
-        static ScriptableRenderer GetRenderer(Camera camera, UniversalAdditionalCameraData additionalCameraData)
+        internal static ScriptableRenderer GetRenderer(Camera camera, UniversalAdditionalCameraData additionalCameraData)
         {
             var renderer = additionalCameraData != null ? additionalCameraData.scriptableRenderer : null;
             if (renderer == null || camera.cameraType == CameraType.SceneView)
@@ -1851,7 +1851,7 @@ namespace UnityEngine.Rendering.Universal
         static ShadowsVolumeOverride s_DefaultShadowsVolume;
 
         // Players only create the volume component types found in the Default Volume Profile, so the stack can lack this one.
-        static ShadowsVolumeOverride GetShadowsVolume(VolumeStack stack)
+        internal static ShadowsVolumeOverride GetShadowsVolume(VolumeStack stack)
         {
             var shadowsVolume = stack.GetComponent<ShadowsVolumeOverride>();
             if (shadowsVolume != null)

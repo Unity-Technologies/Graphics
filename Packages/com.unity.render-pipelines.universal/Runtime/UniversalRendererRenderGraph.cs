@@ -364,6 +364,8 @@ namespace UnityEngine.Rendering.Universal
             requireColorTexture |= HasPassesRequiringIntermediateTexture(activeRenderPassQueue);
             requireColorTexture |= RequiresIntermediateColorTexture(cameraData, in renderPassInputs, usesDeferredLighting, applyPostProcessing);
             requireColorTexture |= overlayUIRequiresComposition;
+            requireColorTexture |= DebugHandler != null && DebugHandler.RequiresIntermediateTexture(cameraData.isPreviewCamera) &&
+                !(useTileOnlyMode && cameraData.resolveToScreen);
 
             bool requestedDepthHistory = (cameraData.historyManager == null) ? false : cameraData.historyManager.IsAccessRequested<RawDepthHistory>();
 

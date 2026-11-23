@@ -382,6 +382,13 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool IsCustomDebugTextureActive => RenderingSettings.fullScreenDebugMode == DebugFullScreenMode.None && m_HasCustomDebugTexture;
 
+        // Full screen debug modes are composited by the final blit or final post-processing pass, which only run when
+        // the camera renders to an intermediate texture
+        internal bool RequiresIntermediateTexture(bool isPreviewCamera)
+        {
+            return IsActiveForCamera(isPreviewCamera) && TryGetFullscreenDebugMode(out _);
+        }
+
         class DebugFinalValidationPassData
         {
             public bool isFinalPass;

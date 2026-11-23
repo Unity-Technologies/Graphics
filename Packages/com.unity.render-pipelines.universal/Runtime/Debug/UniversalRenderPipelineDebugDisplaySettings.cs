@@ -53,6 +53,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool isSceneOverrideActive => AreAnySettingsActive && renderingSettings.sceneOverrideMode != DebugSceneOverrideMode.None;
 
+        internal bool isHidingDebugOverlays => areDebugOverlaysHidden;
+
         #region IDebugDisplaySettingsQuery
 
         /// <summary>
