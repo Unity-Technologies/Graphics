@@ -16,6 +16,10 @@ class ClusterDataTests
 
     [Description("The cluster data shaders read matches what the clustering jobs produced for each camera, including when two cameras with different lights render in the same frame.")]
     [UnityTest]
+    [UnityPlatform(exclude = new RuntimePlatform[] {
+        RuntimePlatform.WebGLPlayer, // Disabled for Instability https://unitycorp.atlassian.net/browse/UUM-162551
+        RuntimePlatform.WindowsEditor // Disabled for Instability https://unitycorp.atlassian.net/browse/UUM-162551
+    })]
     public IEnumerator ClusterData_ReadByShaders_MatchesClusteringResult(
         [Values(k_ForwardPlusRenderer, k_DeferredPlusRenderer)] string rendererName)
     {
