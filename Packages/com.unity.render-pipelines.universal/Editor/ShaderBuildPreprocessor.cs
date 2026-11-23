@@ -454,19 +454,26 @@ namespace UnityEditor.Rendering.Universal
                 if (asset.TryGet<LensDistortion>(out var lensDistortion) && lensDistortion.IsActive())
                     volumeFeatures |= VolumeFeatures.LensDistortion;
 
-                if (asset.TryGet<Bloom>(out var bloom) && bloom.IsActive())
+                bool hasBloom = asset.TryGet<Bloom>(out var bloom);
+
+                // Screen Space Lens Flare runs bloom as a dependency even when bloom is inactive
+                bool lensFlareRequiresBloom = asset.TryGet<ScreenSpaceLensFlare>(out var lensFlare) && lensFlare.IsActive();
+
+                if ((hasBloom && bloom.IsActive()) || lensFlareRequiresBloom)
                 {
+                    bool hasBloomDirt = hasBloom && bloom.dirtIntensity.value > 0f && bloom.dirtTexture.value != null;
+
                     //strip unused bloom variants. #pragma multi_compile_local_fragment _ _BLOOM_LQ _BLOOM_HQ _BLOOM_LQ_DIRT _BLOOM_HQ_DIRT
-                    if (bloom.highQualityFiltering.value)
+                    if (hasBloom && bloom.highQualityFiltering.value)
                     {
-                        if (bloom.dirtIntensity.value > 0f && bloom.dirtTexture.value != null)
+                        if (hasBloomDirt)
                             volumeFeatures |= VolumeFeatures.BloomHQDirt;
                         else
                             volumeFeatures |= VolumeFeatures.BloomHQ;
                     }
                     else
                     {
-                        if (bloom.dirtIntensity.value > 0f && bloom.dirtTexture.value != null)
+                        if (hasBloomDirt)
                             volumeFeatures |= VolumeFeatures.BloomLQDirt;
                         else
                             volumeFeatures |= VolumeFeatures.BloomLQ;

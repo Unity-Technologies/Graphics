@@ -918,6 +918,29 @@ namespace ShaderStrippingAndPrefiltering
         }
 
         [Test]
+        public void TestStripUnusedPostProcessingVariants_ScreenSpaceLensFlare_WithoutBloom()
+        {
+            AssertVolumeFeaturesFromProfile(profile =>
+            {
+                var lensFlare = profile.Add<ScreenSpaceLensFlare>(overrides: true);
+                lensFlare.intensity.Override(1f);
+            }, VolumeFeatures.BloomLQ);
+        }
+
+        [Test]
+        public void TestStripUnusedPostProcessingVariants_ScreenSpaceLensFlare_WithInactiveBloom()
+        {
+            AssertVolumeFeaturesFromProfile(profile =>
+            {
+                var lensFlare = profile.Add<ScreenSpaceLensFlare>(overrides: true);
+                lensFlare.intensity.Override(1f);
+                var bloom = profile.Add<Bloom>(overrides: true);
+                bloom.intensity.Override(0f);
+                bloom.highQualityFiltering.Override(true);
+            }, VolumeFeatures.BloomHQ);
+        }
+
+        [Test]
         public void TestStripUnusedPostProcessingVariants_InactiveFeatures_AreNotReturned()
         {
             AssertVolumeFeaturesFromProfile(profile =>
@@ -932,6 +955,7 @@ namespace ShaderStrippingAndPrefiltering
                 profile.Add<MotionBlur>(overrides: true);
                 profile.Add<PaniniProjection>(overrides: true);
                 profile.Add<ChromaticAberration>(overrides: true);
+                profile.Add<ScreenSpaceLensFlare>(overrides: true);
             }, VolumeFeatures.None);
         }
 
