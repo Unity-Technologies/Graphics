@@ -594,8 +594,10 @@ namespace UnityEngine.Rendering.Tests
 
             var lastLodBias = QualitySettings.lodBias;
             QualitySettings.lodBias = 1.0f;
+#pragma warning disable CS0618 // Type or member is obsolete
             var lastShadowCascades = QualitySettings.shadowCascades;
             QualitySettings.shadowCascades = 4;
+#pragma warning restore CS0618
 
             OnCullingCompleteCallback onCompleteCallback = (JobHandle jobHandle, in BatchCullingContext cc, in BatchCullingOutput cullingOutput) =>
             {
@@ -674,7 +676,9 @@ namespace UnityEngine.Rendering.Tests
             m_MeshRendererProcessor.DestroyInstances(instanceIDs.AsArray());
 
             QualitySettings.lodBias = lastLodBias;
+#pragma warning disable CS0618 // Type or member is obsolete
             QualitySettings.shadowCascades = lastShadowCascades;
+#pragma warning restore CS0618
 
             mainCamera = null;
             GameObject.DestroyImmediate(cameraObject);

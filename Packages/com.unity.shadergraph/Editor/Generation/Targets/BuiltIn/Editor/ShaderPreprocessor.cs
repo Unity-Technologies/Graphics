@@ -474,6 +474,7 @@ namespace UnityEditor.Rendering.BuiltIn
             ShaderFeatures shaderFeatures;
             shaderFeatures = ShaderFeatures.MainLight;
 
+#pragma warning disable CS0618 // Type or member is obsolete
             ShadowQuality shadows = QualitySettings.shadows;
             if (shadows != ShadowQuality.Disable)
             {
@@ -482,6 +483,7 @@ namespace UnityEditor.Rendering.BuiltIn
                 if (shadows != ShadowQuality.HardOnly)
                     shaderFeatures |= ShaderFeatures.SoftShadows;
             }
+#pragma warning restore CS0618
             shaderFeatures |= ShaderFeatures.AdditionalLightShadows;
 
             // These are both always "on", and dictated by the number of lights

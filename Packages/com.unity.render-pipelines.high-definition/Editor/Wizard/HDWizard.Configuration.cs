@@ -419,6 +419,7 @@ namespace UnityEditor.Rendering.HighDefinition
             OnUpdateLightmapEncoding(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget));
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         bool IsShadowCorrect()
             => QualitySettings.shadows == ShadowQuality.All;
 
@@ -426,6 +427,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             QualitySettings.ForEach(() => QualitySettings.shadows = ShadowQuality.All);
         }
+#pragma warning restore CS0618
 
         bool IsShadowmaskCorrect()
             => QualitySettings.shadowmaskMode == ShadowmaskMode.DistanceShadowmask;

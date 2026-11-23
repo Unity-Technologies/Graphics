@@ -103,6 +103,7 @@ namespace UnityEditor.Rendering.Universal
             var tier = EditorGraphicsSettings.GetTierSettings(targetGrp, GraphicsTier.Tier3);
 #pragma warning restore CS0618
 
+#pragma warning disable CS0618 // Type or member is obsolete
             var pixelLightCount  = QualitySettings.pixelLightCount;
             var shadows          = QualitySettings.shadows;
             var shadowResolution = QualitySettings.shadowResolution;
@@ -155,6 +156,7 @@ namespace UnityEditor.Rendering.Universal
             // Shadows
             urpAsset.supportsSoftShadows = shadows == ShadowQuality.All;
             ConvertShadowDistanceAndCascades(urpAsset, shadowDistance, cascadeShadows ? shadowCascadeCount : 1, cascadeSplit2, cascadeSplit4);
+#pragma warning restore CS0618
 
             WarnIfUsedElsewhere(urpAsset);
         }

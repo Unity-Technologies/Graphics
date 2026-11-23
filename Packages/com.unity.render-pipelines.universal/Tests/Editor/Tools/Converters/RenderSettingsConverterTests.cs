@@ -103,10 +103,13 @@ namespace UnityEditor.Rendering.Universal.Tools
                 var tier = EditorGraphicsSettings.GetTierSettings(targetGrp, GraphicsTier.Tier3);
 #pragma warning restore CS0618
 
+#pragma warning disable CS0618 // Type or member is obsolete
                 Assert.AreEqual(QualitySettings.softParticles, urpAsset.supportsCameraDepthTexture, "supportsCameraDepthTexture mismatch");
+#pragma warning restore CS0618
                 Assert.AreEqual(tier.hdr, urpAsset.supportsHDR, "supportsHDR mismatch");
                 Assert.AreEqual(QualitySettings.antiAliasing == 0 ? 1 : QualitySettings.antiAliasing, urpAsset.msaaSampleCount, "msaaSampleCount mismatch");
 
+#pragma warning disable CS0618 // Type or member is obsolete
                 var expectedMainLightMode = QualitySettings.pixelLightCount == 0 ? LightRenderingMode.Disabled : LightRenderingMode.PerPixel;
                 Assert.AreEqual(expectedMainLightMode, urpAsset.mainLightRenderingMode, "mainLightRenderingMode mismatch");
 
@@ -132,6 +135,7 @@ namespace UnityEditor.Rendering.Universal.Tools
                 Assert.AreEqual(QualitySettings.shadowCascade4Split.y, shadows.cascadeSplit1.value, "cascadeSplit1 mismatch");
                 Assert.AreEqual(QualitySettings.shadowCascade4Split.z, shadows.cascadeSplit2.value, "cascadeSplit2 mismatch");
                 Assert.AreEqual(QualitySettings.shadows == UnityEngine.ShadowQuality.All, urpAsset.supportsSoftShadows, "supportsSoftShadows mismatch");
+#pragma warning restore CS0618
 
                 // ---------- RENDERER FORWARDING CHECK ----------
                 Assert.AreEqual(1, urpAsset.m_RendererDataList.Length);
@@ -145,6 +149,7 @@ namespace UnityEditor.Rendering.Universal.Tools
         public void WhenRunningBuiltInToURP3DRenderSettingsConverter_Again_TheShadowsOverride_FollowsTheCurrentQualitySettings()
         {
             var renderSettingsConverter = new BuiltInToURP3DRenderSettingsConverter();
+#pragma warning disable CS0618 // Type or member is obsolete
             float originalShadowDistance = QualitySettings.shadowDistance;
 
             void OnScanFinished(List<IRenderPipelineConverterItem> scanItems)
@@ -177,6 +182,7 @@ namespace UnityEditor.Rendering.Universal.Tools
                 finally
                 {
                     QualitySettings.shadowDistance = originalShadowDistance;
+#pragma warning restore CS0618
                 }
 
                 var urpAsset = QualitySettings.renderPipeline as UniversalRenderPipelineAsset;
@@ -220,6 +226,7 @@ namespace UnityEditor.Rendering.Universal.Tools
 
         UniversalRenderPipelineAsset ConvertCurrentQualityLevel(BuiltInToURP3DRenderSettingsConverter converter, IRenderPipelineConverterItem qualityItem, float shadowDistance)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             float originalShadowDistance = QualitySettings.shadowDistance;
             try
             {
@@ -230,6 +237,7 @@ namespace UnityEditor.Rendering.Universal.Tools
             finally
             {
                 QualitySettings.shadowDistance = originalShadowDistance;
+#pragma warning restore CS0618
             }
 
             return QualitySettings.renderPipeline as UniversalRenderPipelineAsset;
