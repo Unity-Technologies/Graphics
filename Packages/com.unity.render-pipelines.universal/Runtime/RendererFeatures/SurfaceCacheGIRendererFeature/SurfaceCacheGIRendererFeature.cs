@@ -359,18 +359,6 @@ namespace UnityEngine.Rendering.Universal
             return new CameraInfo(clipToWorld0, clipToWorld1, worldPos, screenResolution, viewCount, screenTexturesAreArrays);
         }
 
-        // Keeps DrawObjectsPass/GBufferPass on the screen-space-GI path instead of falling back to lightmap/APV/SH.
-        class SurfaceCacheZeroGIPass : ScriptableRenderPass
-        {
-            public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
-            {
-                UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
-                resourceData.irradianceTexture = (TextureXR.slices > 1 && TextureXR.initialized)
-                    ? renderGraph.defaultResources.blackTextureXR
-                    : renderGraph.defaultResources.blackTexture;
-            }
-        }
-
         class SurfaceCacheWorldPass : ScriptableRenderPass, IDisposable
         {
             private class WorldUpdatePassData
@@ -1465,12 +1453,6 @@ namespace UnityEngine.Rendering.Universal
         private SurfaceCacheWorldPass _worldPass;
         private SurfaceCacheCameraPass _cameraPass;
 
-        // Unlike the other passes, this one runs when the cache has been released, so it cannot live in Create().
-        private readonly SurfaceCacheZeroGIPass _zeroGIPass = new SurfaceCacheZeroGIPass
-        {
-            renderPassEvent = RenderPassEvent.AfterRenderingPrePasses + 1
-        };
-
         private RayTracingContext _rtContext;
 
         private readonly Dictionary<(Camera camera, int xrMultipassId), PerCameraState> _cameraStates = new Dictionary<(Camera camera, int xrMultipassId), PerCameraState>();
@@ -1708,11 +1690,6 @@ namespace UnityEngine.Rendering.Universal
                     ClearResources();
                 else
                     PublishEntityCullingObservers();
-
-                // Where Surface Cache can never run, Enabled and Disabled already fall back identically,
-                // so only take over here where it can.
-                if (HasSupportedRayTracingBackend())
-                    renderer.EnqueuePass(_zeroGIPass);
                 return;
             }
 

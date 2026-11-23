@@ -20,9 +20,10 @@ namespace UnityEngine.Rendering.Universal
         /// Enables or disables Surface Cache Global Illumination for the cameras this volume affects.
         /// When enabled, it calculates indirect lighting at any <see cref="intensity"/> value, which keeps
         /// the Surface Cache warm. When disabled, it does no per-frame work and discards its Surface Cache,
-        /// so enabling it again costs a warm-up.
+        /// so enabling it again costs a warm-up. While disabled, indirect lighting comes from the other
+        /// sources in the scene, such as lightmaps, light probes, and the ambient probe.
         /// </summary>
-        [Tooltip("When Enabled, Surface Cache Global Illumination calculates indirect lighting at any Intensity value. When Disabled, it does not.")]
+        [Tooltip("When Enabled, Surface Cache Global Illumination calculates indirect lighting at any Intensity value. When Disabled, it does not, and indirect lighting comes from lightmaps, light probes, and the ambient probe instead.")]
         public BoolParameter enabled = new BoolParameter(true, BoolParameter.DisplayType.EnumPopup);
 
         /// <summary>
