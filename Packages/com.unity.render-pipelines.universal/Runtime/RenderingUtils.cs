@@ -818,7 +818,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         internal static void AddStaleResourceToPoolOrRelease(TextureDesc desc, RTHandle handle)
         {
-            if (!UniversalRenderPipeline.s_RTHandlePool.AddResourceToPool(desc, handle, Time.frameCount))
+            if (!UniversalRenderPipeline.s_RTHandlePool.AddResourceToPool(desc, handle, UniversalRenderPipeline.resourcePoolFrameIndex))
                 RTHandles.Release(handle);
         }
 

@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
                 generateDebugData = camera.cameraType != CameraType.Preview && !camera.isProcessingRenderRequest,
                 commandBuffer = cmd,
                 scriptableRenderContext = context,
-                currentFrameIndex = Time.frameCount,
+                currentFrameIndex = resourcePoolFrameIndex,
                 renderTextureUVOriginStrategy = renderTextureUVOriginStrategy,
             };
 

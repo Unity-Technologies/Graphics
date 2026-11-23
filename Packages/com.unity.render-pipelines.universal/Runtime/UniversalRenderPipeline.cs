@@ -346,6 +346,41 @@ namespace UnityEngine.Rendering.Universal
         [NoAutoStaticsCleanup] internal static RenderGraph s_RenderGraph;
         [NoAutoStaticsCleanup] internal static RTHandleResourcePool s_RTHandlePool;
 
+#if UNITY_EDITOR
+        // Time.frameCount does not advance while an edit mode view repaints, so pooled resources would never age.
+        [NoAutoStaticsCleanup] static int s_ResourcePoolFrameIndex;
+        [NoAutoStaticsCleanup] static int s_LastResourcePoolFrameCount;
+
+        internal static int resourcePoolFrameIndex => s_ResourcePoolFrameIndex;
+
+        static void AdvanceResourcePoolFrameIndex(List<Camera> cameras)
+        {
+            int frameCount = Time.frameCount;
+            int frameDelta = frameCount - s_LastResourcePoolFrameCount;
+            s_LastResourcePoolFrameCount = frameCount;
+
+            if (frameDelta != 0)
+            {
+                s_ResourcePoolFrameIndex += Math.Max(frameDelta, 1);
+                return;
+            }
+
+            if (Application.isPlaying)
+                return;
+
+            foreach (var camera in cameras)
+            {
+                if (camera.cameraType != CameraType.Preview)
+                {
+                    s_ResourcePoolFrameIndex++;
+                    return;
+                }
+            }
+        }
+#else
+        internal static int resourcePoolFrameIndex => Time.frameCount;
+#endif
+
         // Store locally the value on the instance due as the Render Pipeline Asset data might change before the disposal of the asset, making some APV Resources leak.
         internal bool apvIsEnabled = false;
 
@@ -697,6 +732,9 @@ namespace UnityEngine.Rendering.Universal
 
         void RenderCameras(ScriptableRenderContext renderContext, List<Camera> cameras)
         {
+#if UNITY_EDITOR
+            AdvanceResourcePoolFrameIndex(cameras);
+#endif
             SetHDRState(cameras);
 
             int cameraCount = cameras.Count;
@@ -775,7 +813,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 s_RenderGraph.EndFrame();
-                s_RTHandlePool.PurgeUnusedResources(Time.frameCount);
+                s_RTHandlePool.PurgeUnusedResources(resourcePoolFrameIndex);
 
                 // Clean up expired upscaler contexts (unused for > 400 frames)
                 if (upscaling != null)
