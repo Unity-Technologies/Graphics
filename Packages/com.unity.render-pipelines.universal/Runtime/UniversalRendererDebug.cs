@@ -59,7 +59,6 @@ namespace UnityEngine.Rendering.Universal
         {
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
-            UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
 
             if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(cameraData.isPreviewCamera))
             {
@@ -98,6 +97,8 @@ namespace UnityEngine.Rendering.Universal
                     // The debug texture for STP is filled later during post-process rendering so we cannot assign the resource now or it will be invalid
                     if (fullScreenDebugMode != DebugFullScreenMode.STP)
                     {
+                        TextureHandle atlasTexture = TextureHandle.nullHandle;
+
                         // Render into the debug texture
                         {
                             ImportResourceParams importParams = new ImportResourceParams();
@@ -128,37 +129,39 @@ namespace UnityEngine.Rendering.Universal
                                 }
                                 case DebugFullScreenMode.AdditionalLightsShadowMap:
                                 {
-                                    BlitToDebugTexture(renderGraph, resourceData.additionalShadowsTexture, debugTexture);
+                                    atlasTexture = resourceData.additionalShadowsTexture;
+                                    BlitToDebugTexture(renderGraph, atlasTexture, debugTexture);
                                     break;
                                 }
                                 case DebugFullScreenMode.MainLightShadowMap:
                                 {
-                                    BlitToDebugTexture(renderGraph, resourceData.mainShadowsTexture, debugTexture);
+                                    atlasTexture = resourceData.mainShadowsTexture;
+                                    BlitToDebugTexture(renderGraph, atlasTexture, debugTexture);
                                     break;
                                 }
                                 case DebugFullScreenMode.AdditionalLightsCookieAtlas:
                                 {
                                     // Copy atlas texture to make it "readonly". Direct reference (debug=atlas) can lead to handle->texture reallocation.
-                                    var textureHandle =
+                                    atlasTexture =
                                         m_LightCookieManager is { AdditionalLightsCookieAtlasTexture: not null }
                                             ? renderGraph.ImportTexture(m_LightCookieManager
                                                 .AdditionalLightsCookieAtlasTexture)
                                             : TextureHandle.nullHandle;
 
-                                    BlitToDebugTexture(renderGraph, textureHandle, debugTexture);
+                                    BlitToDebugTexture(renderGraph, atlasTexture, debugTexture);
                                     break;
                                 }
 
                                 case DebugFullScreenMode.ReflectionProbeAtlas:
                                 {
                                     // Copy atlas texture to make it "readonly". Direct reference (debug=atlas) can lead to handle->texture reallocation.
-                                    var textureHandle =
+                                    atlasTexture =
                                         m_ForwardLights.reflectionProbeManager.atlasRT != null
                                             ? renderGraph.ImportTexture(RTHandles.Alloc(
                                                 m_ForwardLights.reflectionProbeManager.atlasRT, transferOwnership: true))
                                             : TextureHandle.nullHandle;
 
-                                    BlitToDebugTexture(renderGraph, textureHandle, debugTexture);
+                                    BlitToDebugTexture(renderGraph, atlasTexture, debugTexture);
                                     break;
                                 }
                                 case DebugFullScreenMode.Custom:
@@ -178,22 +181,11 @@ namespace UnityEngine.Rendering.Universal
                             }
                         }
 
-                        // Textures that are not in screen aspect ratio need to be corrected
+                        // Ensure that atlas is not stretched, but doesn't take up more than the percentage in any dimension.
+                        if (atlasTexture.IsValid())
                         {
-                            RenderTexture source = null;
-                            switch (fullScreenDebugMode)
-                            {
-                                case DebugFullScreenMode.AdditionalLightsShadowMap: source = shadowData.shadowPassGroup?.additionalLightShadowmapPass?.m_AdditionalLightsShadowmapHandle?.rt; break;
-                                case DebugFullScreenMode.MainLightShadowMap: source = shadowData.shadowPassGroup?.mainLightShadowmapPass?.m_MainLightShadowmapTexture?.rt; break;
-                                case DebugFullScreenMode.AdditionalLightsCookieAtlas: source = m_LightCookieManager?.AdditionalLightsCookieAtlasTexture?.rt; break;
-                                case DebugFullScreenMode.ReflectionProbeAtlas: source = m_ForwardLights?.reflectionProbeManager.atlasRT; break;
-                                default:
-                                    break;
-                            }
-
-                            // Ensure that atlas is not stretched, but doesn't take up more than the percentage in any dimension.
-                            if (source != null)
-                                CorrectForTextureAspectRatio(ref width, ref height, source.width, source.height);
+                            var desc = renderGraph.GetTextureDesc(atlasTexture);
+                            CorrectForTextureAspectRatio(ref width, ref height, desc.width, desc.height);
                         }
                     }
 
