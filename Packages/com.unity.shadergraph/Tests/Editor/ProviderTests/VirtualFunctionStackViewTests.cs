@@ -182,6 +182,9 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
         }
 
         [Test]
+        [UnityPlatform(exclude = new RuntimePlatform[] {
+            RuntimePlatform.LinuxEditor // Disabled for Instability https://unitycorp.atlassian.net/browse/UUM-163082
+        })]
         public void Undo_KeepsEachOutputNodeInItsStack()
         {
             Open();
