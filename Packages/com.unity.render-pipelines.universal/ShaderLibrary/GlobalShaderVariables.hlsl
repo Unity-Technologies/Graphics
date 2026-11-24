@@ -8,8 +8,8 @@
 #define URP_PERSISTENT_CONSTANT_BUFFERS_ACTIVE
 #endif
 
-// OpenGL Core alone. Switch and Switch 2 compile their shaders as OpenGL Core unless they use DXC, so their shaders get
-// SHADER_API_GLCORE too, next to SHADER_API_SWITCH or SHADER_API_SWITCH2: testing SHADER_API_GLCORE alone would catch them.
+// OpenGL Core alone. Some platforms also define SHADER_API_GLCORE next to their own SHADER_API_* define, so testing
+// SHADER_API_GLCORE alone would catch them.
 #if defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH) && !defined(SHADER_API_SWITCH2)
 #define URP_SHADER_API_GLCORE
 #endif

@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.Universal
     ///   - Don't move a float parameter away from where it belongs for filling a hole. Add padding in this case.
     ///   - The members lit fragment shaders read sit together, from _GlossyEnvironmentColor in GlobalShaderVariablesBase to
     ///     _AdditionalShadowmapSize in GlobalShaderVariablesOnly3D, followed by the main light shadow matrices. A lit draw then
-    ///     reads its constants from fewer 64 byte cache lines, which the GPU time shows on Switch.
+    ///     reads its constants from fewer 64 byte cache lines.
     ///     - Add a member lit shaders read inside that range, any other one outside of it. GlobalShaderVariablesBase ends
     ///       inside the range, so a Base member lit shaders don't read goes before _GlossyEnvironmentColor, not at the end.
     ///     - The scalars lit shaders read share the row right after the main light. The last row of GlobalShaderVariablesOnly3D
