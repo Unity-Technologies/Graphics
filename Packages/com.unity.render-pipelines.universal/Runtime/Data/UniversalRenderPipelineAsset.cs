@@ -323,11 +323,24 @@ namespace UnityEngine.Rendering.Universal
         UsePipelineSettings = 2,
     }
 
-    // Which type of resolution scaling in UI order.
-    internal enum ScalingMode
+    /// <summary>
+    /// Defines the type of resolution scaling applied by the render pipeline.
+    /// </summary>
+    public enum ScalingMode
     {
+        /// <summary>
+        /// No scaling. The camera renders at the display resolution.
+        /// </summary>
         None,
+
+        /// <summary>
+        /// Upscaling. The camera renders below the display resolution and the result is upscaled to the display resolution.
+        /// </summary>
         Upscaling,
+
+        /// <summary>
+        /// Supersampling. The camera renders above the display resolution and the result is downsampled to the display resolution.
+        /// </summary>
         Supersampling,
     }
 
@@ -1211,12 +1224,19 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Controls whether upscaling is enabled.
+        /// Controls the type of resolution scaling the render pipeline applies. Set this to <see cref="ScalingMode.None"/> to disable upscaling.
         /// </summary>
-        internal ScalingMode scalingMode
+        public ScalingMode scalingMode
         {
             get => m_ScalingMode;
-            set => m_ScalingMode = value;
+            set
+            {
+                if (value == m_ScalingMode)
+                    return;
+
+                m_ScalingMode = value;
+                OnValidate();
+            }
         }
 
         /// <summary>
