@@ -141,7 +141,7 @@ namespace UnityEditor.Rendering.Converter
 
             foreach (var prop in type.GetProperties(flags))
             {
-                if (!prop.CanRead) continue;
+                if (!prop.CanRead || prop.GetSetMethod(true) == null) continue; // skip read-only properties, e.g. Terrain.splatBaseMaterial
                 if (prop.GetIndexParameters().Length > 0) continue; // skip indexers
 
                 if (prop.PropertyType == typeof(Material) || prop.PropertyType == typeof(Material[]))

@@ -30,14 +30,13 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
         internal (IProvider<IShaderFunction> provider, string label)[] groupCandidates { get; private set; }
         internal (IProvider<IShaderFunction> provider, string version)[] versionCandidates { get; private set; }
 
-        internal IReadOnlyList<(string subject, string text, MessageType severity)> messages { get; private set; }
-
         internal FunctionHeader(IShaderFunction func, IProvider provider) : this(func, provider, false) { }
 
         FunctionHeader(IShaderFunction func, IProvider provider, bool skipGroup)
         {
+            var info = provider.Info;
             referenceName = func.Name;
-            version       = provider.Version;
+            version       = info.Version;
 
             var presentation = func.Presentation;
             displayName = presentation.DisplayName;
@@ -51,10 +50,10 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
             helpUrl = presentation.HelpUrl;
 
-            if (provider.Group != null)
+            if (info.Group != null)
             {
                 groupDropdownEntryName = displayName;
-                displayName = presentation.GroupDisplayName ?? provider.Group;
+                displayName = presentation.GroupDisplayName ?? info.Group;
                 searchName = displayName;
                 groupLabel = presentation.GroupLabel ?? "Variant";
 
@@ -64,7 +63,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
                 if (!skipGroup && ProviderLibrary.TryGetInstance(out var lib))
                 {
                     bool first = true;
-                    foreach (var groupProvider in lib.ProvidersByGroup<IShaderFunction>(provider.Group))
+                    foreach (var groupProvider in lib.ProvidersByGroup<IShaderFunction>(info.Group))
                     {
                         var groupHeader = new FunctionHeader(groupProvider.Definition, groupProvider, true);
                         if (first) // Main provider's information wins.
@@ -94,36 +93,16 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
             // Version:
             List<(IProvider<IShaderFunction> provider, string version)> rawVersions = new();
-            if (ProviderLibrary.TryGetInstance(out var versionLib))
-            {                
-                foreach(var versionedProvider in versionLib.ProvidersByVersion<IShaderFunction>(provider.ProviderKey))
-                    rawVersions.Add((versionedProvider, versionedProvider.Version));                
+            if (info.ProviderKey != null && ProviderLibrary.TryGetInstance(out var versionLib))
+            {
+                foreach (var versionedProvider in versionLib.ProvidersByVersion<IShaderFunction>(info.ProviderKey))
+                    rawVersions.Add((versionedProvider, versionedProvider.Info.Version));
             }
             else
             {
-                rawVersions.Add((provider as IProvider<IShaderFunction>, provider.Version));
+                rawVersions.Add((provider as IProvider<IShaderFunction>, version));
             }
             versionCandidates = rawVersions.ToArray();
-
-            messages = CollectMessages(func, provider);
-        }
-
-        static List<(string, string, MessageType)> CollectMessages(IShaderFunction func, IProvider provider)
-        {
-            List<(string, string, MessageType)> messages = new();
-            if (provider.Messages == null)
-                return messages;
-
-            List<string> subjects = new() { null };
-            foreach (var param in func.Parameters)
-                if (!subjects.Contains(param.Name))
-                    subjects.Add(param.Name);
-
-            foreach (var subject in subjects)
-                foreach (var message in provider.Messages)
-                    if (message.Subject == subject)
-                        messages.Add((subject, message.Text, (MessageType)message.Severity));
-            return messages;
         }
     }
 }

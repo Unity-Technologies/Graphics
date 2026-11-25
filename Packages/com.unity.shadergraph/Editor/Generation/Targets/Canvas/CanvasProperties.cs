@@ -94,6 +94,16 @@ namespace UnityEditor.ShaderGraph
             overrideHLSLDeclaration = false,
         };
 
+        public static readonly Vector4ShaderProperty UIMaskSoftness = new Vector4ShaderProperty()
+        {
+            overrideReferenceName = "_UIMaskSoftness",
+            displayName = "UIMaskSoftness",
+            hidden = true,
+            value = new Vector4(1.0f, 1.0f, 1.0f, 1.0f),
+            generatePropertyBlock = true,
+            overrideHLSLDeclaration = false,
+        };
+
         public static readonly Vector4ShaderProperty ClipRect = new Vector4ShaderProperty()
         {
             overrideReferenceName = "_ClipRect",

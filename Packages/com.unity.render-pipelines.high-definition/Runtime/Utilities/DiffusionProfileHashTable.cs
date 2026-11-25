@@ -12,8 +12,19 @@ namespace UnityEditor.Rendering.HighDefinition
     [InitializeOnLoad]
     class DiffusionProfileHashTable
     {
+        // In rare cases, the final profile hash can differ from its GUID hash, because collisions are only checked against loaded profiles.
+        // 1. Load order. Hash collision resolution depends on load order. The later (colliding) profile is bumped to the next free hash and a warning is logged.
+        // 2. Collision cascade. A bumped hash can collide with an existing one that is still unloaded, which is then bumped later on load.
+        // 3. Domain reload. The table is cleared and profiles are checked again in arbitrary order, which can trigger a cascade (2.)
+
         [System.NonSerialized]
         static Dictionary<EntityId,  uint>           diffusionProfileHashes = new Dictionary<EntityId, uint>();
+        [System.NonSerialized]
+        static Dictionary<uint, EntityId>            diffusionProfileOwners = new Dictionary<uint, EntityId>();
+
+        // Max offset from the GUID hash for a stored hash to be kept.
+        // A profile moved further is regenerated on every load.
+        internal const uint k_MaxHashOffset = 16;
 
         // Stable hash to avoid having different result after upgrading mono
         // Source: https://github.com/Unity-Technologies/mono/blob/unity-2021.2-mbe-pre-upgrade/mcs/class/referencesource/mscorlib/system/string.cs#L824
@@ -40,7 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static uint GetDiffusionProfileHash(DiffusionProfileSettings asset)
+        internal static uint GetDiffusionProfileHash(DiffusionProfileSettings asset)
         {
             string assetPath = AssetDatabase.GetAssetPath(asset);
 
@@ -57,46 +68,107 @@ namespace UnityEditor.Rendering.HighDefinition
             return (exponent << 23) | mantissa;
         }
 
-        static internal uint GenerateUniqueHash(DiffusionProfileSettings asset)
+        public static void UpdateDiffusionProfileHashNow(DiffusionProfileSettings profile)
         {
-            uint hash = GetDiffusionProfileHash(asset);
+            uint hash = profile.profile.hash;
+            uint guidHash = GetDiffusionProfileHash(profile);
+            EntityId entityId = profile.GetEntityId();
 
-            while (diffusionProfileHashes.ContainsValue(hash))
+            // Hash 0 means the profile was just created.
+            // Otherwise, the hash is regenerated from the GUID, for example when the asset was duplicated.
+            bool isWithinMaxOffset = IsWithinMaxHashOffset(hash, guidHash);
+            if (!isWithinMaxOffset || IsHashTaken(hash, entityId))
             {
-                Debug.LogWarning("Collision found in asset: " + asset + ", generating a new hash, previous hash: " + hash);
+                // Within the max offset, the stored hash is only regenerated when another profile took it
+                bool storedHashTaken = isWithinMaxOffset;
+                uint newHash = GenerateUniqueHash(profile, guidHash, entityId, storedHashTaken);
+                if (newHash != hash)
+                {
+                    profile.profile.hash = newHash;
+                    EditorUtility.SetDirty(profile);
+
+                    // SetDirty is discarded when called from OnEnable during asset load.
+                    // Only a hash changed by a collision needs to be saved, the GUID hash is regenerated on every load.
+                    if (newHash != guidHash || storedHashTaken)
+                    {
+                        EditorApplication.delayCall += () =>
+                        {
+                            if (profile != null)
+                                EditorUtility.SetDirty(profile);
+                        };
+                    }
+                }
+            }
+
+            Register(profile, entityId);
+        }
+
+        static bool IsWithinMaxHashOffset(uint storedHash, uint guidHash)
+        {
+            // Unsigned subtraction wraps a stored hash below guidHash, including 0, to a large value
+            return storedHash - guidHash < k_MaxHashOffset;
+        }
+
+        static bool IsHashTaken(uint hash, EntityId entityId)
+        {
+            if (!diffusionProfileOwners.TryGetValue(hash, out EntityId owner) || owner == entityId)
+                return false;
+
+            // The owner was deleted
+            if (string.IsNullOrEmpty(AssetDatabase.GetAssetPath(owner)))
+            {
+                diffusionProfileOwners.Remove(hash);
+                diffusionProfileHashes.Remove(owner);
+                return false;
+            }
+
+            return true;
+        }
+
+        static uint GenerateUniqueHash(DiffusionProfileSettings asset, uint guidHash, EntityId entityId, bool storedHashTaken)
+        {
+            uint hash = guidHash;
+            while (IsHashTaken(hash, entityId))
+            {
                 hash++;
+            }
+
+            if (hash != guidHash || storedHashTaken)
+            {
+                uint storedHash = asset.profile.hash;
+                uint takenHash = storedHashTaken ? storedHash : guidHash;
+                string assetPath = AssetDatabase.GetAssetPath(asset);
+                string ownerPath = AssetDatabase.GetAssetPath(diffusionProfileOwners[takenHash]);
+                string message = $"Collision found in asset: {assetPath}, hash {takenHash} is already used by {ownerPath}, using hash {hash} instead.";
+                if (!IsWithinMaxHashOffset(hash, guidHash))
+                    message += $" {k_MaxHashOffset} or more diffusion profiles have similar hashes, so the hash of {assetPath} is regenerated on every load and can change. " +
+                        $"Duplicate {assetPath} and assign the copy to the materials that use it.";
+                else if (storedHash != 0 && storedHash != hash)
+                    message += $" Select {assetPath} again on the materials that use it.";
+                Debug.LogWarning(message, asset);
             }
 
             return hash;
         }
 
-        public static void UpdateDiffusionProfileHashNow(DiffusionProfileSettings profile)
+        static void Register(DiffusionProfileSettings profile, EntityId entityId)
         {
             uint hash = profile.profile.hash;
-
-            // If the hash is 0, then we need to generate a new one (it means that the profile was just created)
             if (hash == 0)
-            {
-                profile.profile.hash = GenerateUniqueHash(profile);
-                EditorUtility.SetDirty(profile);
-                // We can't move the asset
-            }
-            // If the asset is not in the list, we regenerate it's hash using the GUID (which leads to the same result every time)
-#pragma warning disable 618 // Todo(@daniel.andersen): Potentially use GetRawData or sometin'
-            else if (!diffusionProfileHashes.ContainsKey(profile.GetEntityId()))
-#pragma warning restore 618
-            {
-                uint newHash = GenerateUniqueHash(profile);
-                if (newHash != profile.profile.hash)
-                {
-                    profile.profile.hash = newHash;
-                    EditorUtility.SetDirty(profile);
-                }
-            }
-            else // otherwise, no issue, we don't change the hash and we keep it to check for collisions
-#pragma warning disable 618 // Todo(@daniel.andersen): Potentially use GetRawData or sometin'
-                diffusionProfileHashes.Add(profile.GetEntityId(), profile.profile.hash);
-#pragma warning restore 618
+                return;
+
+            if (diffusionProfileHashes.TryGetValue(entityId, out uint previousHash) && previousHash != hash && !IsHashTaken(previousHash, entityId))
+                diffusionProfileOwners.Remove(previousHash);
+
+            diffusionProfileHashes[entityId] = hash;
+            diffusionProfileOwners[hash] = entityId;
+        }
+
+        internal static void Unregister(DiffusionProfileSettings profile)
+        {
+            EntityId entityId = profile.GetEntityId();
+            if (diffusionProfileHashes.Remove(entityId, out uint hash) && !IsHashTaken(hash, entityId))
+                diffusionProfileOwners.Remove(hash);
         }
     }
 }

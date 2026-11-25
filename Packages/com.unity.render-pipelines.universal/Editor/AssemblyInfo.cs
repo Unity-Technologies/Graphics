@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("UniversalGraphicsTests")]
 [assembly: InternalsVisibleTo("Universal2DEditorTests")]
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.Universal.Editor.Tests")]
+[assembly: InternalsVisibleTo("Unity.RenderPipelines.Universal.Editor.CLI")]
 [assembly: InternalsVisibleTo("Unity.Testing.SRP.Universal-Upgrade.Editor")]
 [assembly: InternalsVisibleTo("Unity.GraphicTests.Performance.Universal.Editor")]
 [assembly: InternalsVisibleTo("Unity.VisualEffectGraph.EditorTests")]

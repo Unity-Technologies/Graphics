@@ -5,26 +5,26 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 using Unity.GraphAuthoring.Editor.ProviderSystem;
-using Unity.GraphAuthoring.Editor.ProviderSystem.Hints;
-using Hints = Unity.GraphAuthoring.Editor.ProviderSystem.Hints;
+using Unity.GraphAuthoring.Editor.ProviderSystem.Reflection.Hints;
+using Hints = Unity.GraphAuthoring.Editor.ProviderSystem.Reflection.Hints;
 
 namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
 {
     class TestProvider : IProvider<IShaderFunction>
     {
-        public string ProviderKey { get; private set; }
+        public ProviderInfo Info { get; private set; }
         public UnityEngine.GUID AssetID { get; private set; }
         public IShaderFunction Definition { get; private set; }
 
         internal TestProvider(string testName, IShaderFunction func)
         {
-            ProviderKey = testName;
+            Info = new ProviderInfo(testName);
             Definition = func;
         }
 
         internal TestProvider(string testName, string path = null, IEnumerable<string> namespaces = null)
         {
-            ProviderKey = testName;
+            Info = new ProviderInfo(testName);
             AssetID = path == null ? default : AssetDatabase.GUIDFromAssetPath(path);
             Definition = new ShaderFunction(testName, namespaces, null, new ShaderType("void"), null);
         }

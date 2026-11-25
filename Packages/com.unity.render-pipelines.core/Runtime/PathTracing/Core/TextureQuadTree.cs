@@ -151,5 +151,7 @@ namespace UnityEngine.PathTracing.Core
         }
 
         public bool IsFull => _leaves.Count == 0;
+
+        public bool IsEmpty => _leaves.Count == 1 && _leaves[0].Size == _size;
     }
 }

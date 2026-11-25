@@ -1,11 +1,14 @@
 using System.Collections;
 using System.Runtime.InteropServices;
+using System.Threading;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.TestTools.Graphics.Contexts;
 using UnityEngine.TestTools.Graphics.Platforms;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition.Tests
 {
@@ -20,11 +23,42 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
     )]
     public class PostProcessingTests : HdrpTestsBase
     {
+        const int k_SceneLoadStallMilliseconds = 200;
+
         public PostProcessingTests(GpuResidentDrawerContext grdContext) : base(grdContext) { }
+
+        public override void SetUpContext()
+        {
+            base.SetUpContext();
+            if (!TestContext.CurrentContext.Test.Name.Contains("DRS-FSR2"))
+                return;
+
+            SceneManager.sceneLoaded -= StallAfterSceneLoad;
+            SceneManager.sceneLoaded += StallAfterSceneLoad;
+        }
+
+        public override void OneTimeTearDown()
+        {
+            SceneManager.sceneLoaded -= StallAfterSceneLoad;
+            base.OneTimeTearDown();
+        }
+
+        // Workaround for UUM-158331
+        static void StallAfterSceneLoad(Scene scene, LoadSceneMode mode)
+        {
+            Thread.Sleep(k_SceneLoadStallMilliseconds);
+        }
 
         [UnityTest]
         [SceneGraphicsTest(@"Assets/GraphicTests/Scenes/4x_PostProcessing/^[0-9]+")]
         [Timeout(450 * 1000)]
+        [IgnoreGraphicsTest(
+            "4075_PhysicalCamera-gateFit$|4082_DepthOfField-PB$|4099_DRS-STP-Software$",
+            "Small uniform deltaE drift on macOS Editor agents, slightly above threshold.",
+            GraphicsDeviceType.Metal,
+            RuntimePlatform.OSXEditor,
+            Architecture.Arm64
+        )]
         [IgnoreGraphicsTest(
             "4075_PhysicalCamera-gateFit$",
             "Noisy result in Linux + VK..",
@@ -117,8 +151,34 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             MetalFXSpatialSupport.SpatialUnsupported
         )]
         [IgnoreGraphicsTest(
+            "4013_TransparentAndOpaqueMotionVector",
+            "Internal Metal shader compiler error on macOS 14 (Apple Silicon) in the Editor",
+            GraphicsDeviceType.Metal,
+            RuntimePlatform.OSXEditor,
+            Architecture.Arm64
+        )]
+        [IgnoreGraphicsTest(
             "4014_PrecomputedVelocityAlembic",
             "https://jira.unity3d.com/browse/UUM-136889"
+        )]
+        [IgnoreGraphicsTest(
+            "4075_PhysicalCamera-gateFit",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-157558",
+            RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Direct3D11,
+            GraphicsDeviceType.Vulkan
+        )]
+        [IgnoreGraphicsTest(
+            "4089_DRS-DLSS-Software",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-157855",
+            RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Vulkan
+        )]
+        [IgnoreGraphicsTest(
+            "4088_DRS-DLSS-Hardware",
+            "Disabled for Instability https://jira.unity3d.com/browse/UUM-157855",
+            RuntimePlatform.WindowsEditor,
+            GraphicsDeviceType.Vulkan
         )]
         [TestNotSupportedOn(
             "4011|4012|4013|4014|4038|4060|4061|4099|4100|4112|4113|4114",

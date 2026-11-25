@@ -59,18 +59,16 @@ namespace UnityEngine.VFX.Test
             UnityGraphicsKernelMode.UgkOn
         )]
         [IgnoreGraphicsTest(
-            "40_InstancingSplitCompute|007_MeshSampling",
-            "https://jira.unity3d.com/browse/UUM-157507",
-            GraphicsDeviceType.Direct3D12,
-            RuntimePlatform.WindowsPlayer,
-            UnityGraphicsKernelMode.UgkOn,
-            GraphicsApiValidationMode.Enabled
-        )]
-        [IgnoreGraphicsTest(
             "027_RWTexture",
             "https://jira.unity3d.com/browse/UGK-2500",
             GraphicsDeviceType.Vulkan, GraphicsDeviceType.Direct3D12,
             RuntimePlatform.WindowsPlayer,
+            UnityGraphicsKernelMode.UgkOn
+        )]
+        [IgnoreGraphicsTest(
+            "027_RWTexture",
+            "https://jira.unity3d.com/browse/UGK-2500",
+            RuntimePlatform.Switch2,
             UnityGraphicsKernelMode.UgkOn
         )]
 

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
-    // Atlas samples directly; Local remaps 0-1 UVs into the atlas rect (unity_uie_UVRect) first.
+    // Atlas samples directly; Local remaps 0-1 UVs into the atlas rect (GetFilterUVRect) first.
     enum FilterUVSpace
     {
         Atlas,
@@ -87,7 +87,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #if defined(SHADERGRAPH_PREVIEW) || defined(SHADERGRAPH_PREVIEW_MAIN)
 " + kPreviewCheckerboard + @"
 #else
-    float4 uvRect = unity_uie_UVRect[0];
+    float4 uvRect = GetFilterUVRect(0);
     // Distortion pushing UV outside 0-1 would read a neighboring element's atlas region, whose
     // contents vary per platform; the half-texel inset keeps the bilinear taps inside the rect too.
     float2 halfTexel = 0.5 * _MainTex_TexelSize.xy;
@@ -101,7 +101,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
     }
 
-    // Surfaces _MainTex_TexelSize for aspect-correct local-space math.
+    // The texel size of the filtered area, the local 0-1 space of Normalize Filter UV: (1 / width, 1 / height, width,
+    // height). The filter margins inflate the area and clipping can cut it. _MainTex_TexelSize is the whole atlas page.
     [SubTargetFilter(typeof(UniversalFilterSubTarget))]
     [Title("Input", "Filter", "Filter Texel Size")]
     sealed class FilterTexelSizeNode : CodeFunctionNode
@@ -109,7 +110,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public FilterTexelSizeNode()
         {
             name = "Filter Texel Size";
-            synonyms = new string[] { "main tex texel size", "atlas texel size" };
+            synonyms = new string[] { "filtered area size", "local texel size" };
             UpdateNodeAfterDeserialization();
         }
 
@@ -131,7 +132,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     // 1x1 is a neutral preview stand-in.
     Out = float4(1, 1, 1, 1);
 #else
-    Out = _MainTex_TexelSize;
+    float2 size = GetFilterUVRect(0).zw * _MainTex_TexelSize.zw;
+    Out = float4(1.0 / size, size);
 #endif
 }
 ";

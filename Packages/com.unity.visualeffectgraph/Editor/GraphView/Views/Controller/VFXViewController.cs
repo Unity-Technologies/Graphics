@@ -1245,7 +1245,7 @@ namespace UnityEditor.VFX.UI
                 order = m_ParameterControllers.Keys.Select(t => t.order).Max() + 1;
             }
             parameter.order = order;
-            var candidateName = $"New {ObjectNames.NicifyVariableName(type.UserFriendlyName())}";
+            string candidateName = VFXParameterController.GetDefaultExposedName(type);
             parameter.SetSettingValue("m_ExposedName", VFXParameterController.MakeNameUnique(this, candidateName, VFXParameterController.kMaxExposedNameLength));
 
             if (!type.IsPrimitive)
@@ -1269,6 +1269,28 @@ namespace UnityEditor.VFX.UI
             m_SyncedModels.TryGetValue(model, out nodeControllers);
 
             return nodeControllers.FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Returns the controller of a parameter that was just added to the graph, syncing the
+        /// controllers with the graph if that has not happened yet, so that the caller does not
+        /// have to wait for the next window update.
+        /// </summary>
+        public VFXParameterController GetNewParameterController(VFXParameter parameter)
+        {
+            if (m_ParameterControllers.TryGetValue(parameter, out VFXParameterController parameterController))
+            {
+                return parameterController;
+            }
+
+            bool groupNodeChanged = false;
+            SyncControllerFromModel(ref groupNodeChanged);
+            if (!m_ParameterControllers.TryGetValue(parameter, out parameterController))
+            {
+                throw new InvalidOperationException($"No controller was created for the parameter '{parameter.exposedName}'. It must be a child of the graph.");
+            }
+
+            return parameterController;
         }
 
         public VFXNodeController AddNode(Vector2 tPos, Variant variant, VFXGroupNodeController groupNode)
@@ -1296,7 +1318,7 @@ namespace UnityEditor.VFX.UI
                 if (newNode is VFXParameter newParameter)
                 {
                     // Set an exposed name on a new parameter so that uniqueness is ensured
-                    m_ParameterControllers[newParameter].exposedName = $"New {ObjectNames.NicifyVariableName(newParameter.type.UserFriendlyName())}";
+                    m_ParameterControllers[newParameter].exposedName = VFXParameterController.GetDefaultExposedName(newParameter.type);
                 }
 
                 NotifyChange(AnyThing);
@@ -1451,22 +1473,29 @@ namespace UnityEditor.VFX.UI
         void Sanitize()
         {
             VFXParameter[] parameters = m_ParameterControllers.Keys.OrderBy(t => t.order).ToArray();
-            if (parameters.Length > 0)
+
+            // A parameter keeps its name unless an earlier parameter has it or it breaks the naming rules
+            var takenNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var renamedParameters = new List<VFXParameter>();
+            for (int i = 0; i < parameters.Length; ++i)
             {
-                var existingNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                VFXParameter parameter = parameters[i];
+                m_ParameterControllers[parameter].order = i;
 
-                existingNames.Add(parameters[0].exposedName);
-                m_ParameterControllers[parameters[0]].order = 0;
+                string exposedName = parameter.exposedName;
+                string candidateName = VFXParameterController.MakeNameUnique(exposedName, takenNames, true, VFXParameterController.kMaxExposedNameLength);
+                if (candidateName == null || candidateName == exposedName)
+                    takenNames.Add(exposedName);
+                else
+                    renamedParameters.Add(parameter);
+            }
 
-                for (int i = 1; i < parameters.Length; ++i)
-                {
-                    var controller = m_ParameterControllers[parameters[i]];
-                    controller.order = i;
-
-                    controller.CheckNameUnique(existingNames);
-
-                    existingNames.Add(parameters[i].exposedName);
-                }
+            // New names avoid every kept name, including those of later parameters
+            foreach (var parameter in renamedParameters)
+            {
+                string newName = VFXParameterController.MakeNameUnique(parameter.exposedName, takenNames, true, VFXParameterController.kMaxExposedNameLength);
+                takenNames.Add(newName);
+                parameter.SetSettingValue("m_ExposedName", newName);
             }
         }
 
@@ -1737,12 +1766,12 @@ namespace UnityEditor.VFX.UI
                 }
                 else
                 {
-                    Debug.LogError("Can't change name, category with the same name already exists");
+                    Debug.LogError("Cannot rename category: a category with the same name already exists");
                 }
             }
             else
             {
-                Debug.LogError("Can't change name, category not found");
+                Debug.LogError("Cannot rename category: category not found");
             }
 
             return false;
@@ -1769,28 +1798,16 @@ namespace UnityEditor.VFX.UI
             return false;
         }
 
-        public void SetParametersOrder(VFXParameterController controller, int index)
+        // Moves the controller, whose category is already the destination one, right after "after", or last when "after" is null or in another category
+        public void MoveParameterAfter(VFXParameterController controller, VFXParameterController after)
         {
-            var orderedParameters = m_ParameterControllers
-                .Where(t => t.Value.isOutput == controller.isOutput && t.Value.model.category == controller.model.category)
-                .OrderBy(t => t.Value.order)
-                .Select(t => t.Value)
+            var orderedParameters = m_ParameterControllers.Values
+                .Where(x => x != controller && x.isOutput == controller.isOutput && x.model.category == controller.model.category)
+                .OrderBy(x => x.order)
                 .ToList();
 
-            int oldIndex = orderedParameters.IndexOf(controller);
-
-            if (oldIndex != -1)
-            {
-                orderedParameters.RemoveAt(oldIndex);
-
-                if (oldIndex < index)
-                    --index;
-            }
-
-            if (index < orderedParameters.Count)
-                orderedParameters.Insert(index, controller);
-            else
-                orderedParameters.Add(controller);
+            var afterIndex = after == null ? -1 : orderedParameters.IndexOf(after);
+            orderedParameters.Insert(afterIndex < 0 ? orderedParameters.Count : afterIndex + 1, controller);
 
             for (var i = 0; i < orderedParameters.Count; ++i)
             {
@@ -1905,7 +1922,7 @@ namespace UnityEditor.VFX.UI
 
                 parameter.ValidateNodes();
 
-                var newParameterController = new VFXParameterController(parameter, this) { order = m_ParameterControllers.Count };
+                var newParameterController = new VFXParameterController(parameter, this);
                 m_ParameterControllers[parameter] = newParameterController;
 
                 m_SyncedModels[model] = new List<VFXNodeController>();

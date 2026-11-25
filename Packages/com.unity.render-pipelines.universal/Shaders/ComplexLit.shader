@@ -38,6 +38,12 @@ Shader "Universal Render Pipeline/Complex Lit"
 
         [HDR] _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
+        [ToggleUI] _UseEmissionIntensity("Use Emission Intensity", Float) = 0.0
+        // Used only to serialize the LDR and HDR emissive color in the material UI,
+        // in the shader only the _EmissionColor should be used
+        [HideInInspector] _EmissionColorLDR("Color LDR", Color) = (1,1,1,1)
+        _EmissionIntensity("Emission Intensity", Float) = 1.0
+        _EmissionIntensityUnit("EmissionIntensity Unit", Int) = 0  // 0=Nits, 1=EV100
 
         _DetailMask("Detail Mask", 2D) = "white" {}
         _DetailAlbedoMapScale("Scale", Range(0.0, 2.0)) = 1.0
@@ -143,6 +149,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma multi_compile _ META_QUEST_LIGHTUNROLL
 #endif
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile _ _SHADOW_RECEIVER_NORMAL_BIAS
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _LIGHT_FALLOFF_QUADRATIC
@@ -159,6 +166,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             #pragma multi_compile_fragment _ _REFLECTION_PROBE_ATLAS
             #pragma multi_compile_fragment _ _SCREEN_SPACE_REFLECTION
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
+            #pragma multi_compile_fragment _ _SHADOWS_PCSS
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_fragment _ _SCREEN_SPACE_IRRADIANCE
             #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
@@ -213,8 +221,10 @@ Shader "Universal Render Pipeline/Complex Lit"
             ZTest LEqual
             ColorMask 0
             Cull[_Cull]
+            ZClip [_ZClip]
 
             HLSLPROGRAM
+            #define _SHADOW_CASTER_ZCLIP 1
             #pragma target 2.0
 
             // -------------------------------------
@@ -298,6 +308,7 @@ Shader "Universal Render Pipeline/Complex Lit"
             // -------------------------------------
             // Universal Pipeline keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile _ _SHADOW_RECEIVER_NORMAL_BIAS
             //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _REFLECTION_PROBE_BLENDING

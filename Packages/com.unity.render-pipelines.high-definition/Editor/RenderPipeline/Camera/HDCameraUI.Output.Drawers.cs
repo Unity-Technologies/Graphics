@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     k_ExpandedState,
                     FoldoutOption.Indent,
                     CED.Group(
-#if ENABLE_VR && ENABLE_XR_MANAGEMENT
+#if ENABLE_VR && (ENABLE_XR_MANAGEMENT || XR_FOUNDATION_7_0_0_OR_NEWER)
                         Drawer_SectionXRRendering,
 #endif
 #if ENABLE_MULTIPLE_DISPLAYS
@@ -51,7 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-#if ENABLE_VR && ENABLE_XR_MANAGEMENT
+#if ENABLE_VR && (ENABLE_XR_MANAGEMENT || XR_FOUNDATION_7_0_0_OR_NEWER)
             static void Drawer_SectionXRRendering(SerializedHDCamera p, Editor owner)
             {
                 EditorGUILayout.PropertyField(p.xrRendering, Styles.xrRenderingContent);

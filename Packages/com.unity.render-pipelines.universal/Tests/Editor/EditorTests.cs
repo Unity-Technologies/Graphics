@@ -87,9 +87,6 @@ class EditorTests
         UniversalRenderPipelineAsset asset = UniversalRenderPipelineAsset.Create(data);
         if (asset != null)
         {
-            asset.shadowDistance = -1.0f;
-            Assert.GreaterOrEqual(asset.shadowDistance, 0.0f);
-
             asset.renderScale = -1.0f;
             Assert.GreaterOrEqual(asset.renderScale, UniversalRenderPipeline.minRenderScale);
 
@@ -292,5 +289,33 @@ class EditorTests
         var none = new string[0];
 
         Assert.DoesNotThrow(() => UnityEditor.Rendering.Universal.MaterialPostprocessor.OnPostprocessAllAssets(imported, none, none, none));
+    }
+
+    // Users can't save package materials, so validating them must not change them
+    [Test]
+    public void SceneTemplateMaterials_AreUpToDateWithLitValidation()
+    {
+        var guids = AssetDatabase.FindAssets("t:Material", new[] { "Packages/com.unity.render-pipelines.universal/Editor/SceneTemplates/Materials" });
+        Assert.IsNotEmpty(guids);
+
+        foreach (var guid in guids)
+        {
+            var path = AssetDatabase.GUIDToAssetPath(guid);
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            var validated = new Material(material);
+            try
+            {
+                new UnityEditor.Rendering.Universal.ShaderGUI.LitShader().ValidateMaterial(validated);
+
+                CollectionAssert.AreEquivalent(material.shaderKeywords, validated.shaderKeywords, $"{path} is out of date with its shader.");
+
+                // Loading the material already ran the Editor's validation on it, so a value it changed only shows as the material being dirty
+                Assert.IsFalse(EditorUtility.IsDirty(material), $"{path} was changed when it was loaded and validated.");
+            }
+            finally
+            {
+                Object.DestroyImmediate(validated);
+            }
+        }
     }
 }

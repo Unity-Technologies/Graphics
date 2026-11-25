@@ -6,6 +6,29 @@ using Unity.Mathematics;
 
 namespace UnityEngine.Rendering.Universal
 {
+    struct ZBinMapping
+    {
+        public float scale;
+        public float offset;
+        public int binCount;
+        public bool isOrthographic;
+
+        // Widens ranges slightly so CPU/GPU log2 rounding at a bin edge cannot drop the edge bin.
+        const float k_EdgeBias = 1e-3f;
+
+        // Clamped to [-1, binCount] so depths outside the bins yield empty bin spans.
+        public int ToBin(float z, float bias)
+        {
+            var bin = (isOrthographic ? z : math.log2(z)) * scale + offset + bias;
+            return (int)math.clamp(bin, -1f, binCount);
+        }
+
+        // An empty or non-finite depth range, e.g. an item entirely closer than the near plane or a light with a broken transform,
+        // gives an empty bin span without evaluating log2.
+        public int2 ToBins(float2 minMaxZ) =>
+            !math.all(math.isfinite(minMaxZ)) || minMaxZ.x > minMaxZ.y ? math.int2(0, -1) : math.int2(ToBin(minMaxZ.x, -k_EdgeBias), ToBin(minMaxZ.y, k_EdgeBias));
+    }
+
     [BurstCompile(FloatMode = FloatMode.Fast, DisableSafetyChecks = true, OptimizeFor = OptimizeFor.Performance)]
     struct ZBinningJob : IJobFor
     {
@@ -14,15 +37,14 @@ namespace UnityEngine.Rendering.Universal
 
         public const int headerLength = 2;
 
+        // A header whose min index is above its max index, which the shader iterates as empty.
+        public const uint emptyHeader = ushort.MaxValue;
+
         [NativeDisableParallelForRestriction]
         public NativeArray<uint> bins;
 
         [ReadOnly]
-        public NativeArray<float2> minMaxZs;
-
-        public float zBinScale;
-
-        public float zBinOffset;
+        public NativeArray<int2> minMaxZBins;
 
         public int binCount;
 
@@ -35,8 +57,6 @@ namespace UnityEngine.Rendering.Universal
         public int batchCount;
 
         public int viewCount;
-
-        public bool isOrthographic;
 
         static uint EncodeHeader(uint min, uint max)
         {
@@ -58,14 +78,16 @@ namespace UnityEngine.Rendering.Universal
 
             var binOffset = viewIndex * binCount;
 
-            var emptyHeader = EncodeHeader(ushort.MaxValue, ushort.MinValue);
             for (var binIndex = binStart; binIndex <= binEnd; binIndex++)
             {
-                bins[(binOffset + binIndex) * (headerLength + wordsPerTile) + 0] = emptyHeader;
-                bins[(binOffset + binIndex) * (headerLength + wordsPerTile) + 1] = emptyHeader;
+                var baseIndex = (binOffset + binIndex) * (headerLength + wordsPerTile);
+                bins[baseIndex + 0] = emptyHeader;
+                bins[baseIndex + 1] = emptyHeader;
+                for (var wordIndex = 0; wordIndex < wordsPerTile; wordIndex++)
+                    bins[baseIndex + headerLength + wordIndex] = 0;
             }
 
-            // Regarding itemOffset: minMaxZs contains [lights view 0, lights view 1, probes view 0, probes view 1] when
+            // Regarding itemOffset: minMaxZBins contains [lights view 0, lights view 1, probes view 0, probes view 1] when
             // using XR single pass instanced, and otherwise [lights, probes]. So we figure out what the offset is based
             // on the view count and index.
 
@@ -80,9 +102,9 @@ namespace UnityEngine.Rendering.Universal
         {
             for (var index = itemStart; index < itemEnd; index++)
             {
-                var minMax = minMaxZs[itemOffset + index];
-                var minBin = math.max((int)((isOrthographic ? minMax.x : math.log2(minMax.x)) * zBinScale + zBinOffset), binStart);
-                var maxBin = math.min((int)((isOrthographic ? minMax.y : math.log2(minMax.y)) * zBinScale + zBinOffset), binEnd);
+                var minMax = minMaxZBins[itemOffset + index];
+                var minBin = math.max(minMax.x, binStart);
+                var maxBin = math.min(minMax.y, binEnd);
 
                 var wordIndex = index / 32;
                 var bitMask = 1u << (index % 32);

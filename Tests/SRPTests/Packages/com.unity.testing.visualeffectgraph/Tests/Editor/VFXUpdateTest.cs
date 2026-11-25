@@ -71,7 +71,7 @@ namespace UnityEditor.VFX.Update
             if (alreadySigned)
                 Assert.Ignore("Package is already signed.");
 
-            //See GetFirstValueForARGV("organization-id") in Modules/AssetPackageEditor/AssetPackage.cpp
+            //See GetFirstValueForARGV("organization-id") in Editor/Modules/AssetPackageEditor/AssetPackage.cpp
             string ownerOrgId = null;
             var args = Environment.GetCommandLineArgs();
             for (int i = 0; i < args.Length - 1; i++)

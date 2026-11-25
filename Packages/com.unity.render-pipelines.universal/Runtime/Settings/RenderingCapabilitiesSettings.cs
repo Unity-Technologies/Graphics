@@ -7,12 +7,12 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     /// <remarks>
     /// To change those settings, go to Editor > Project Settings in the Graphics tab (URP).
-    /// Changing this through the API is only allowed in the Editor. In the Player, this raises an error.
+    /// URP reads them every frame, so they can also change at runtime, in the Editor and in the Player.
     /// </remarks>
     /// <seealso cref="IRenderPipelineGraphicsSettings"/>
     [Serializable]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-    [Categorization.CategoryInfo(Name = "Rendering Capabilities", Order = 30), HideInInspector]
+    [Categorization.CategoryInfo(Name = "Rendering Capabilities", Order = 30)]
     [Categorization.ElementInfo(Order = 0)]
     public class RenderingCapabilitiesSettings : IRenderPipelineGraphicsSettings
     {
@@ -33,38 +33,36 @@ namespace UnityEngine.Rendering.Universal
 
         #region SerializeFields
         [SerializeField]
-        [Tooltip("Developer Mode only, work in progress. Declares URP's global shader variables as a constant buffer instead of loose uniforms, on all graphics APIs. Warning, this currently costs more memory and triggers a full shaders re-compilation.")]
-        bool m_UseGlobalConstantBuffer = false;
+        [Tooltip("When enabled, URP binds its global shader variables as a persistent constant buffer instead of letting the engine fill the buffer from loose uniforms. You can't change these variables with SetGlobal*, Material.Set*, a MaterialPropertyBlock, or ComputeShader.Set*. In render graph passes, use UniversalGlobalShaderData or Universal2DGlobalShaderData instead. OpenGL ES 3 (except on WebGL) and OpenGL Core always use loose uniforms.")]
+        bool m_UsePersistentGlobalConstantBuffer = false;
         #endregion
 
         #region Data Accessors
 
         /// <summary>
-        /// When enabled, URP declares its global shader variables as a constant buffer instead of loose uniforms,
-        /// by adding the URP_GLOBAL_CONSTANT_BUFFER shader define. The define is global and applies to every
-        /// graphics API. Work in progress.
+        /// Whether URP binds its global shader variables as a persistent constant buffer (the Use Persistent Global Constant
+        /// Buffer setting).
         /// </summary>
-        // KNOWN LIMITATION: the value is serialized in the project but read through a per-machine preference, so
-        // leaving Developer Mode strips a committed define and reimports every shader, and re-entering adds it back.
-        // Tolerable while nothing reads useGlobalConstantBuffer, but the gate has to go before the upload path lands:
-        // it is #if UNITY_EDITOR, so a player reads the field directly and a non-dev-mode build would ship
-        // loose-uniform shaders against a cbuffer-pushing runtime.
+        /// <remarks>
+        /// When enabled (persistent mode), URP binds its global constant buffer itself, and scripts can't change its variables
+        /// with `SetGlobal*`, `Material.Set*`, a `MaterialPropertyBlock`, or `ComputeShader.Set*`. Render graph passes change
+        /// them through <see cref="UnityEngine.Experimental.Rendering.UniversalGlobalShaderData"/> or
+        /// <see cref="UnityEngine.Experimental.Rendering.Universal2DGlobalShaderData"/>, which work in both modes.
+        /// When disabled (transient mode), the engine fills the buffer from URP loose uniforms. Both modes use the same
+        /// shaders, so changing this setting doesn't recompile shaders. OpenGL ES 3 (except on WebGL) and OpenGL Core always
+        /// use loose uniforms.
+        /// </remarks>
         public bool useGlobalConstantBuffer
         {
-            get
+            get => m_UsePersistentGlobalConstantBuffer;
+            set
             {
 #if UNITY_EDITOR
-                // Outside of Developer Mode the feature is hidden and treated as off,
-                // so a value set in dev mode doesn't accidentally affect normal editor sessions.
-                // Must be Unsupported.IsDeveloperMode(), the same source the inspector uses to decide whether to
-                // ignore HideInInspector: EditorPrefs.GetBool("DeveloperMode") defaults to false, while the native
-                // side defaults it to "is this a source build", so on a source build the toggle would show but read off.
-                if (!UnityEditor.Unsupported.IsDeveloperMode())
-                    return false;
+                this.SetValueAndNotify(ref m_UsePersistentGlobalConstantBuffer, value);
+#else
+                m_UsePersistentGlobalConstantBuffer = value;
 #endif
-                return m_UseGlobalConstantBuffer;
             }
-            set => this.SetValueAndNotify(ref m_UseGlobalConstantBuffer, value);
         }
 
         #endregion

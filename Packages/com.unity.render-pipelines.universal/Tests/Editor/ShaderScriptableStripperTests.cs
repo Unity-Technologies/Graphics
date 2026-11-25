@@ -237,6 +237,7 @@ namespace ShaderStrippingAndPrefiltering
             TestStripUnusedPass_XR(shader);
             TestStripUnusedPass_ShadowCaster(shader);
             TestStripUnusedPass_Decals(shader);
+            TestStripUnusedPass_RenderingLayerMask2D(shader);
         }
 
         public void TestStripUnusedPass_2D(Shader shader)
@@ -296,6 +297,25 @@ namespace ShaderStrippingAndPrefiltering
             helper.data.passName = ShaderScriptableStripper.kPassNameXRFinalPost;
             helper.IsTrue(helper.stripper.StripUnusedPass_XRFinalPost(ref helper.data));
             helper.IsTrue(helper.stripper.StripUnusedPass(ref helper.data));
+        }
+
+        public void TestStripUnusedPass_RenderingLayerMask2D(Shader shader)
+        {
+            TestHelper helper;
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.passName = ShaderScriptableStripper.kPassNameRenderingLayerMask2D;
+            helper.IsTrue(helper.stripper.StripUnusedPass_RenderingLayerMask2D(ref helper.data));
+            helper.IsTrue(helper.stripper.StripUnusedPass(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.LightLayers);
+            helper.data.passName = ShaderScriptableStripper.kPassNameRenderingLayerMask2D;
+            helper.IsFalse(helper.stripper.StripUnusedPass_RenderingLayerMask2D(ref helper.data));
+            helper.IsFalse(helper.stripper.StripUnusedPass(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.passName = ShaderScriptableStripper.kPassNameUniversal2D;
+            helper.IsFalse(helper.stripper.StripUnusedPass_RenderingLayerMask2D(ref helper.data));
         }
 
         public void TestStripUnusedPass_ShadowCaster(Shader shader)
@@ -502,6 +522,7 @@ namespace ShaderStrippingAndPrefiltering
             StripInvalidVariants_TerrainHoles(shader, expectedTerrainHoles, expectedTerrainHolesWithAlphaTestOn);
             TestStripInvalidVariants_Shadows(shader, expectedSoftShadows);
             TestStripInvalidVariants_AdditionalLights(shader);
+            TestStripInvalidVariants_GTAODepthSource(shader);
         }
 
         public void TestStripInvalidVariants_HDR(Shader shader)
@@ -687,6 +708,54 @@ namespace ShaderStrippingAndPrefiltering
             helper.AreEqual(shader != null, helper.stripper.StripInvalidVariants_AdditionalLights(ref helper.data));
         }
 
+        public void TestStripInvalidVariants_GTAODepthSource(Shader shader)
+        {
+            bool isCorrectShader = shader == Shader.Find("Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion");
+            TestHelper helper;
+            string depthNormalsKeyword = ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthNormalsKeyword;
+            string[] gtaoKeywords =
+            {
+                ScreenSpaceAmbientOcclusionKeywords.k_GTAOModeKeyword,
+                ScreenSpaceAmbientOcclusionKeywords.k_GTAODepthPyramidKeyword,
+            };
+            string[] reconstructedNormalsKeywords =
+            {
+                ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthLowKeyword,
+                ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthMediumKeyword,
+                ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthHighKeyword,
+            };
+
+            foreach (var gtaoKeyword in gtaoKeywords)
+            {
+                // Invalid: GTAO with a reconstructed normals source
+                foreach (var sourceKeyword in reconstructedNormalsKeywords)
+                {
+                    helper = new TestHelper(shader, ShaderFeatures.None);
+                    helper.data.IsHDRShaderVariantValid = true;
+                    TestHelper.s_EnabledKeywords = new List<string> { gtaoKeyword, sourceKeyword };
+                    helper.AreEqual(isCorrectShader, helper.stripper.StripInvalidVariants_GTAODepthSource(ref helper.data));
+                    helper.AreEqual(isCorrectShader, helper.stripper.StripInvalidVariants(ref helper.data));
+                }
+
+                // Valid: GTAO with the normals texture
+                helper = new TestHelper(shader, ShaderFeatures.None);
+                helper.data.IsHDRShaderVariantValid = true;
+                TestHelper.s_EnabledKeywords = new List<string> { gtaoKeyword, depthNormalsKeyword };
+                helper.IsFalse(helper.stripper.StripInvalidVariants_GTAODepthSource(ref helper.data));
+                helper.IsFalse(helper.stripper.StripInvalidVariants(ref helper.data));
+            }
+
+            // Valid: SSAO with a reconstructed normals source
+            foreach (var sourceKeyword in reconstructedNormalsKeywords)
+            {
+                helper = new TestHelper(shader, ShaderFeatures.None);
+                helper.data.IsHDRShaderVariantValid = true;
+                TestHelper.s_EnabledKeywords = new List<string> { sourceKeyword };
+                helper.IsFalse(helper.stripper.StripInvalidVariants_GTAODepthSource(ref helper.data));
+                helper.IsFalse(helper.stripper.StripInvalidVariants(ref helper.data));
+            }
+        }
+
         /*****************************************************
          * Unsupported Variants
          *****************************************************/
@@ -817,6 +886,7 @@ namespace ShaderStrippingAndPrefiltering
 
             TestStripUnusedFeatures_DebugDisplay(shader);
             TestStripUnusedFeatures_ScreenCoordOverride(shader);
+            TestStripUnusedFeatures_ReflectionProbeRotation(shader);
             TestStripUnusedFeatures_PunctualLightShadows(shader);
             TestStripUnusedFeatures_FoveatedRendering(shader);
             TestStripUnusedFeatures_DeferredRendering(shader);
@@ -824,6 +894,7 @@ namespace ShaderStrippingAndPrefiltering
             TestStripUnusedFeatures_AdditionalLightShadows(shader);
             TestStripUnusedFeatures_MixedLighting(shader);
             TestStripUnusedFeatures_SoftShadows(shader);
+            TestStripUnusedFeatures_PCSS(shader);
             TestStripUnusedFeatures_HDRGrading(shader);
             TestStripUnusedFeatures_UseFastSRGBLinearConversion(shader);
             TestStripUnusedFeatures_LightLayers(shader);
@@ -841,6 +912,7 @@ namespace ShaderStrippingAndPrefiltering
             TestStripUnusedFeatures_LightCookies(shader);
             TestStripUnusedFeatures_VolumetricFog(shader);
             TestStripUnusedFeatures_LightFalloffQuadratic(shader);
+            TestStripUnusedFeatures_ShadowReceiverNormalBias(shader);
             TestStripUnusedFeatures_ProbesVolumes(shader);
             TestStripUnusedFeatures_SHAuto(shader);
             TestStripUnusedFeatures_DataDrivenLensFlare(shader);
@@ -900,6 +972,50 @@ namespace ShaderStrippingAndPrefiltering
             TestHelper.s_EnabledKeywords = new List<string>() {ShaderKeywordStrings.SCREEN_COORD_OVERRIDE};
             TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.SCREEN_COORD_OVERRIDE};
             helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_ScreenCoordOverride(ref helper.data));
+        }
+
+        public void TestStripUnusedFeatures_ReflectionProbeRotation(Shader shader)
+        {
+            TestHelper helper;
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.stripReflectionProbeRotationVariants = false;
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_ReflectionProbeRotation(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.stripReflectionProbeRotationVariants = false;
+            TestHelper.s_EnabledKeywords = new List<string>() {ShaderKeywordStrings.ReflectionProbeRotation};
+            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.ReflectionProbeRotation};
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_ReflectionProbeRotation(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.stripReflectionProbeRotationVariants = false;
+            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.ReflectionProbeRotation};
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_ReflectionProbeRotation(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.stripReflectionProbeRotationVariants = true;
+            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.ReflectionProbeRotation};
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_ReflectionProbeRotation(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.stripReflectionProbeRotationVariants = true;
+            TestHelper.s_EnabledKeywords = new List<string>() {ShaderKeywordStrings.ReflectionProbeRotation};
+            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.ReflectionProbeRotation};
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_ReflectionProbeRotation(ref helper.data));
+
+            // A dynamic keyword resolves at runtime, so its single variant must be kept
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.stripReflectionProbeRotationVariants = false;
+            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.ReflectionProbeRotation};
+            TestHelper.s_DynamicKeywords = new List<string>() {ShaderKeywordStrings.ReflectionProbeRotation};
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_ReflectionProbeRotation(ref helper.data));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.data.stripReflectionProbeRotationVariants = true;
+            TestHelper.s_PassKeywords = new List<string>() {ShaderKeywordStrings.ReflectionProbeRotation};
+            TestHelper.s_DynamicKeywords = new List<string>() {ShaderKeywordStrings.ReflectionProbeRotation};
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_ReflectionProbeRotation(ref helper.data));
         }
 
         public void TestStripUnusedFeatures_PunctualLightShadows(Shader shader)
@@ -1408,6 +1524,52 @@ namespace ShaderStrippingAndPrefiltering
             helper = new TestHelper(shader, ShaderFeatures.SoftShadowsLow);
             helper.data.stripSoftShadowQualityLevels = true;
             helper.IsTrue(helper.stripper.StripUnusedFeatures_SoftShadowsQualityLevels(ref helper.data, ref helper.featureStripTool));
+        }
+
+        public void TestStripUnusedFeatures_PCSS(Shader shader)
+        {
+            TestHelper helper;
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_PCSS(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ShadowsPCSS, ShaderKeywordStrings.SoftShadows };
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_PCSS(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.ShadowsPCSS);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ShadowsPCSS, ShaderKeywordStrings.SoftShadows };
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_PCSS(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.ShadowsPCSS);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.SoftShadows };
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_PCSS(ref helper.data, ref helper.featureStripTool));
+
+            // PCSS is only set with the per-light soft shadow keyword
+            helper = new TestHelper(shader, ShaderFeatures.ShadowsPCSS);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ShadowsPCSS };
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_PCSS(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.ShadowsPCSS | ShaderFeatures.SoftShadowsHigh);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ShadowsPCSS, ShaderKeywordStrings.SoftShadowsHigh };
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_PCSS(ref helper.data, ref helper.featureStripTool));
+
+            // A dynamic soft shadow keyword resolves at runtime
+            helper = new TestHelper(shader, ShaderFeatures.ShadowsPCSS);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ShadowsPCSS };
+            TestHelper.s_DynamicKeywords = new List<string>() { ShaderKeywordStrings.SoftShadows };
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_PCSS(ref helper.data, ref helper.featureStripTool));
+
+            // GL doesn't support PCSS, so only its off variant remains
+            helper = new TestHelper(shader, ShaderFeatures.ShadowsPCSS);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ShadowsPCSS, ShaderKeywordStrings.SoftShadows };
+            helper.data.isGLDevice = true;
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_PCSS(ref helper.data, ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.ShadowsPCSS);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.SoftShadows };
+            helper.data.isGLDevice = true;
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_PCSS(ref helper.data, ref helper.featureStripTool));
         }
 
         public void TestStripUnusedFeatures_HDRGrading(Shader shader)
@@ -2462,6 +2624,29 @@ namespace ShaderStrippingAndPrefiltering
             TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.LightFalloffQuadratic };
             TestHelper.s_PassKeywords = new List<string>() { ShaderKeywordStrings.LightFalloffQuadratic };
             helper.IsFalse(helper.stripper.StripUnusedFeatures_LightFalloffQuadratic(ref helper.featureStripTool));
+        }
+
+        public void TestStripUnusedFeatures_ShadowReceiverNormalBias(Shader shader)
+        {
+            TestHelper helper;
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            TestHelper.s_PassKeywords = new List<string>() { ShaderKeywordStrings.ShadowReceiverNormalBias };
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_ShadowReceiverNormalBias(ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.None);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ShadowReceiverNormalBias };
+            TestHelper.s_PassKeywords = new List<string>() { ShaderKeywordStrings.ShadowReceiverNormalBias };
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_ShadowReceiverNormalBias(ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.ShadowReceiverNormalBias);
+            TestHelper.s_PassKeywords = new List<string>() { ShaderKeywordStrings.ShadowReceiverNormalBias };
+            helper.AreEqual(shader != null, helper.stripper.StripUnusedFeatures_ShadowReceiverNormalBias(ref helper.featureStripTool));
+
+            helper = new TestHelper(shader, ShaderFeatures.ShadowReceiverNormalBias);
+            TestHelper.s_EnabledKeywords = new List<string>() { ShaderKeywordStrings.ShadowReceiverNormalBias };
+            TestHelper.s_PassKeywords = new List<string>() { ShaderKeywordStrings.ShadowReceiverNormalBias };
+            helper.IsFalse(helper.stripper.StripUnusedFeatures_ShadowReceiverNormalBias(ref helper.featureStripTool));
         }
 
         public void TestStripUnusedFeatures_ProbesVolumes(Shader shader)

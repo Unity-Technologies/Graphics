@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
 using System.Collections.ObjectModel;
+using System.Globalization;
 
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -555,6 +557,26 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        /// <summary>
+        /// Builds the name given to a new parameter of a type, such as "New Vector 3".
+        /// </summary>
+        /// <param name="type">The type of the parameter.</param>
+        /// <returns>The default exposed name for <paramref name="type"/>.</returns>
+        public static string GetDefaultExposedName(Type type)
+        {
+            return $"New {ObjectNames.NicifyVariableName(type.UserFriendlyName())}";
+        }
+
+        /// <summary>
+        /// Makes a parameter name unique among the parameters of the graph.
+        /// </summary>
+        /// <param name="viewController">The controller of the graph whose parameter names are taken.</param>
+        /// <param name="candidateName">The wanted name.</param>
+        /// <param name="maxLength">The maximum length of the result, or 0 for no limit.</param>
+        /// <returns>
+        /// The unique name. See <see cref="MakeNameUnique(string, HashSet{string}, bool, int, List{string})"/> for the
+        /// counter format.
+        /// </returns>
         public static string MakeNameUnique(VFXViewController viewController, string candidateName, int maxLength = 0)
         {
             var allNames = new HashSet<string>(viewController.parameterControllers.Select(t => t.exposedName), StringComparer.OrdinalIgnoreCase);
@@ -562,73 +584,144 @@ namespace UnityEditor.VFX.UI
             return MakeNameUnique(candidateName, allNames, true, maxLength, null);
         }
 
+        /// <summary>
+        /// Makes a name unique among <paramref name="allNames"/> by adding or incrementing a counter at its end.
+        /// </summary>
+        /// <remarks>
+        /// When <paramref name="allowSpace"/> is true, the counter is written " (N)": "Speed" becomes "Speed (1)" and
+        /// "Speed (1)" becomes "Speed (2)".
+        /// Other trailing digits are part of the name, so "New Vector 3" becomes "New Vector 3 (1)".
+        /// When <paramref name="allowSpace"/> is false, the name must stay an identifier and the counter is written
+        /// "_N".
+        /// </remarks>
+        /// <param name="name">
+        /// The wanted name. When <paramref name="allowSpace"/> is true, leading and trailing whitespace is removed.
+        /// Identifiers keep their leading and trailing underscores.
+        /// </param>
+        /// <param name="allNames">The names already taken. Callers pass a set that ignores case.</param>
+        /// <param name="allowSpace">
+        /// True for names that can contain spaces, such as parameter and category names. False for identifiers.
+        /// </param>
+        /// <param name="maxLength">
+        /// The maximum length of the result, or 0 for no limit. A longer name is cut and always gets a counter, and the
+        /// name is cut so that it fits with its counter. When a counter is too long for any of the name to fit with it,
+        /// the number at the end is kept as part of the name and counting starts again at 1.
+        /// </param>
+        /// <param name="rejectedCandidateNames">
+        /// When set, receives each name with a counter that was tried, including the returned one.
+        /// </param>
+        /// <returns>
+        /// The unique name, or null when <paramref name="name"/> only contains whitespace, or only underscores for an
+        /// identifier.
+        /// </returns>
         public static string MakeNameUnique(string name, HashSet<string> allNames, bool allowSpace = true, int maxLength = 0, List<string> rejectedCandidateNames = null)
         {
             if (string.IsNullOrEmpty(name))
             {
                 name = "parameter";
             }
-            string candidateName = name.Trim(allowSpace ? ' ' : '_');
-            if (candidateName.Length < 1)
+            string candidateName = allowSpace ? name.Trim() : name;
+            if ((allowSpace ? candidateName : candidateName.Trim('_')).Length == 0)
             {
                 return null;
             }
-            bool forceSuffix = false;
-            if (maxLength > 0 && candidateName.Length > maxLength)
-            {
-                candidateName = candidateName.Substring(0, maxLength);
-                forceSuffix = true;
-            }
-            string candidateMainPart = null;
-            int cpt = 0;
-            while (forceSuffix || allNames.Contains(candidateName))
-            {
-                forceSuffix = false;
-                if (candidateMainPart == null)
-                {
-                    int spaceIndex = candidateName.LastIndexOf(allowSpace ? ' ' : '_');
-                    if (spaceIndex == -1)
-                    {
-                        candidateMainPart = candidateName;
-                    }
-                    else
-                    {
-                        if (int.TryParse(candidateName.Substring(spaceIndex + 1), out cpt)) // spaceIndex can't be last char because of Trim()
-                        {
-                            candidateMainPart = candidateName.Substring(0, spaceIndex);
-                        }
-                        else
-                        {
-                            candidateMainPart = candidateName;
-                        }
-                    }
-                }
-                ++cpt;
 
-                // Do not exceed the character count limit when appending a suffix
-                var suffix = allowSpace ? $" {cpt}" : $"_{cpt}";
-                if (maxLength > 0)
+            bool isCut = maxLength > 0 && candidateName.Length > maxLength;
+            if (isCut)
+                candidateName = candidateName.Substring(0, maxLength);
+            else if (!allNames.Contains(candidateName))
+                return candidateName;
+
+            string wholeName = candidateName;
+            (string mainPart, BigInteger counter) = SplitCounter(wholeName, allowSpace);
+            do
+            {
+                ++counter;
+                candidateName = AppendCounter(mainPart, counter, allowSpace, maxLength);
+                if (candidateName == null)
                 {
-                    var maxMainPartLength = Math.Max(0, (int)maxLength - suffix.Length);
-                    candidateName = $"{candidateMainPart.Substring(0, Math.Min(candidateMainPart.Length, maxMainPartLength))}{suffix}";
-                }
-                else
-                {
-                    candidateName = $"{candidateMainPart}{suffix}";
+                    mainPart = wholeName;
+                    counter = BigInteger.One;
+                    candidateName = AppendCounter(mainPart, counter, allowSpace, maxLength);
                 }
                 rejectedCandidateNames?.Add(candidateName);
             }
+            while (allNames.Contains(candidateName));
 
             return candidateName;
         }
 
-        public void CheckNameUnique(HashSet<string> allNames)
+        /// <summary>
+        /// Writes the counter read by <see cref="SplitCounter"/> at the end of a name.
+        /// </summary>
+        /// <param name="mainPart">The name without a counter.</param>
+        /// <param name="counter">The counter to write.</param>
+        /// <param name="allowSpace">True to write a " (N)" counter, false to write a "_N" counter.</param>
+        /// <param name="maxLength">
+        /// The maximum length of the result, or 0 for no limit. <paramref name="mainPart"/> is cut so that it fits with
+        /// the counter. When <paramref name="allowSpace"/> is true, whitespace left at the end of the cut is removed.
+        /// </param>
+        /// <returns>
+        /// The name with its counter, or null when the counter leaves no room for any of <paramref name="mainPart"/>.
+        /// </returns>
+        static string AppendCounter(string mainPart, BigInteger counter, bool allowSpace, int maxLength)
         {
-            string candidateName = MakeNameUnique(base.model.exposedName, allNames, false, kMaxExposedNameLength);
-            if (candidateName != base.model.exposedName)
+            string digits = counter.ToString(CultureInfo.InvariantCulture);
+            string suffix = allowSpace ? $" ({digits})" : $"_{digits}";
+            if (maxLength > 0)
             {
-                model.SetSettingValue("m_ExposedName", candidateName);
+                int mainLength = maxLength - suffix.Length;
+                if (mainLength < Math.Min(1, mainPart.Length))
+                {
+                    return null;
+                }
+
+                if (mainPart.Length > mainLength)
+                {
+                    mainPart = mainPart.Substring(0, mainLength);
+                    if (allowSpace)
+                    {
+                        mainPart = mainPart.TrimEnd();
+                    }
+                }
             }
+
+            return mainPart + suffix;
+        }
+
+        /// <summary>
+        /// Splits the counter written by <see cref="MakeNameUnique(string, HashSet{string}, bool, int, List{string})"/>
+        /// from the end of a name.
+        /// </summary>
+        /// <param name="name">
+        /// The name, without leading or trailing whitespace when <paramref name="allowSpace"/> is true.
+        /// </param>
+        /// <param name="allowSpace">True to read a " (N)" counter, false to read a "_N" counter.</param>
+        /// <returns>
+        /// The name without its counter, and the counter, or 0 when <paramref name="name"/> has none.
+        /// </returns>
+        static (string mainPart, BigInteger counter) SplitCounter(string name, bool allowSpace)
+        {
+            if (allowSpace)
+            {
+                int openIndex = name.LastIndexOf(" (", StringComparison.Ordinal);
+                if (openIndex != -1 && name[name.Length - 1] == ')')
+                {
+                    int digitsIndex = openIndex + 2;
+                    string digits = name.Substring(digitsIndex, name.Length - 1 - digitsIndex);
+
+                    if (BigInteger.TryParse(digits, NumberStyles.None, CultureInfo.InvariantCulture, out BigInteger counter))
+                        return (name.Substring(0, openIndex), counter);
+                }
+            }
+            else
+            {
+                int separatorIndex = name.LastIndexOf('_');
+                if (separatorIndex != -1 && BigInteger.TryParse(name.Substring(separatorIndex + 1), NumberStyles.None, CultureInfo.InvariantCulture, out BigInteger counter))
+                    return (name.Substring(0, separatorIndex), counter);
+            }
+
+            return (name, BigInteger.Zero);
         }
 
         public string exposedName

@@ -22,7 +22,6 @@ Shader "Unlit/UITKShaders/Pixelation"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            #pragma multi_compile _ _UIE_OUTPUT_LINEAR
 
             #include "UnityCG.cginc"
             #include "UnityUIEFilter.cginc"
@@ -81,9 +80,8 @@ Shader "Unlit/UITKShaders/Pixelation"
                 half4 col = tex2D(_MainTex, uv);
 
                 // Force-gamma workflow: the last filter pass must output linear.
-                #if _UIE_OUTPUT_LINEAR
-                col.rgb = GammaToLinearSpace(col.rgb);
-                #endif
+                if (UIEFilterOutputsLinear())
+                    col.rgb = GammaToLinearSpace(col.rgb);
 
                 return col;
             }

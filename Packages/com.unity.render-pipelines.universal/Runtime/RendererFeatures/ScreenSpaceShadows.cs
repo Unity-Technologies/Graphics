@@ -73,6 +73,8 @@ namespace UnityEngine.Rendering.Universal
 
                 renderer.EnqueuePass(m_SSShadowsPass);
                 renderer.EnqueuePass(m_SSShadowsPostPass);
+                // The resolve pass reconstructs the receiver from depth without a normal, so the receiver normal bias never reaches it
+                renderingData.shadowData.mainLightReceiverNormalBiasSkipped = true;
             }
         }
 

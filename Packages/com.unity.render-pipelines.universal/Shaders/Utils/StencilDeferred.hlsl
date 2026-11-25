@@ -85,7 +85,7 @@ Varyings Vertex(Attributes input)
 float4x4 _ScreenToWorld[2];
 
 float3 _LightPosWS;
-half3 _LightColor;
+float3 _LightColor;
 half4 _LightAttenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation *for SpotLights)
 half3 _LightDirection;   // directional/spotLights support
 half4 _LightOcclusionProbInfo;
@@ -113,7 +113,7 @@ struct PunctualLightData
     uint layerMask;             // Optional light layer mask
 };
 
-Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData punctualLightData, float3 positionWS, half4 shadowMask, int shadowLightIndex, bool materialFlagReceiveShadowsOff, half3 normalWS = half3(0.0, 0.0, 0.0))
+Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData punctualLightData, float3 positionWS, half4 shadowMask, int shadowLightIndex, bool materialFlagReceiveShadowsOff, half3 normalWS = half3(0.0, 0.0, 0.0), float2 positionSS = INVALID_SHADOW_SCREEN_POS)
 {
     // Keep in sync with GetAdditionalPerObjectLight in Lighting.hlsl
 
@@ -148,7 +148,7 @@ Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData pun
         light.shadowAttenuation = 1.0;
     else
     {
-        light.shadowAttenuation = AdditionalLightShadow(shadowLightIndex, positionWS, lightDirection, shadowMask, punctualLightData.occlusionProbeInfo, !materialFlagReceiveShadowsOff, normalWS);
+        light.shadowAttenuation = AdditionalLightShadow(shadowLightIndex, positionWS, lightDirection, shadowMask, punctualLightData.occlusionProbeInfo, !materialFlagReceiveShadowsOff, normalWS, positionSS);
     }
 
     light.layerMask = punctualLightData.layerMask;
@@ -182,7 +182,7 @@ half4 SampleAdditionalLightCookieDeferred(int perObjectLightIndex, float3 sample
     return cookieColor;
 }
 
-Light GetStencilLight(float3 posWS, float2 screen_uv, half4 shadowMask, uint materialFlags, half3 normalWS)
+Light GetStencilLight(float3 posWS, float2 screen_uv, half4 shadowMask, uint materialFlags, half3 normalWS, float2 positionSS)
 {
     Light unityLight;
 
@@ -202,7 +202,7 @@ Light GetStencilLight(float3 posWS, float2 screen_uv, half4 shadowMask, uint mat
                 if (MainLightShadowsAvailable())
                     shadowCoord = MainLightScreenShadowsAvailable() ? float4(screen_uv, 0.0, 1.0) : TransformWorldToShadowCoord(posWS.xyz, false, normalWS);
 
-                unityLight.shadowAttenuation = MainLightShadow(shadowCoord, posWS.xyz, shadowMask, _MainLightOcclusionProbes, !materialReceiveShadowsOff, false);
+                unityLight.shadowAttenuation = MainLightShadow(shadowCoord, posWS.xyz, shadowMask, _MainLightOcclusionProbes, !materialReceiveShadowsOff, false, positionSS);
             }
 
             real3 cookieColor = SampleMainLightCookie(posWS);
@@ -218,7 +218,7 @@ Light GetStencilLight(float3 posWS, float2 screen_uv, half4 shadowMask, uint mat
 
             if (!materialReceiveShadowsOff)
             {
-                unityLight.shadowAttenuation = AdditionalLightShadow(_ShadowLightIndex, posWS.xyz, _LightDirection, shadowMask, _LightOcclusionProbInfo, !materialReceiveShadowsOff, normalWS);
+                unityLight.shadowAttenuation = AdditionalLightShadow(_ShadowLightIndex, posWS.xyz, _LightDirection, shadowMask, _LightOcclusionProbInfo, !materialReceiveShadowsOff, normalWS, positionSS);
             }
 
             // Enable/disable is done toggling the keyword _LIGHT_COOKIES, but we could do a "static if" instead if required.
@@ -239,7 +239,7 @@ Light GetStencilLight(float3 posWS, float2 screen_uv, half4 shadowMask, uint mat
         light.occlusionProbeInfo = _LightOcclusionProbInfo;
         light.flags = _LightFlags;
         light.layerMask = lightLayerMask;
-        unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, _ShadowLightIndex, materialReceiveShadowsOff, normalWS);
+        unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, _ShadowLightIndex, materialReceiveShadowsOff, normalWS, positionSS);
 
         // Enable/disable is done toggling the keyword _LIGHT_COOKIES, but we could do a "static if" instead if required.
         // if(_CookieLightIndex >= 0)
@@ -259,6 +259,9 @@ half4 DeferredShading(Varyings input) : SV_Target
 
     float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
 
+    // Raster position, read before the foveated remap below
+    float2 positionSS = input.positionCS.xy;
+
 #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
      float2 undistorted_screen_uv = screen_uv;
      UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
@@ -271,12 +274,6 @@ half4 DeferredShading(Varyings input) : SV_Target
 
     URP_LIGHT_ACCUM3 color = 0.0;
     half alpha = 1.0;
-
-    #if defined(GBUFFER_FEATURE_SHADOWMASK)
-    // If both lights and geometry are static, then no realtime lighting to perform for this combination.
-    [branch] if ((_LightFlags & gBufferData.materialFlags) == kMaterialFlagSubtractiveMixedLighting)
-        return half4(color, alpha); // Cannot discard because stencil must be updated.
-    #endif
 
     #if defined(SUPPORTS_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
      UNITY_BRANCH if (_FOVEATED_RENDERING_NON_UNIFORM_RASTER)
@@ -292,9 +289,16 @@ half4 DeferredShading(Varyings input) : SV_Target
     #endif
     float4 posWS = mul(_ScreenToWorld[eyeIndex], float4(input.positionCS.xy, gBufferData.depth, 1.0));
     posWS.xyz *= rcp(posWS.w);
+    half3 geometricNormalWS = half3(SafeNormalize(cross(ddy(posWS.xyz), ddx(posWS.xyz))));
+    geometricNormalWS *= half(FastSign(dot(geometricNormalWS, GetWorldSpaceViewDir(posWS.xyz))));
 
-    // The GBuffer carries no geometric normal, so the shading normal drives the receiver normal bias
-    Light unityLight = GetStencilLight(posWS.xyz, screen_uv, gBufferData.shadowMask, gBufferData.materialFlags, gBufferData.normalWS);
+    #if defined(GBUFFER_FEATURE_SHADOWMASK)
+    // If both lights and geometry are static, then no realtime lighting to perform for this combination.
+    [branch] if ((_LightFlags & gBufferData.materialFlags) == kMaterialFlagSubtractiveMixedLighting)
+        return half4(color, alpha); // Cannot discard because stencil must be updated.
+    #endif
+
+    Light unityLight = GetStencilLight(posWS.xyz, screen_uv, gBufferData.shadowMask, gBufferData.materialFlags, geometricNormalWS, positionSS);
 
     #if defined(GBUFFER_FEATURE_RENDERING_LAYERS)
     [branch] if (!IsMatchingLightLayer(unityLight.layerMask, gBufferData.meshRenderingLayers))
@@ -332,10 +336,10 @@ half4 DeferredShading(Varyings input) : SV_Target
         color = LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS, !materialSpecularHighlightsOff, false);
     #elif defined(_SIMPLELIT)
         SurfaceData surfaceData = GBufferDataToSurfaceData(gBufferData);
-        half3 attenuatedLightColor = unityLight.color * (unityLight.distanceAttenuation * unityLight.shadowAttenuation);
-        half3 diffuseColor = LightingLambert(attenuatedLightColor, unityLight.direction, inputData.normalWS);
+        URP_LIGHT_ACCUM3 attenuatedLightColor = unityLight.color * (unityLight.distanceAttenuation * unityLight.shadowAttenuation);
+        URP_LIGHT_ACCUM3 diffuseColor = LightingLambert(attenuatedLightColor, unityLight.direction, inputData.normalWS);
         half smoothness = exp2(10 * surfaceData.smoothness + 1);
-        half3 specularColor = LightingSpecular(attenuatedLightColor, unityLight.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), smoothness);
+        URP_LIGHT_ACCUM3 specularColor = LightingSpecular(attenuatedLightColor, unityLight.direction, inputData.normalWS, inputData.viewDirectionWS, half4(surfaceData.specular, 1), smoothness);
 
         // TODO: if !defined(_SPECGLOSSMAP) && !defined(_SPECULAR_COLOR), force specularColor to 0 in gbuffer code
         color = diffuseColor * surfaceData.albedo + specularColor;

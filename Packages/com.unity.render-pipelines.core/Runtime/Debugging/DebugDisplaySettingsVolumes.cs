@@ -78,7 +78,6 @@ namespace UnityEngine.Rendering
         }
 
         VolumeComponent m_VolumeInterpolatedResults;
-        private bool m_StoreStackInterpolatedValues;
         private ObservableList<Volume> m_InfluenceVolumes = new ();
         private List<(Volume volume, float weight)> m_VolumesWeights = new ();
 
@@ -104,45 +103,41 @@ namespace UnityEngine.Rendering
             return false;
         }
 
-        private void OnBeginVolumeStackUpdate(VolumeStack stack, Camera camera)
+#if UNITY_ENABLE_CHECKS
+        // Render pipelines set VolumeManager.instance.stack to the stack a camera renders with, so read it while
+        // that camera is still the current one. The stack can be shared between cameras, so copy its contents.
+        private void OnEndCameraRendering(ScriptableRenderContext context, Camera camera)
         {
-            if (camera == selectedCamera)
+            if (camera != selectedCamera || selectedComponentType == null)
+                return;
+
+            var stack = VolumeManager.instance.stack;
+            if (stack == null || !stack.isValid)
+                return;
+
+            ClearInterpolationData();
+            var contributions = stack.contributions;
+            for (int i = 0; i < contributions.Count; ++i)
             {
-                ClearInterpolationData();
-                m_StoreStackInterpolatedValues = selectedCamera != null && selectedComponentType != null;
+                if (contributions[i].volume != null)
+                    m_VolumesWeights.Add(contributions[i]);
             }
-        }
 
-        private void OnEndVolumeStackUpdate(VolumeStack stack, Camera camera)
-        {
-            if (m_StoreStackInterpolatedValues)
+            if (AreVolumesChanged(m_InfluenceVolumes, m_VolumesWeights))
             {
-                if (AreVolumesChanged(m_InfluenceVolumes, m_VolumesWeights))
-                {
-                    m_InfluenceVolumes.Clear();
-                    foreach (var pair in m_VolumesWeights)
-                        m_InfluenceVolumes.Add(pair.volume);
-                }
-
-                // Copy the results of the interpolation into our resulVolumeComponent
-                var componentInStack = stack.GetComponent(selectedComponentType);
-
-                for (int i = 0; i < componentInStack.parameters.Count; ++i)
-                {
-                    resultVolumeComponent.parameters[i].SetValue(componentInStack.parameters[i]);
-                }
-
-                m_StoreStackInterpolatedValues = false;
+                m_InfluenceVolumes.Clear();
+                foreach (var pair in m_VolumesWeights)
+                    m_InfluenceVolumes.Add(pair.volume);
             }
-        }
 
-        private void OnVolumeStackInterpolated(VolumeStack stack, Volume volume, float interpolationFactor)
-        {
-            if (m_StoreStackInterpolatedValues)
-            {
-                m_VolumesWeights.Add((volume, interpolationFactor));
-            }
+            var componentInStack = stack.GetComponent(selectedComponentType);
+            if (componentInStack == null)
+                return;
+
+            for (int i = 0; i < componentInStack.parameters.Count; ++i)
+                resultVolumeComponent.parameters[i].SetValue(componentInStack.parameters[i]);
         }
+#endif
 
         /// <summary>
         /// Obtains the volume weight
@@ -178,10 +173,8 @@ namespace UnityEngine.Rendering
         void IDebugDisplaySettingsData.Reset()
         {
 #if UNITY_ENABLE_CHECKS
-            VolumeManager.instance.overrideVolumeStackData -= OnVolumeStackInterpolated;
-            VolumeManager.instance.beginVolumeStackUpdate -= OnBeginVolumeStackUpdate;
-            VolumeManager.instance.endVolumeStackUpdate -= OnEndVolumeStackUpdate;
-            VolumeManager.instance.renderingDebuggerAttached = false;
+            RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
+            VolumeManager.instance.recordVolumeContributions = false;
 #endif
 
             ClearInterpolationData();
@@ -205,9 +198,7 @@ namespace UnityEngine.Rendering
         public DebugDisplaySettingsVolume()
         {
 #if UNITY_ENABLE_CHECKS
-            VolumeManager.instance.overrideVolumeStackData += OnVolumeStackInterpolated;
-            VolumeManager.instance.beginVolumeStackUpdate += OnBeginVolumeStackUpdate;
-            VolumeManager.instance.endVolumeStackUpdate += OnEndVolumeStackUpdate;
+            RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
 #endif
         }
 
@@ -572,8 +563,8 @@ namespace UnityEngine.Rendering
                 Func<bool> hiddenCallback = () =>
                 {
 #if UNITY_ENABLE_CHECKS
-                    VolumeManager.instance.renderingDebuggerAttached = data.selectedComponent > 0 && data.selectedCamera != null;
-                    return !VolumeManager.instance.renderingDebuggerAttached;
+                    VolumeManager.instance.recordVolumeContributions = data.selectedComponent > 0 && data.selectedCamera != null;
+                    return !VolumeManager.instance.recordVolumeContributions;
 #else
                     return true;
 #endif

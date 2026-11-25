@@ -14,11 +14,13 @@ namespace UnityEngine.PathTracing.Core
         internal enum Mode
         {
             Material,
-            Color
+            Color,
+            Texture
         }
 
-        private Material _material;
-        private Shader _lastUsedShader;
+        private Material _cubemapMaterial;
+        private Texture _texture;
+        private Shader _lastUsedCubemapShader;
         private LocalKeyword? _noSunKeyword;
         private Color[] _faceColors = new Color[6]
         {
@@ -73,7 +75,13 @@ namespace UnityEngine.PathTracing.Core
 
         public void SetMaterial(Material mat)
         {
-            _material = mat;
+            _cubemapMaterial = mat;
+        }
+
+        public void SetTexture(Texture cubemap)
+        {
+            Debug.Assert(cubemap == null || cubemap.dimension == TextureDimension.Cube);
+            _texture = cubemap;
         }
 
         public void SetColor(Color color)
@@ -94,7 +102,12 @@ namespace UnityEngine.PathTracing.Core
             _mode = mode;
         }
 
-        public Material GetMaterial() => _material;
+        public bool HasContent() => _mode switch
+        {
+            Mode.Material => _cubemapMaterial != null,
+            Mode.Texture => _texture != null,
+            _ => true
+        };
 
         Color LightColorInRenderingSpace(Light light)
         {
@@ -107,6 +120,14 @@ namespace UnityEngine.PathTracing.Core
         {
             viewAndProjectionMatricesChanged = false;
 
+            if (_mode == Mode.Texture)
+            {
+                _hash = _texture != null
+                    ? HashCode.Combine((int)_mode + 1, _texture.GetEntityId(), _texture.updateCount)
+                    : HashCode.Combine((int)_mode + 1);
+                return;
+            }
+
             int newHash = ((int)_mode) + 1;
             if (_mode == Mode.Color)
             {
@@ -116,13 +137,21 @@ namespace UnityEngine.PathTracing.Core
                 }
 
                 if (newHash != _hash)
+                {
+                    _colorMaterial ??= CoreUtils.CreateEngineMaterial(_solidColorShader);
+#if UNITY_EDITOR
+                    // The editor skips procedural draws while the shader compiles async, so keep the old hash and retry next frame
+                    if (RequestShaderCompilationIfNeeded(_colorMaterial, 1))
+                        return;
+#endif
                     RenderWithColor(cmd);
+                }
             }
             else if (_mode == Mode.Material)
             {
-                if (_material)
+                if (_cubemapMaterial)
                 {
-                    newHash = HashCode.Combine(newHash, _material.ComputeCRC());
+                    newHash = HashCode.Combine(newHash, _cubemapMaterial.ComputeCRC());
                     if (sun != null)
                     {
                         var color = LightColorInRenderingSpace(sun);
@@ -132,7 +161,20 @@ namespace UnityEngine.PathTracing.Core
                     }
 
                     if (newHash != _hash)
+                    {
+                        if (_lastUsedCubemapShader != _cubemapMaterial.shader)
+                        {
+                            var keyword = _cubemapMaterial.shader.keywordSpace.FindKeyword("_SUNDISK_NONE");
+                            _noSunKeyword = keyword.isValid ? keyword : null;
+                            _lastUsedCubemapShader = _cubemapMaterial.shader;
+                        }
+#if UNITY_EDITOR
+                        // Drawing while the shader compiles async would bake the placeholder shader into the cubemap
+                        if (RequestCubemapMaterialCompilationIfNeeded(_cubemapMaterial, _noSunKeyword))
+                            return;
+#endif
                         RenderWithMaterial(cmd, sun, resolution, out viewAndProjectionMatricesChanged);
+                    }
                 }
                 else
                 {
@@ -155,6 +197,8 @@ namespace UnityEngine.PathTracing.Core
 
         public Texture GetCubemap()
         {
+            if (_mode == Mode.Texture)
+                return _texture != null ? _texture : CoreUtils.blackCubeTexture;
             return _cubemap != null ? _cubemap : CoreUtils.blackCubeTexture;
         }
 
@@ -164,7 +208,9 @@ namespace UnityEngine.PathTracing.Core
 
             // Draw the color rather than ClearRenderTarget it: on some platforms a fast clear
             // collapses a non-{0,1} HDR clear color to ~white, while a fullscreen draw is exact.
-            _colorMaterial ??= CoreUtils.CreateEngineMaterial(_solidColorShader);
+#if UNITY_EDITOR
+            Debug.Assert(ShaderUtil.IsPassCompiled(_colorMaterial, 0) || !ShaderUtil.allowAsyncCompilation, "The solid color shader is expected to be compiled before drawing the environment cubemap.");
+#endif
             _colorProperties ??= new MaterialPropertyBlock();
 
             for (int faceIndex = 0; faceIndex < 6; ++faceIndex)
@@ -192,15 +238,8 @@ namespace UnityEngine.PathTracing.Core
                 properties.SetVector(Shader.PropertyToID("_WorldSpaceLightPos0"), new Vector4(0, 0, -1, 0));
             }
 
-            if (_lastUsedShader != _material.shader)
-            {
-                var keyword = _material.shader.keywordSpace.FindKeyword("_SUNDISK_NONE");
-                _noSunKeyword = keyword.isValid ? keyword : null;
-                _lastUsedShader = _material.shader;
-            }
-
             if (_noSunKeyword.HasValue)
-                cmd.EnableKeyword(_material, _noSunKeyword.Value);
+                cmd.EnableKeyword(_cubemapMaterial, _noSunKeyword.Value);
 
             for (int faceIndex = 0; faceIndex < 6; ++faceIndex)
             {
@@ -214,28 +253,56 @@ namespace UnityEngine.PathTracing.Core
                 cmd.SetViewport(new Rect(0, 0, _cubemap.width, _cubemap.height));
                 cmd.ClearRenderTarget(false, true, new Color(0, 0, 0, 1));
 
-#if UNITY_EDITOR
-                ShaderUtil.SetAsyncCompilation(cmd, false);
-#endif
-                if (_material.passCount == 6)
+                if (_cubemapMaterial.passCount == 6)
                 {
                     int passIndex = _cubeFaceToSkyboxPass[faceIndex];
-                    cmd.DrawMesh(_sixFaceSkyboxMesh, Matrix4x4.identity, _material, passIndex, passIndex, properties);
+                    cmd.DrawMesh(_sixFaceSkyboxMesh, Matrix4x4.identity, _cubemapMaterial, passIndex, passIndex, properties);
                 }
                 else
                 {
-                    cmd.DrawMesh(_skyboxMesh, Matrix4x4.identity, _material, 0, 0, properties);
+                    cmd.DrawMesh(_skyboxMesh, Matrix4x4.identity, _cubemapMaterial, 0, 0, properties);
                 }
-#if UNITY_EDITOR
-                ShaderUtil.RestoreAsyncCompilation(cmd);
-#endif
             }
 
             viewAndProjectionMatricesChanged = true;
 
             if (_noSunKeyword.HasValue)
-                cmd.DisableKeyword(_material, _noSunKeyword.Value);
+                cmd.DisableKeyword(_cubemapMaterial, _noSunKeyword.Value);
         }
+
+#if UNITY_EDITOR
+        // Requests compilation of the passes that are not compiled yet and returns whether any pass is still compiling
+        private static bool RequestShaderCompilationIfNeeded(Material material, int passCount)
+        {
+            if (!ShaderUtil.allowAsyncCompilation)
+                return false;
+
+            bool compiling = false;
+            for (int passIndex = 0; passIndex < passCount; ++passIndex)
+            {
+                if (ShaderUtil.IsPassCompiled(material, passIndex))
+                    continue;
+
+                ShaderUtil.CompilePass(material, passIndex);
+                compiling = true;
+            }
+            return compiling;
+        }
+
+        private static bool RequestCubemapMaterialCompilationIfNeeded(Material cubemapMaterial, LocalKeyword? noSunKeyword)
+        {
+            // Check the variant the draw uses, which has the no-sun keyword enabled
+            bool toggleKeyword = noSunKeyword.HasValue && !cubemapMaterial.IsKeywordEnabled(noSunKeyword.Value);
+            if (toggleKeyword)
+                cubemapMaterial.SetKeyword(noSunKeyword.Value, true);
+
+            bool compiling = RequestShaderCompilationIfNeeded(cubemapMaterial, cubemapMaterial.passCount == 6 ? 6 : 1);
+
+            if (toggleKeyword)
+                cubemapMaterial.SetKeyword(noSunKeyword.Value, false);
+            return compiling;
+        }
+#endif
 
         private void EnsureCubemapExistsWithParticularResolution(int resolution)
         {

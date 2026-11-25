@@ -296,6 +296,10 @@ namespace UnityEngine.Experimental.Rendering
         /// </summary>
         public IntPtr foveatedRenderingInfo { get; private set; }
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+        internal UnityEngine.XR.XRDisplaySubsystem.XRRenderPass xrSdkRenderPass { get; private set; }
+#endif
+
         /// <summary>
         /// Returns true when the active display has HDR enabled.
         /// </summary>
@@ -664,6 +668,9 @@ namespace UnityEngine.Experimental.Rendering
             xrLayoutType = createInfo.xrLayoutType;
             uvScales = createInfo.uvScales;
             uvOffsets = createInfo.uvOffsets;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            xrSdkRenderPass = createInfo.xrSdkRenderPass;
+#endif
         }
 
         internal void AddView(XRView xrView)

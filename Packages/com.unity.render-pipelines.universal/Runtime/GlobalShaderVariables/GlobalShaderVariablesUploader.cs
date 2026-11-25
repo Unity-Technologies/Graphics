@@ -1,10 +1,16 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
-    internal sealed class GlobalShaderVariablesUploader : IUniversalGlobalShaderVariablesUploader, IUniversal2DGlobalShaderVariablesUploader
+    // The renderers own one uploader each. Get() hands out a second instance of this class, a temporary copy of
+    // the renderer's one: same accessors, but its pushes are undone when it is disposed, see the "Temporary copies" section.
+    internal sealed class GlobalShaderVariablesUploader :
+        IUniversalGlobalShaderVariablesUploader, IUniversal2DGlobalShaderVariablesUploader,
+        IUniversalGlobalShaderVariablesTemporaryUploader, IUniversal2DGlobalShaderVariablesTemporaryUploader
     {
         // None of these vars depend on the target UV origin (y-flip), so a single default covers both backbuffer and offscreen rendering.
         // URP passes fill the default pre-Record, then we freeze the default and pass it as staging during the execute timeline between passes,
@@ -54,14 +60,41 @@ namespace UnityEngine.Rendering.Universal
 
         ////////////////////////////////////////////
 
+        /// Temporary copies only, see Get() ///
+
+        // The uploader this temporary copy was made from, null on the renderers' uploaders.
+        private readonly GlobalShaderVariablesUploader m_Parent;
+
+        // The temporary copy Get() hands out, reused from one pass to the next.
+        private GlobalShaderVariablesUploader m_Temporary;
+
+        // Between Get() and Dispose(). Dispose() records the restore on the command buffer of the last push,
+        // none until the first push, when there is nothing to put back.
+        private bool m_IsOpen;
+        private IBaseCommandBuffer m_TemporaryCmd;
+
+        // Loose uniforms: the variables the temporary copy pushed, which Dispose() pushes again from the parent.
+        private GlobalShaderVariablesDirty m_PushedByTemporary;
+
+        // Constant buffer: whether the temporary copy took the global slot, and which parent buffer held it at
+        // Get(), noted then because the temporary copy's pushes change the parent's state.
+        private bool m_TemporaryBoundGlobalSlot;
+        private bool m_ParentDefaultsWereBound;
+
+        // Constant buffer: what PushToCompute() binds, apart from the global slot so the other shaders never read it.
+        private ConstantBuffer<GlobalShaderVariables> m_ComputeConstantBuffer;
+
+        // The compute shaders PushToCompute() bound, unbound by Dispose(): their binding wins over the global slot.
+        private List<ComputeShader> m_BoundComputeShaders;
+
+        private const string k_TemporaryNotDisposed = "A temporary copy of the URP global shader variables wasn't disposed. Dispose the object that Get() returns before the render function returns, for example with a using statement.";
+
+        ////////////////////////////////////////////
+
         /// <summary>
         /// Determines whether to push a persistent constant buffer or to fill dynamic constant buffers with loose uniforms APIs (cmd.SetGlobalFloat, ...)
+        /// Set before each fill; the pipeline unbinds the slot when it leaves the persistent mode.
         /// </summary>
-        /// <remark>
-        /// Refreshed by the renderer every frame: the setting behind it can be toggled at any time in the Editor.
-        /// Switching mode is safe mid-flight because every frame starts with a PushDefaultToGlobal, which re-establishes
-        /// all the variables in the mode currently selected.
-        /// </remark>
         internal bool useConstantBuffer { get; set; }
 
         internal GlobalShaderVariablesUploader(GlobalShaderVariablesGroup ownedGroups)
@@ -69,6 +102,13 @@ namespace UnityEngine.Rendering.Universal
             m_OwnedGroups = ownedGroups;
             m_StagingDirty.Clear();
             m_DefaultDirty.Clear();
+        }
+
+        // Temporary copies are only made by Get().
+        private GlobalShaderVariablesUploader(GlobalShaderVariablesUploader parent)
+            : this(parent.m_OwnedGroups)
+        {
+            m_Parent = parent;
         }
 
         /// <summary>
@@ -92,9 +132,24 @@ namespace UnityEngine.Rendering.Universal
             m_OverrideConstantBuffer?.Release();
             m_OverrideConstantBuffer = null;
 
+            m_ComputeConstantBuffer?.Release();
+            m_ComputeConstantBuffer = null;
+
             m_IsFillingDefaults = false;
             m_IsDefaultBufferUploaded = false;
             m_IsDefaultBufferBound = false;
+
+            // The temporary copy owns buffers too.
+            m_Temporary?.Release();
+            m_Temporary = null;
+        }
+
+        /// <summary>
+        /// Unbinds the global constant buffer slot.
+        /// </summary>
+        internal static void UnbindGlobal()
+        {
+            Shader.SetGlobalConstantBuffer(k_GlobalShaderVariablesID, (GraphicsBuffer)null, 0, 0);
         }
 
         /// <summary>
@@ -104,7 +159,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <exception cref="InvalidOperationException">
         /// Thrown when no fill window is open, so either called twice or without a matching <see cref="BeginFill"/>.
-        /// Closing twice would promote execute-time overrides to defaults, making a later PushDefaultToGlobal restore
+        /// Closing twice would promote execute-time overrides to defaults, making a later PushDefault restore
         /// values the fill never produced; closing without opening means the camera state was never filled.
         /// </exception>
         internal void EndFill()
@@ -129,18 +184,61 @@ namespace UnityEngine.Rendering.Universal
             m_DivergedGroups = GlobalShaderVariablesGroup.None;
         }
 
-        public void PushDefaultToGlobal(IBaseCommandBuffer cmd) => PushDefaultToGlobal(cmd, GlobalShaderVariablesGroup.All);
+        public void PushDefault(IBaseCommandBuffer cmd) => PushDefault(cmd, GlobalShaderVariablesGroup.All);
 
-        internal void PushDefaultToGlobal(IBaseCommandBuffer cmd, GlobalShaderVariablesGroup groups)
+        internal void PushDefault(IBaseCommandBuffer cmd, GlobalShaderVariablesGroup groups)
         {
             ResetToDefault(groups);
-            PushGlobal(cmd, groups);
+            Push(cmd, groups);
+        }
+
+        // The base variables cmd.SetupCameraProperties() writes as loose uniforms.
+        private const GlobalShaderVariablesBaseDirty k_WrittenByCameraSetup =
+            GlobalShaderVariablesBaseDirty._Time | GlobalShaderVariablesBaseDirty._SinTime | GlobalShaderVariablesBaseDirty._CosTime |
+            GlobalShaderVariablesBaseDirty.unity_DeltaTime | GlobalShaderVariablesBaseDirty._ScreenParams |
+            GlobalShaderVariablesBaseDirty._ZBufferParams | GlobalShaderVariablesBaseDirty.unity_OrthoParams;
+
+        // Pushes the staged values of these variables again, after the camera setup overwrote them.
+        internal void PushAfterCameraSetup(IBaseCommandBuffer cmd)
+        {
+            ThrowIfTemporaryOpen();
+
+            // The bound buffer hides the loose uniforms the setup wrote.
+            if (useConstantBuffer)
+                return;
+
+            // Only what URP filled: a variable it never wrote keeps the engine's value.
+            var overwritten = new GlobalShaderVariablesDirty { varsBase = k_WrittenByCameraSetup & m_DefaultDirty.varsBase };
+
+            ConstantBufferPropertyWarnings.BeginPipelineWrites();
+            m_StagingVars.SetGlobals(cmd, overwritten, GlobalShaderVariablesGroup.Base);
+            ConstantBufferPropertyWarnings.EndPipelineWrites();
+
+            m_StagingDirty.varsBase &= ~overwritten.varsBase;
         }
 
         // Only pushes what changed since the last push, staging is assumed to still match engine state for the rest.
-        public void PushGlobal(IBaseCommandBuffer cmd) => PushGlobal(cmd, GlobalShaderVariablesGroup.All);
+        public void Push(IBaseCommandBuffer cmd) => Push(cmd, GlobalShaderVariablesGroup.All);
 
-        internal void PushGlobal(IBaseCommandBuffer cmd, GlobalShaderVariablesGroup groups)
+        internal void Push(IBaseCommandBuffer cmd, GlobalShaderVariablesGroup groups)
+        {
+            if (m_Parent == null)
+                ThrowIfTemporaryOpen();
+            else
+            {
+                ThrowIfDisposed();
+
+                // Loose uniforms: a temporary copy's first push sends the parent's pending values first, so the GPU holds
+                // the staged state Dispose() puts back.
+                if (m_TemporaryCmd == null && !useConstantBuffer)
+                    m_Parent.PushStaged(cmd, GlobalShaderVariablesGroup.All);
+                m_TemporaryCmd = cmd;
+            }
+
+            PushStaged(cmd, groups);
+        }
+
+        private void PushStaged(IBaseCommandBuffer cmd, GlobalShaderVariablesGroup groups)
         {
             groups &= m_OwnedGroups;
 
@@ -159,7 +257,12 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
+                ConstantBufferPropertyWarnings.BeginPipelineWrites();
                 m_StagingVars.SetGlobals(cmd, toPush, groups);
+                ConstantBufferPropertyWarnings.EndPipelineWrites();
+
+                if (m_Parent != null)
+                    m_PushedByTemporary.Add(toPush);
             }
 
             m_StagingDirty.varsBase &= ~toPush.varsBase;
@@ -178,25 +281,14 @@ namespace UnityEngine.Rendering.Universal
         /// </remark>
         private void PushConstantBuffer(BaseCommandBuffer cmd)
         {
+            if (m_Parent != null)
+                m_TemporaryBoundGlobalSlot = true;
+
             // No group drifted away from the defaults, so staging still is the defaults, byte for byte.
             if (m_DivergedGroups == GlobalShaderVariablesGroup.None)
             {
-                m_DefaultConstantBuffer ??= new ConstantBuffer<GlobalShaderVariables>(ComputeBufferMode.Dynamic);
-
-                // Pushing the default CB once per Begin/EndFilling (i.e once per camera per frame).
-                if (!m_IsDefaultBufferUploaded)
-                {
-                    m_DefaultConstantBuffer.UpdateData(cmd, m_StagingVars);
-                    m_IsDefaultBufferUploaded = true;
-                }
-
-                // If default buffer has been bound already and no override buffer has been bound since, free no-op!
-                if (!m_IsDefaultBufferBound)
-                {
-                    m_DefaultConstantBuffer.SetGlobal(cmd, k_GlobalShaderVariablesID);
-                    m_IsDefaultBufferBound = true;
-                }
-
+                // A temporary copy binds its parent's defaults buffer, which already holds them.
+                (m_Parent ?? this).BindDefaultConstantBuffer(cmd);
                 return;
             }
 
@@ -205,7 +297,26 @@ namespace UnityEngine.Rendering.Universal
             m_OverrideConstantBuffer.PushGlobal(cmd, m_StagingVars, k_GlobalShaderVariablesID);
 
             // The override buffer owns the slot now, so the next defaults push has to bind again.
-            m_IsDefaultBufferBound = false;
+            (m_Parent ?? this).m_IsDefaultBufferBound = false;
+        }
+
+        // Uploads the defaults once per camera render and binds them, unless they are still bound.
+        private void BindDefaultConstantBuffer(BaseCommandBuffer cmd)
+        {
+            m_DefaultConstantBuffer ??= new ConstantBuffer<GlobalShaderVariables>(ComputeBufferMode.Dynamic);
+
+            // From the defaults, not staging: a temporary copy binds this buffer while this uploader's staging diverged.
+            if (!m_IsDefaultBufferUploaded)
+            {
+                m_DefaultConstantBuffer.UpdateData(cmd, m_DefaultVars);
+                m_IsDefaultBufferUploaded = true;
+            }
+
+            if (!m_IsDefaultBufferBound)
+            {
+                m_DefaultConstantBuffer.SetGlobal(cmd, k_GlobalShaderVariablesID);
+                m_IsDefaultBufferBound = true;
+            }
         }
 
         public void ResetToDefault() => ResetToDefault(GlobalShaderVariablesGroup.All);
@@ -261,6 +372,166 @@ namespace UnityEngine.Rendering.Universal
         //     m_StagingDirty.vars2D |= flag;
         //     m_DivergedGroups |= GlobalShaderVariablesGroup.Only2D;
         // }
+
+        ///////////////////////////// Temporary copies /////////////////////////////
+        //
+        // Get(), behind UniversalGlobalShaderData.Get() and Universal2DGlobalShaderData.Get(), copies staging into a
+        // second uploader, and Dispose() puts back what was bound at Get(), not the camera defaults, on the command
+        // buffer of the copy's last push. Loose uniforms: what the copy pushed is pushed again from the parent's
+        // staging. Constant buffer: the copy never writes the parent's buffers, so the parent's buffer is bound again.
+        // PushToCompute() binds one compute shader only, which works on async compute.
+
+        internal GlobalShaderVariablesUploader Get()
+        {
+            if (m_Parent != null)
+                throw new InvalidOperationException("Get() can't be called on a temporary copy. Change and push the copy you already have.");
+
+            if (m_IsFillingDefaults)
+                throw new InvalidOperationException("The URP global shader variables are only available while the render graph executes. Call Get() from the render function you pass to SetRenderFunc().");
+
+            ThrowIfTemporaryOpen();
+
+            var temporary = m_Temporary ??= new GlobalShaderVariablesUploader(this);
+            temporary.useConstantBuffer = useConstantBuffer;
+            temporary.m_DefaultVars = m_DefaultVars;
+            temporary.m_DefaultDirty = m_DefaultDirty;
+            temporary.m_StagingVars = m_StagingVars;
+            temporary.m_DivergedGroups = m_DivergedGroups;
+            temporary.m_StagingDirty.Clear();
+            temporary.m_PushedByTemporary.Clear();
+            temporary.m_TemporaryBoundGlobalSlot = false;
+            temporary.m_ParentDefaultsWereBound = m_IsDefaultBufferBound;
+            temporary.m_TemporaryCmd = null;
+            temporary.m_IsOpen = true;
+            return temporary;
+        }
+
+        public void PushToCompute(IComputeCommandBuffer cmd, ComputeShader computeShader)
+        {
+            if (m_Parent == null)
+                throw new InvalidOperationException("PushToCompute() is only available on a temporary copy, see Get(). Compute shaders already read what GetGlobal() pushes.");
+
+            ThrowIfDisposed();
+
+            if (computeShader == null)
+                throw new ArgumentNullException(nameof(computeShader));
+
+            if (!useConstantBuffer)
+            {
+                // A compute shader reads the global value of what it doesn't set, so the values go out globally until Dispose().
+                Push(cmd);
+                return;
+            }
+
+            m_TemporaryCmd = cmd;
+            m_ComputeConstantBuffer ??= new ConstantBuffer<GlobalShaderVariables>(ComputeBufferMode.Dynamic);
+            m_ComputeConstantBuffer.UpdateData((BaseCommandBuffer)cmd, m_StagingVars);
+            m_ComputeConstantBuffer.Set(cmd, computeShader, k_GlobalShaderVariablesID);
+
+            m_BoundComputeShaders ??= new List<ComputeShader>();
+            if (!m_BoundComputeShaders.Contains(computeShader))
+                m_BoundComputeShaders.Add(computeShader);
+        }
+
+        void IDisposable.Dispose()
+        {
+            // Disposing twice is a no-op, like for any IDisposable. The renderers' uploaders have nothing to undo.
+            if (m_Parent == null || !m_IsOpen)
+                return;
+
+            Close(m_TemporaryCmd);
+        }
+
+        // Puts back what was bound at Get(), on the given command buffer: the one of the last push, or the
+        // camera's when the end of the camera finds the copy open. Without one, the copy never pushed, or the render graph
+        // drops the commands of the camera.
+        private void Close(IBaseCommandBuffer cmd)
+        {
+            m_IsOpen = false;
+            m_TemporaryCmd = null;
+            if (cmd == null)
+                return;
+
+            if (useConstantBuffer)
+            {
+                // The parent's buffers still hold what they held then: a parent push closes the temporary copy first.
+                if (m_TemporaryBoundGlobalSlot)
+                {
+                    if (m_ParentDefaultsWereBound || m_Parent.m_OverrideConstantBuffer == null)
+                        m_Parent.BindDefaultConstantBuffer((BaseCommandBuffer)cmd);
+                    else
+                    {
+                        m_Parent.m_OverrideConstantBuffer.SetGlobal((BaseCommandBuffer)cmd, k_GlobalShaderVariablesID);
+                        m_Parent.m_IsDefaultBufferBound = false;
+                    }
+                }
+            }
+            else if (m_PushedByTemporary.isDirty)
+            {
+                ConstantBufferPropertyWarnings.BeginPipelineWrites();
+                m_Parent.m_StagingVars.SetGlobals(cmd, m_PushedByTemporary, m_OwnedGroups);
+                ConstantBufferPropertyWarnings.EndPipelineWrites();
+            }
+
+            UnbindComputeShaders(cmd);
+        }
+
+        // Only compute and unsafe passes can unbind. A copy closed from a raster pass keeps them until the end of the camera.
+        private void UnbindComputeShaders(IBaseCommandBuffer cmd)
+        {
+            if (m_BoundComputeShaders != null && m_BoundComputeShaders.Count > 0 && cmd is IComputeCommandBuffer computeCmd)
+            {
+                foreach (var computeShader in m_BoundComputeShaders)
+                    computeCmd.SetComputeConstantBufferParam(computeShader, k_GlobalShaderVariablesID, (GraphicsBuffer)null, 0, 0);
+                m_BoundComputeShaders.Clear();
+            }
+        }
+
+        // A temporary copy must still be open.
+        private void ThrowIfDisposed()
+        {
+            if (m_Parent != null && !m_IsOpen)
+                throw new ObjectDisposedException(nameof(IGlobalShaderVariablesTemporaryUploader), "This temporary copy of the global shader variables was disposed. Call Get() again.");
+        }
+
+        // Neither changed nor pushed, for example only read: nothing to put back, nothing lost by closing it.
+        private bool isUntouched => m_TemporaryCmd == null && !m_StagingDirty.isDirty;
+
+        // A temporary copy still open when its parent pushes or hands out a new copy was never disposed. The render graph
+        // drops the commands of the camera on the exception, so nothing is recorded.
+        private void ThrowIfTemporaryOpen()
+        {
+            if (m_Temporary == null || !m_Temporary.m_IsOpen)
+                return;
+
+            bool untouched = m_Temporary.isUntouched;
+            m_Temporary.Close(null);
+            if (!untouched)
+                throw new InvalidOperationException(k_TemporaryNotDisposed);
+        }
+
+        // Called once the render graph executed, once per camera today: what a temporary copy left behind is closed on the
+        // camera's command buffer, which can always unbind. Throwing there would skip the submission of the camera.
+        internal void EndRenderGraph(CommandBuffer cmd)
+        {
+            if (m_Temporary == null)
+                return;
+
+            if (m_Temporary.m_IsOpen && m_Temporary.isUntouched)
+                m_Temporary.Close(null);
+
+            if (!(m_Temporary.m_IsOpen || m_Temporary.m_BoundComputeShaders?.Count > 0))
+                return;
+
+            var unsafeCmd = CommandBufferHelpers.GetUnsafeCommandBuffer(cmd);
+            if (m_Temporary.m_IsOpen)
+            {
+                m_Temporary.Close(unsafeCmd);
+                Debug.LogException(new InvalidOperationException(k_TemporaryNotDisposed));
+            }
+
+            m_Temporary.UnbindComputeShaders(unsafeCmd);
+        }
 
         /// <summary>
         /// Fills the environment variables from the current render settings.
@@ -769,6 +1040,16 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// The world to shadow matrices of the main light, one per cascade plus the trailing no-op one.
+        /// </summary>
+        public MainLightShadowMatrices _MainLightWorldToShadow
+        {
+            get => m_StagingVars.vars3D._MainLightWorldToShadow;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set => SetMainLightWorldToShadow(value);
+        }
+
+        /// <summary>
         /// Bounding sphere of the first cascade, xyz = center and w = radius.
         /// </summary>
         public Vector4 _CascadeShadowSplitSpheres0
@@ -877,6 +1158,80 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_StagingVars.vars3D._MainLightShadowmapSize = value;
                 Mark3DDirty(GlobalShaderVariablesOnly3DDirty._MainLightShadowmapSize);
+            }
+        }
+
+        /// <summary>
+        /// Sets the per cascade PCSS scales, x = depth2RadialScale, y = radial2DepthScale, z = maxSampleZDistance and w = maxPCSSOffset.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetMainLightPCSSParams0(in MainLightShadowCascadeVectors vectors)
+        {
+            m_StagingVars.vars3D._MainLightPCSSParams0 = vectors;
+            Mark3DDirty(GlobalShaderVariablesOnly3DDirty._MainLightPCSSParams0);
+        }
+
+        /// <summary>
+        /// Sets the per cascade PCSS sampling controls, x = minFilterSizeTexels, y = minFilterRadial2DepthScale, z = blockerRadial2DepthScale and w = blockerClumpSampleExponent.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetMainLightPCSSParams1(in MainLightShadowCascadeVectors vectors)
+        {
+            m_StagingVars.vars3D._MainLightPCSSParams1 = vectors;
+            Mark3DDirty(GlobalShaderVariablesOnly3DDirty._MainLightPCSSParams1);
+        }
+
+        /// <summary>
+        /// Sets the per cascade PCSS atlas rectangles, xy = the tile offset and zw = the tile scale, both in atlas UV.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetMainLightPCSSAtlas(in MainLightShadowCascadeVectors vectors)
+        {
+            m_StagingVars.vars3D._MainLightPCSSAtlas = vectors;
+            Mark3DDirty(GlobalShaderVariablesOnly3DDirty._MainLightPCSSAtlas);
+        }
+
+        /// <summary>
+        /// The per cascade PCSS scales, x = depth2RadialScale, y = radial2DepthScale, z = maxSampleZDistance and w = maxPCSSOffset.
+        /// </summary>
+        public MainLightShadowCascadeVectors _MainLightPCSSParams0
+        {
+            get => m_StagingVars.vars3D._MainLightPCSSParams0;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set => SetMainLightPCSSParams0(value);
+        }
+
+        /// <summary>
+        /// The per cascade PCSS sampling controls, x = minFilterSizeTexels, y = minFilterRadial2DepthScale, z = blockerRadial2DepthScale and w = blockerClumpSampleExponent.
+        /// </summary>
+        public MainLightShadowCascadeVectors _MainLightPCSSParams1
+        {
+            get => m_StagingVars.vars3D._MainLightPCSSParams1;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set => SetMainLightPCSSParams1(value);
+        }
+
+        /// <summary>
+        /// The per cascade PCSS atlas rectangles, xy = the tile offset and zw = the tile scale, both in atlas UV.
+        /// </summary>
+        public MainLightShadowCascadeVectors _MainLightPCSSAtlas
+        {
+            get => m_StagingVars.vars3D._MainLightPCSSAtlas;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set => SetMainLightPCSSAtlas(value);
+        }
+
+        /// <summary>
+        /// The PCSS controls shared by every cascade, x = the tile texel size, y = the blocker sample count, z = the filter sample count and w = the temporal frame index.
+        /// </summary>
+        public Vector4 _MainLightPCSSScalars
+        {
+            get => m_StagingVars.vars3D._MainLightPCSSScalars;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                m_StagingVars.vars3D._MainLightPCSSScalars = value;
+                Mark3DDirty(GlobalShaderVariablesOnly3DDirty._MainLightPCSSScalars);
             }
         }
 

@@ -2,10 +2,11 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using UnityEditor.Inspector.GraphicsSettingsInspectors;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-#if XR_MANAGEMENT_4_0_1_OR_NEWER
+#if XR_MANAGEMENT_4_0_1_OR_NEWER || XR_FOUNDATION_7_0_0_OR_NEWER
 using UnityEditor.XR.Management;
 #endif
 
@@ -171,6 +172,10 @@ namespace UnityEditor.Rendering.Universal
             {
                 s_SetGizmosDirty();
                 serializedLight.settings.lightType.intValue = type;
+                // Validate and reset light unit when light type changes
+                UpdateLightIntensityUnit(serializedLight, owner);
+                // Apply changes immediately so the Light component is updated before DrawIntensity
+                serializedLight.Apply();
             }
             EditorGUI.EndProperty();
 
@@ -248,7 +253,19 @@ namespace UnityEditor.Rendering.Universal
 
         static void DrawEmissionContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
         {
-            serializedLight.settings.DrawIntensity();
+            if (serializedLight.settings.lightType.hasMultipleDifferentValues ||
+                serializedLight.settings.lightUnit.hasMultipleDifferentValues)
+            {
+                DrawMixedLightIntensity(serializedLight);
+            }
+            else
+            {
+                LightUI.DrawIntensity(serializedLight, owner);
+                LightUI.DrawIntensityModifiers(serializedLight);
+            }
+
+            DrawHighIntensityWithoutExposureWarning(serializedLight);
+
             serializedLight.settings.DrawBounceIntensity();
 
             if (!serializedLight.settings.lightType.hasMultipleDifferentValues)
@@ -265,6 +282,90 @@ namespace UnityEditor.Rendering.Universal
             }
 
             DrawLightCookieContent(serializedLight, owner);
+        }
+
+        // LightUI.DrawIntensity converts with the first selected light, so convert per light when types or units differ.
+        static void DrawMixedLightIntensity(UniversalRenderPipelineSerializedLight serializedLight)
+        {
+            const int k_ValueUnitSeparator = 2;
+            const int k_UnitWidth = 100;
+
+            var lights = serializedLight.serializedObject.targetObjects.OfType<Light>().ToArray();
+            bool unitIsMixed = serializedLight.settings.lightUnit.hasMultipleDifferentValues;
+            LightUnit unit = serializedLight.settings.lightUnit.GetEnumValue<LightUnit>();
+
+            Rect rect = EditorGUILayout.GetControlRect();
+            Rect unitRect = rect;
+            unitRect.xMin = rect.xMax - k_UnitWidth;
+            Rect valueRect = rect;
+            valueRect.xMax = unitRect.xMin - k_ValueUnitSeparator;
+
+            // Converting to a unit a light type doesn't support throws, so only convert when every light supports it.
+            bool canConvert = !unitIsMixed && lights.All(light => LightUnitUtils.IsLightUnitSupported(light.type, unit));
+            var values = canConvert
+                ? lights.Select(light => LightUnitUtils.ConvertIntensity(light, light.intensity, LightUnitUtils.GetNativeLightUnit(light.type), unit)).ToArray()
+                : new[] { 0f };
+
+            var label = EditorGUI.BeginProperty(valueRect, LightUI.Styles.lightIntensity, serializedLight.settings.intensity);
+            using (new EditorGUI.DisabledScope(!canConvert))
+            {
+                EditorGUI.BeginChangeCheck();
+                EditorGUI.showMixedValue = !canConvert || values.Any(value => !Mathf.Approximately(value, values[0]));
+                float newValue = EditorGUI.FloatField(valueRect, label, values[0]);
+                EditorGUI.showMixedValue = false;
+                if (EditorGUI.EndChangeCheck())
+                {
+                    serializedLight.Apply();
+                    foreach (var light in lights)
+                    {
+                        using (var lightObject = new SerializedObject(light))
+                        {
+                            LightUnit nativeUnit = LightUnitUtils.GetNativeLightUnit(light.type);
+                            lightObject.FindProperty("m_Intensity").floatValue =
+                                Mathf.Max(0f, LightUnitUtils.ConvertIntensity(light, newValue, unit, nativeUnit));
+                            lightObject.ApplyModifiedProperties();
+                        }
+                    }
+                    serializedLight.Update();
+                }
+            }
+            EditorGUI.EndProperty();
+
+            // Only offer units that every selected light type supports.
+            EditorGUI.BeginProperty(unitRect, GUIContent.none, serializedLight.settings.lightUnit);
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = unitIsMixed;
+            var newUnit = (LightUnit)EditorGUI.EnumPopup(unitRect, GUIContent.none, unit,
+                candidate => lights.All(light => LightUnitUtils.IsLightUnitSupported(light.type, (LightUnit)candidate)));
+            EditorGUI.showMixedValue = false;
+            if (EditorGUI.EndChangeCheck())
+                serializedLight.settings.lightUnit.SetEnumValue(newUnit);
+            EditorGUI.EndProperty();
+        }
+
+        // Warn the user when a light is too bright to display correctly because exposure is disabled.
+        static void DrawHighIntensityWithoutExposureWarning(UniversalRenderPipelineSerializedLight serializedLight)
+        {
+            // Roughly the brightest value URP's default colour format can store.
+            const float k_MaxUnexposedIntensity = 65000f;
+
+            var intensity = serializedLight.settings.intensity;
+            if (intensity.hasMultipleDifferentValues)
+                return;
+
+            // light.color is LDR, so intensity alone is a conservative upper bound on what reaches the shader.
+            if (intensity.floatValue <= k_MaxUnexposedIntensity)
+                return;
+
+            if (GraphicsSettings.TryGetRenderPipelineSettings<URPExposureSettings>(out var exposureSetting)
+                && exposureSetting.UseExposure)
+                return;
+
+            CoreEditorUtils.DrawFixMeBox(Styles.HighIntensityNoExposure, "Open", () =>
+            {
+                GraphicsSettingsInspectorUtility.OpenAndScrollTo<URPExposureSettings>(
+                    nameof(URPExposureSettings.UseExposure));
+            });
         }
 
 #if VOLUMETRIC_FOG
@@ -306,6 +407,123 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUILayout.HelpBox(Styles.CullingMaskWarning.text, MessageType.Info);
             }
+        }
+
+        static void DrawPCSSContent(UniversalRenderPipelineSerializedLight serializedLight)
+        {
+            Light light = serializedLight.settings.light;
+            UniversalRenderPipelineAsset asset = UniversalRenderPipeline.asset;
+            if (!ShadowUtils.IsPCSSAvailableForLight(light, asset))
+                return;
+
+            bool isDirectional = light.type == LightType.Directional;
+            bool isPunctual = light.type == LightType.Spot || light.type == LightType.Point;
+            if (!isDirectional && !isPunctual)
+                return;
+
+            EditorGUILayout.LabelField(Styles.PCSSHeader, EditorStyles.boldLabel);
+            using (new EditorGUI.IndentLevelScope())
+            {
+                bool enabledInAsset = isDirectional ? asset.mainLightShadowsPCSS : asset.additionalLightShadowsPCSS;
+                if (!enabledInAsset)
+                {
+                    // The asset lists the toggle only at High quality, so below it the quality is what to change first
+                    bool isToggleListed = asset.softShadowQuality >= SoftShadowQuality.High;
+                    GUIContent toggle = isDirectional ? UniversalRenderPipelineAssetUI.Styles.mainLightShadowsPCSS : UniversalRenderPipelineAssetUI.Styles.additionalLightShadowsPCSS;
+                    GUIContent message = isToggleListed ? Styles.PCSSNotEnabledInAsset : Styles.PCSSNotListedBelowHighQuality;
+                    string propertyPath = isToggleListed ? (isDirectional ? "m_MainLightShadowsPCSS" : "m_AdditionalLightShadowsPCSS") : "m_SoftShadowQuality";
+                    EditorUtils.QualitySettingsHelpBox(string.Format(message.text, toggle.text), MessageType.Info, UniversalRenderPipelineAssetUI.Expandable.Shadows, propertyPath);
+                }
+                else if (!UniversalRenderPipelineAssetUI.ValidateGraphicsAPIsForPCSS(out var unsupportedGraphicsApisMessage))
+                {
+                    EditorGUILayout.HelpBox(UniversalRenderPipelineAssetUI.Styles.pcssUnsupportedMessage.text + unsupportedGraphicsApisMessage, MessageType.Info);
+                }
+
+                using (new EditorGUI.DisabledScope(!enabledInAsset))
+                {
+                    if (isDirectional)
+                    {
+                        EditorGUILayout.PropertyField(serializedLight.softShadowAngularDiameterProp, Styles.PCSSAngularDiameter);
+                        EditorGUILayout.PropertyField(serializedLight.softShadowScaleProp, Styles.PCSSSoftnessScale);
+                        EditorGUILayout.PropertyField(serializedLight.softShadowMinFilterSizeTexelsProp, Styles.PCSSMinFilterSizeTexels);
+                        DrawPCSSSampleQuality(serializedLight);
+                        if (IsPCSSCustomSelected(serializedLight))
+                        {
+                            using (new EditorGUI.IndentLevelScope())
+                            {
+                                EditorGUILayout.PropertyField(serializedLight.softShadowBlockerSampleCountProp, Styles.PCSSBlockerSampleCount);
+                                EditorGUILayout.PropertyField(serializedLight.softShadowFilterSampleCountProp, Styles.PCSSFilterSampleCount);
+                                EditorGUILayout.PropertyField(serializedLight.softShadowMaxPenumbraSizeProp, Styles.PCSSMaxPenumbraSize);
+                                EditorGUILayout.PropertyField(serializedLight.softShadowMaxSamplingDistanceProp, Styles.PCSSMaxSamplingDistance);
+                                EditorGUILayout.PropertyField(serializedLight.softShadowMinFilterMaxAngularDiameterProp, Styles.PCSSMinFilterMaxAngularDiameter);
+                                EditorGUILayout.PropertyField(serializedLight.softShadowBlockerSearchAngularDiameterProp, Styles.PCSSBlockerSearchAngularDiameter);
+                                EditorGUILayout.PropertyField(serializedLight.softShadowBlockerSamplingClumpExponentProp, Styles.PCSSBlockerSamplingClumpExponent);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Baked and mixed lights already draw the shape radius above
+                        if (!serializedLight.settings.isBakedOrMixed)
+                            serializedLight.settings.DrawShapeRadius();
+                        EditorGUILayout.PropertyField(serializedLight.softShadowScaleProp, Styles.PCSSSoftnessScale);
+                        EditorGUILayout.PropertyField(serializedLight.softShadowMinFilterSizeProp, Styles.PCSSMinFilterSize);
+                        DrawPCSSSampleQuality(serializedLight);
+                        if (IsPCSSCustomSelected(serializedLight))
+                        {
+                            using (new EditorGUI.IndentLevelScope())
+                            {
+                                EditorGUILayout.PropertyField(serializedLight.softShadowBlockerSampleCountProp, Styles.PCSSBlockerSampleCount);
+                                EditorGUILayout.PropertyField(serializedLight.softShadowFilterSampleCountProp, Styles.PCSSFilterSampleCount);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        static void DrawPCSSSampleQuality(UniversalRenderPipelineSerializedLight serializedLight)
+        {
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(serializedLight.softShadowPCSSSampleQualityProp, Styles.PCSSSampleQuality);
+            if (!EditorGUI.EndChangeCheck() || !IsPCSSCustomSelected(serializedLight))
+                return;
+
+            UniversalAdditionalLightData[] lightsAdditionalData = serializedLight.lightsAdditionalData;
+            var presets = new PCSSSampleQuality[lightsAdditionalData.Length];
+            for (int i = 0; i < lightsAdditionalData.Length; ++i)
+            {
+                presets[i] = lightsAdditionalData[i].softShadowPCSSSampleQuality;
+            }
+
+            // Apply the serialized copy first, or its stale values would overwrite the direct writes below
+            serializedLight.serializedAdditionalDataObject.ApplyModifiedProperties();
+
+            Undo.RecordObjects(lightsAdditionalData, "Set PCSS Samples to Custom");
+            for (int i = 0; i < lightsAdditionalData.Length; ++i)
+            {
+                if (presets[i] == PCSSSampleQuality.Custom)
+                    continue;
+
+                UniversalAdditionalLightData additionalLightData = lightsAdditionalData[i];
+                ShadowUtils.GetPCSSPresetSampleCounts(presets[i], out int blockerSampleCount, out int filterSampleCount);
+                additionalLightData.softShadowBlockerSampleCount = blockerSampleCount;
+                additionalLightData.softShadowFilterSampleCount = filterSampleCount;
+                additionalLightData.softShadowMaxPenumbraSize = UniversalAdditionalLightData.k_DefaultSoftShadowMaxPenumbraSize;
+                additionalLightData.softShadowMaxSamplingDistance = UniversalAdditionalLightData.k_DefaultSoftShadowMaxSamplingDistance;
+                additionalLightData.softShadowMinFilterMaxAngularDiameter = UniversalAdditionalLightData.k_DefaultSoftShadowMinFilterMaxAngularDiameter;
+                additionalLightData.softShadowBlockerSearchAngularDiameter = UniversalAdditionalLightData.k_DefaultSoftShadowBlockerSearchAngularDiameter;
+                additionalLightData.softShadowBlockerSamplingClumpExponent = UniversalAdditionalLightData.k_DefaultSoftShadowBlockerSamplingClumpExponent;
+                PrefabUtility.RecordPrefabInstancePropertyModifications(additionalLightData);
+            }
+
+            serializedLight.serializedAdditionalDataObject.Update();
+        }
+
+        static bool IsPCSSCustomSelected(UniversalRenderPipelineSerializedLight serializedLight)
+        {
+            SerializedProperty qualityProp = serializedLight.softShadowPCSSSampleQualityProp;
+            return !qualityProp.hasMultipleDifferentValues && qualityProp.intValue == (int)PCSSSampleQuality.Custom;
         }
 
         static void DrawShadowsContent(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
@@ -364,7 +582,7 @@ namespace UnityEditor.Rendering.Universal
                         float nearPlaneMinBound = Mathf.Min(0.01f * serializedLight.settings.range.floatValue, 0.1f);
                         EditorGUILayout.Slider(serializedLight.settings.shadowsNearPlane, nearPlaneMinBound, 10.0f, Styles.ShadowNearPlane);
                         var isQuest = false;
-#if XR_MANAGEMENT_4_0_1_OR_NEWER
+#if XR_MANAGEMENT_4_0_1_OR_NEWER || XR_FOUNDATION_7_0_0_OR_NEWER
                         var buildTargetGroup = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
                         var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(buildTargetGroup);
                         if (buildTargetSettings != null && buildTargetSettings.Manager != null && buildTargetSettings.Manager.activeLoaders.Count > 0)
@@ -376,6 +594,8 @@ namespace UnityEditor.Rendering.Universal
                         // Soft Shadow Quality
                         if (serializedLight.settings.light.shadows == LightShadows.Soft)
                             EditorGUILayout.PropertyField(serializedLight.softShadowQualityProp, Styles.SoftShadowQuality);
+
+                        DrawPCSSContent(serializedLight);
 
                         if (isQuest)
                         {
@@ -515,6 +735,32 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUILayout.PropertyField(serializedLight.lightCookieOffsetProp, Styles.LightCookieOffset);
                     if (EditorGUI.EndChangeCheck())
                         Experimental.Lightmapping.SetLightDirty((UnityEngine.Light)serializedLight.serializedObject.targetObject);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Validates that the current light unit is supported by the light type.
+        /// If not supported, resets to the native unit for that light type.
+        /// This prevents invalid unit states when switching between light types.
+        /// </summary>
+        static void UpdateLightIntensityUnit(UniversalRenderPipelineSerializedLight serializedLight, Editor owner)
+        {
+            LightType lightType = serializedLight.settings.lightType.GetEnumValue<LightType>();
+            LightUnit currentUnit = serializedLight.settings.lightUnit.GetEnumValue<LightUnit>();
+
+            // Check if current unit is supported by new light type
+            if (!LightUnitUtils.IsLightUnitSupported(lightType, currentUnit))
+            {
+                // Reset to native unit for this light type
+                LightUnit nativeUnit = LightUnitUtils.GetNativeLightUnit(lightType);
+                serializedLight.settings.lightUnit.SetEnumValue(nativeUnit);
+
+                // For directional lights, reset luxAtDistance to neutral value
+                // This ensures the first display value is correct
+                if (lightType == LightType.Directional)
+                {
+                    serializedLight.settings.luxAtDistance.floatValue = 1.0f;
                 }
             }
         }

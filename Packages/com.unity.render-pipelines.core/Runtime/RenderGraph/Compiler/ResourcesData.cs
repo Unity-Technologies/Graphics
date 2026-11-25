@@ -36,6 +36,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         public readonly bool isImported; // Imported graph resource
         public bool memoryLess; // Never create the texture on GPU if it is allocated/freed within a renderpass
+        public readonly bool createdMemoryless; // Requested as memoryless, unlike memoryLess never cleared by the compiler
         public int lastGraphicsUsePassID; // Last non culled pass using this resource on the graphics queue, -1 if none
         public int lastAsyncComputeUsePassID; // Last non culled pass using this resource on the async compute queue, -1 if none
         public int tag;
@@ -73,6 +74,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
             // Check if imported texture is memoryless
             memoryLess = desc.memoryless != RenderTextureMemoryless.None;
+            createdMemoryless = memoryLess;
 
             width = info.width;
             height = info.height;
@@ -104,6 +106,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             lastUsePassID = -1;
             lastWritePassID = -1;
             memoryLess = false;
+            createdMemoryless = false;
             lastGraphicsUsePassID = -1;
             lastAsyncComputeUsePassID = -1;
 
@@ -137,6 +140,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             lastUsePassID = -1;
             lastWritePassID = -1;
             memoryLess = false;
+            createdMemoryless = false;
             lastGraphicsUsePassID = -1;
             lastAsyncComputeUsePassID = -1;
 

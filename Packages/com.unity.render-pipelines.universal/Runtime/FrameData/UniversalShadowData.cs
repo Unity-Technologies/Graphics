@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
@@ -75,7 +76,18 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// The number of bits used.
         /// </summary>
+        [Obsolete("Use mainLightShadowmapDepthBits or additionalLightsShadowmapDepthBits. #from(7000.0)", false)]
         public int shadowmapDepthBufferBits;
+
+        /// <summary>
+        /// The depth buffer precision of the main light shadow map.
+        /// </summary>
+        public DepthBits mainLightShadowmapDepthBits;
+
+        /// <summary>
+        /// The depth buffer precision of the additional lights shadow map atlas.
+        /// </summary>
+        public DepthBits additionalLightsShadowmapDepthBits;
 
         /// <summary>
         /// A list of shadow bias.
@@ -89,9 +101,15 @@ namespace UnityEngine.Rendering.Universal
 
         internal ShadowDepthBiasMode depthBiasMode;
         internal ShadowNormalBiasMode normalBiasMode;
+        internal GraphicsFormat mainLightShadowmapFormat;
+        internal GraphicsFormat additionalLightsShadowmapFormat;
+        internal float softShadowKernelRadiusPercent;
+        internal bool mainLightReceiverNormalBiasSkipped;
 
         internal bool isKeywordAdditionalLightShadowsEnabled;
         internal bool isKeywordSoftShadowsEnabled;
+        internal bool isMainLightPCSSEnabled;
+        internal bool isAdditionalLightsPCSSEnabled;
         internal int mainLightShadowResolution;
         internal int mainLightRenderTargetWidth;
         internal int mainLightRenderTargetHeight;
@@ -102,6 +120,7 @@ namespace UnityEngine.Rendering.Universal
         // Owned by AdditionalLightsShadowCasterPass
         internal GraphicsBuffer emptyAdditionalLightShadowsBuffer;
         internal GraphicsBuffer extraForwardAdditionalLightShadowsBuffer;
+        internal GraphicsBuffer extraForwardAdditionalLightPCSSBuffer;
         internal Vector4[] extraForwardAdditionalLightShadowParams;
         internal Vector4[] extraForwardAdditionalLightReceiverNormalBiases;
         internal short[] visibleLightIndexToAdditionalLightIndex;
@@ -127,14 +146,24 @@ namespace UnityEngine.Rendering.Universal
             additionalLightsShadowmapWidth = 0;
             additionalLightsShadowmapHeight = 0;
             supportsSoftShadows = false;
+#pragma warning disable 618 // Obsolete warning
             shadowmapDepthBufferBits = 0;
+#pragma warning restore 618 // Obsolete warning
+            mainLightShadowmapDepthBits = DepthBits.None;
+            additionalLightsShadowmapDepthBits = DepthBits.None;
+            mainLightShadowmapFormat = GraphicsFormat.None;
+            additionalLightsShadowmapFormat = GraphicsFormat.None;
             bias?.Clear();
             resolution?.Clear();
             depthBiasMode = ShadowDepthBiasMode.Legacy;
             normalBiasMode = ShadowNormalBiasMode.Caster;
+            softShadowKernelRadiusPercent = 0.0f;
+            mainLightReceiverNormalBiasSkipped = false;
 
             isKeywordAdditionalLightShadowsEnabled = false;
             isKeywordSoftShadowsEnabled = false;
+            isMainLightPCSSEnabled = false;
+            isAdditionalLightsPCSSEnabled = false;
             mainLightShadowResolution = 0;
             mainLightRenderTargetWidth = 0;
             mainLightRenderTargetHeight = 0;
@@ -147,6 +176,7 @@ namespace UnityEngine.Rendering.Universal
 
             emptyAdditionalLightShadowsBuffer = null;
             extraForwardAdditionalLightShadowsBuffer = null;
+            extraForwardAdditionalLightPCSSBuffer = null;
             extraForwardAdditionalLightShadowParams = null;
             extraForwardAdditionalLightReceiverNormalBiases = null;
 

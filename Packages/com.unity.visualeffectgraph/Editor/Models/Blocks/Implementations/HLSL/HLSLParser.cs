@@ -250,7 +250,8 @@ namespace UnityEditor.VFX.Block
 
         public static IEnumerable<HLSLFunction> Parse(IVFXAttributesManager attributesManager, string hlsl)
         {
-            var matches = s_FunctionParser.Matches(hlsl.Trim());
+            string trimmedHLSL = hlsl.Trim();
+            var matches = s_FunctionParser.Matches(trimmedHLSL);
             for (var i = 0; i < matches.Count; i++)
             {
                 var match = matches[i];
@@ -258,8 +259,8 @@ namespace UnityEditor.VFX.Block
                 if (!isHidden)
                 {
                     var bodyStartIndex = match.Index + match.Length;
-                    var bodyEndIndex = (i + 1) < matches.Count ? matches[i + 1].Index - 1 : hlsl.Length - 1;
-                    var body = hlsl.Substring(bodyStartIndex, bodyEndIndex - bodyStartIndex + 1).TrimEnd();
+                    var bodyEndIndex = (i + 1) < matches.Count ? matches[i + 1].Index - 1 : trimmedHLSL.Length - 1;
+                    var body = trimmedHLSL.Substring(bodyStartIndex, bodyEndIndex - bodyStartIndex + 1).TrimEnd();
 
                     yield return new HLSLFunction(attributesManager,
                         match.Index,

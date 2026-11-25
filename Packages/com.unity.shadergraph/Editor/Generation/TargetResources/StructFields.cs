@@ -309,6 +309,10 @@ namespace UnityEditor.ShaderGraph
             public static FieldDescriptor textCoreLoc = new FieldDescriptor(SurfaceDescriptionInputs.name, "textCoreLoc", "", ShaderValueType.Float2, subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor layoutUV = new FieldDescriptor(SurfaceDescriptionInputs.name, "layoutUV", "", ShaderValueType.Float2, subscriptOptions: StructFieldOptions.Optional);
             public static FieldDescriptor circle = new FieldDescriptor(SurfaceDescriptionInputs.name, "circle", "", ShaderValueType.Float4, subscriptOptions: StructFieldOptions.Optional);
+            public static FieldDescriptor opacity = new FieldDescriptor(SurfaceDescriptionInputs.name, "opacity", "", ShaderValueType.Float, subscriptOptions: StructFieldOptions.Optional);
+
+            // Must stay below the UITK fields it references
+            public static readonly FieldDescriptor[] uitkFields = { color, uvClip, typeTexSettings, textCoreLoc, layoutUV, circle, opacity };
 
             // VFX
             public static FieldDescriptor worldToElement = new FieldDescriptor(SurfaceDescriptionInputs.name, "worldToElement", "", ShaderValueType.Matrix4, subscriptOptions: StructFieldOptions.Optional);

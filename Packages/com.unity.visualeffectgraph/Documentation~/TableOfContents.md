@@ -382,6 +382,7 @@
       * [Sample Signed Distance Field Operator](Operator-SampleSDF.md)
       * [Sample Skinned Mesh Operator](Operator-SampleSkinnedMesh.md)
       * [Sample Skinned Mesh Renderer Index Operator](Operator-SampleMeshIndex.md)
+      * [Sample Terrain Operator](Operator-SampleTerrain.md)
       * [Sample Texture2D Operator](Operator-SampleTexture2D.md)
       * [Sample Texture2DArray Operator](Operator-SampleTexture2DArray.md)
       * [Sample Texture3D Operator](Operator-SampleTexture3D.md)

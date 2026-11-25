@@ -8,6 +8,9 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [Serializable, VolumeComponentMenu("Lighting/Surface Cache Global Illumination")]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
+#if SURFACE_CACHE_SUPPORTED || UNITY_EDITOR
+    [VolumeRequiresRendererFeatures(typeof(SurfaceCacheGIRendererFeature))]
+#endif
     [DisplayInfo(name = "Surface Cache Global Illumination")]
     public class SurfaceCacheGIVolumeOverride : VolumeComponent
     {
@@ -17,9 +20,10 @@ namespace UnityEngine.Rendering.Universal
         /// Enables or disables Surface Cache Global Illumination for the cameras this volume affects.
         /// When enabled, it calculates indirect lighting at any <see cref="intensity"/> value, which keeps
         /// the Surface Cache warm. When disabled, it does no per-frame work and discards its Surface Cache,
-        /// so enabling it again costs a warm-up.
+        /// so enabling it again costs a warm-up. While disabled, indirect lighting comes from the other
+        /// sources in the scene, such as lightmaps, light probes, and the ambient probe.
         /// </summary>
-        [Tooltip("When Enabled, Surface Cache Global Illumination calculates indirect lighting at any Intensity value. When Disabled, it does not.")]
+        [Tooltip("When Enabled, Surface Cache Global Illumination calculates indirect lighting at any Intensity value. When Disabled, it does not, and indirect lighting comes from lightmaps, light probes, and the ambient probe instead.")]
         public BoolParameter enabled = new BoolParameter(true, BoolParameter.DisplayType.EnumPopup);
 
         /// <summary>
@@ -30,6 +34,12 @@ namespace UnityEngine.Rendering.Universal
         [AdditionalProperty]
         [Tooltip("Scales the indirect lighting from Surface Cache Global Illumination. At 0 it adds no indirect lighting to the scene.")]
         public ClampedFloatParameter intensity = new ClampedFloatParameter(1.0f, 0.0f, 4.0f);
+
+        /// <summary>
+        /// Controls how Surface Cache GI handles transparent objects. 'Opaques And Cutouts' allows rays to pass through objects with cutout materials, but incurs a performance penalty.
+        /// </summary>
+        [Tooltip("Controls how Surface Cache GI handles transparent objects. Opaques and Cutouts allows rays to pass through objects with cutout materials, but incurs a performance penalty.")]
+        public EnumParameter<TransparencyMode> transparencyMode = new(TransparencyMode.OpaquesOnly);
 
         // ==========================
         // Light Transport Parameters
@@ -78,6 +88,14 @@ namespace UnityEngine.Rendering.Universal
         [AdditionalProperty]
         [Tooltip("Number of punctual light candidates considered for each punctual light sample. Higher values reduce noise at a minor performance cost.")]
         public ClampedIntParameter lightTransportPunctualLightCandidateCount = new ClampedIntParameter(k_Presets[(int)k_defaultPresetQuality].lightTransportPunctualLightCandidateCount, 1, 32);
+
+        /// <summary>
+        /// Offsets ray origins along the surface normal, in world units. Increase this to fix dark artifacts when the ray tracing geometry
+        /// differs from the rasterized geometry, for example when an object is rasterized with a less detailed mesh LOD, because ray tracing always uses mesh LOD 0. High values can cause light leaking.
+        /// </summary>
+        [AdditionalProperty]
+        [Tooltip("Offsets ray origins along the surface normal, in world units. Increase this to fix dark artifacts when the ray tracing geometry differs from the rasterized geometry, for example when an object is rasterized with a less detailed mesh LOD, because ray tracing always uses mesh LOD 0. High values can cause light leaking.")]
+        public MinFloatParameter lightTransportRayTracingNormalBias = new MinFloatParameter(0.0f, 0.0f);
 
         // ============================
         // Patch Filtering Parameters
@@ -160,6 +178,126 @@ namespace UnityEngine.Rendering.Universal
         [FormerlySerializedAs("advancedPatchWarpingEnabled")] // Added in Unity 6.7b1.
         [Tooltip("Reduces flickering on flat surfaces lined up with the voxel grid (e.g. a floor at height 0). When off, no warping is applied.")]
         public BoolParameter volumePatchWarpingEnabled = new BoolParameter(true);
+
+        /// <summary>
+        /// Describes how Surface Cache GI handles transparent objects.
+        /// </summary>
+        public enum TransparencyMode
+        {
+            /// <summary>
+            /// All geometry is treated as opaque.
+            /// </summary>
+            OpaquesOnly,
+
+            /// <summary>
+            /// Rays may pass through objects using cutout materials.
+            /// </summary>
+            OpaquesAndCutouts,
+        }
+
+        // =======================
+        // Entity Culling
+        // =======================
+
+        /// <summary>
+        /// How the distance beyond which entities are culled is set.
+        /// Entities that are too far away or too small as seen from every camera are left out of the Surface Cache
+        /// world, which makes it cheaper to update. GameObjects are not affected.
+        /// </summary>
+        /// <seealso cref="entityCullingSphereMode"/>
+        public enum EntityCullingSphereMode
+        {
+            /// <summary>
+            /// Entities are not culled by distance.
+            /// </summary>
+            None,
+
+            /// <summary>
+            /// The distance is half the <see cref="volumeSize"/>, the radius of the Surface Cache volume, plus <see cref="entityCullingDistanceMargin"/>.
+            /// </summary>
+            VolumePlusMargin,
+
+            /// <summary>
+            /// The distance is <see cref="entityCullingDistance"/>.
+            /// </summary>
+            Fixed,
+        }
+
+        /// <summary>
+        /// Whether entities are culled by distance, and whether the distance follows the Surface Cache volume plus a margin or is fixed.
+        /// </summary>
+        [AdditionalProperty]
+        [Tooltip("Leave out entities beyond a distance from every camera, following the Surface Cache volume plus a margin or at a fixed distance.")]
+        public EnumParameter<EntityCullingSphereMode> entityCullingSphereMode = new(EntityCullingSphereMode.None);
+
+        /// <summary>
+        /// Distance beyond the Surface Cache volume within which entities are kept.
+        /// Entities whose bounds are farther than half the <see cref="volumeSize"/> plus this margin from every camera are culled.
+        /// When a Focus Target is set, the distance is measured from it instead of the camera.
+        /// Used when <see cref="entityCullingSphereMode"/> is <see cref="EntityCullingSphereMode.VolumePlusMargin"/>.
+        /// </summary>
+        [AdditionalProperty]
+        [Tooltip("How far beyond the Surface Cache volume entities are kept.")]
+        public MinFloatParameter entityCullingDistanceMargin = new MinFloatParameter(100.0f, 0.0f);
+
+        /// <summary>
+        /// Entities whose bounds are farther than this distance from every camera are culled.
+        /// When a Focus Target is set, the distance is measured from it instead of the camera.
+        /// Used when <see cref="entityCullingSphereMode"/> is <see cref="EntityCullingSphereMode.Fixed"/>.
+        /// </summary>
+        [AdditionalProperty]
+        [Tooltip("Entities farther than this from every camera are left out.")]
+        public MinFloatParameter entityCullingDistance = new MinFloatParameter(150.0f, 0.0f);
+
+        /// <summary>
+        /// The unit of the minimum size below which entities are culled.
+        /// </summary>
+        /// <seealso cref="entityCullingSmallObjectUnit"/>
+        public enum EntityCullingSmallObjectUnit
+        {
+            /// <summary>
+            /// Entities are not culled by size.
+            /// </summary>
+            None,
+
+            /// <summary>
+            /// The minimum size is <see cref="entityCullingMinScreenSize"/>, in pixels on screen.
+            /// </summary>
+            Pixels,
+
+            /// <summary>
+            /// The minimum size is <see cref="entityCullingMinSolidAngle"/>, an angle in degrees.
+            /// </summary>
+            Degrees,
+        }
+
+        /// <summary>
+        /// Whether entities are culled by size, and whether the minimum size is set in pixels on screen or as an angle in degrees.
+        /// </summary>
+        [AdditionalProperty]
+        [Tooltip("Leave out entities smaller than a minimum size for every camera, in pixels on screen or in degrees.")]
+        public EnumParameter<EntityCullingSmallObjectUnit> entityCullingSmallObjectUnit = new(EntityCullingSmallObjectUnit.None);
+
+        /// <summary>
+        /// Entities whose bounds would cover fewer pixels than this on screen, as seen from every camera, are culled.
+        /// The size is converted to an angle using each camera's vertical field of view and pixel height.
+        /// When a Focus Target is set, the angle is measured from it instead of the camera.
+        /// Orthographic cameras do not cull by size. At 0, entities are never culled because of their size.
+        /// Used when <see cref="entityCullingSmallObjectUnit"/> is <see cref="EntityCullingSmallObjectUnit.Pixels"/>.
+        /// </summary>
+        [AdditionalProperty]
+        [Tooltip("Entities smaller than this many pixels on screen for every camera are left out.")]
+        public MinFloatParameter entityCullingMinScreenSize = new MinFloatParameter(16.0f, 0.0f);
+
+        /// <summary>
+        /// Entities whose bounds cover a smaller angle than this, in degrees, as seen from every camera are culled.
+        /// When a Focus Target is set, the angle is measured from it instead of the camera.
+        /// At 0, entities are never culled because of their size.
+        /// Used when <see cref="entityCullingSmallObjectUnit"/> is <see cref="EntityCullingSmallObjectUnit.Degrees"/>.
+        /// </summary>
+        [AdditionalProperty]
+        [Tooltip("Entities covering a smaller angle than this, in degrees, for every camera are left out.")]
+        public ClampedFloatParameter entityCullingMinSolidAngle = new ClampedFloatParameter(1.0f, 0.0f, 90.0f);
 
         // =======================
         // Preset Utility

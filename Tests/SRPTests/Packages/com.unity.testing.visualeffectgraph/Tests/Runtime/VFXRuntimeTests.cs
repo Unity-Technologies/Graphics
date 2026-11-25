@@ -535,8 +535,6 @@ namespace UnityEngine.VFX.Test
             return str.ToString();
         }
 
-//See UUM-6235
-#if !(VFX_TESTS_HAS_URP && UNITY_STANDALONE_OSX)
         //@gabriel: See VFXG-414, the following test is inspecting the instancing status of the test 025_ShaderKeywords.
         // Editor-only: players hit UUM-149622 and the 025 scene is stripped from player builds
         [UnityPlatform(RuntimePlatform.OSXEditor, RuntimePlatform.WindowsEditor, RuntimePlatform.LinuxEditor)]
@@ -576,7 +574,6 @@ namespace UnityEngine.VFX.Test
             var actualBatchInfosDump = DumpBatchInfo(batchInfos);
             Assert.AreEqual(expectedBatchInfosDump, actualBatchInfosDump, $"{actualBatchInfosDump}\nvs.\n\n{expectedBatchInfosDump}");
         }
-#endif
 
         private IEnumerator Release_Batch_Instance_When_Disabled_CompareInstanceCount(string testName, VisualEffectAsset vfxAsset, uint expectedInstanceCount)
         {

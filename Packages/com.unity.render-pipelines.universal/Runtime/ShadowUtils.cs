@@ -74,12 +74,24 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public static class ShadowUtils
     {
+        // Must match PCSS_DISK_SAMPLE_COUNT in com.unity.render-pipelines.core/ShaderLibrary/Shadow/PCSS.hlsl
+        internal const int k_PCSSMaxSampleCount = 64;
+
+        // Must match SOFT_SHADOW_QUALITY_PCSS in Shadows.hlsl. The PCF filters read it as High.
+        internal const float k_SoftShadowQualityPCSS = (int)SoftShadowQuality.High + 1;
+
         internal static readonly bool m_ForceShadowPointSampling;
+
+        static readonly bool s_PCSSSupported;
+
+        // Whether the graphics device supports PCSS at all, whatever the asset settings
+        internal static bool isPCSSSupported => s_PCSSSupported;
 
         static ShadowUtils()
         {
             m_ForceShadowPointSampling = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal &&
-                GraphicsSettings.HasShaderDefine(Graphics.activeTier, BuiltinShaderDefine.UNITY_METAL_SHADOWS_USE_POINT_FILTERING);
+                GraphicsSettings.HasShaderDefine(BuiltinShaderDefine.UNITY_METAL_SHADOWS_USE_POINT_FILTERING);
+            s_PCSSSupported = SupportsPCSS(SystemInfo.graphicsDeviceType);
         }
 
         /// <summary>
@@ -265,6 +277,11 @@ namespace UnityEngine.Rendering.Universal
         // Covers receivers facing the light head-on (N.L near 1) in the slope-scale mode with caster normal bias, where both the slope term and the normal bias vanish.
         const float k_SlopeScaleCasterDepthBias = 0.05f;
 
+        // Shadow maps with more than 16 bit depth no longer round away the receiver's own depth error. 0.001 texels was the smallest caster offset
+        // or receiver normal bias that removed it in head-on measurements, so both values keep a 5x margin.
+        const float k_HighPrecisionMinCasterDepthBias = 0.005f;
+        const float k_HighPrecisionReceiverNormalBiasThreshold = 0.005f;
+
         internal static ShadowDepthBiasMode GetConfiguredDepthBiasMode(URPShadowBiasSettings shadowBiasSettings)
         {
             return shadowBiasSettings != null ? shadowBiasSettings.depthBiasMode : ShadowDepthBiasMode.Legacy;
@@ -273,6 +290,12 @@ namespace UnityEngine.Rendering.Universal
         internal static ShadowNormalBiasMode GetConfiguredNormalBiasMode(URPShadowBiasSettings shadowBiasSettings)
         {
             return shadowBiasSettings != null ? shadowBiasSettings.normalBiasMode : ShadowNormalBiasMode.Caster;
+        }
+
+        internal static bool IsShadowReceiverNormalBiasEnabled()
+        {
+            GraphicsSettings.TryGetRenderPipelineSettings<URPShadowBiasSettings>(out var shadowBiasSettings);
+            return GetConfiguredNormalBiasMode(shadowBiasSettings) == ShadowNormalBiasMode.Receiver;
         }
 
         /// <summary>
@@ -286,10 +309,11 @@ namespace UnityEngine.Rendering.Universal
         /// <returns>The slope-scale depth bias to apply while rendering the light's shadow slices.</returns>
         public static float GetSlopeScaleDepthBias(ref VisibleLight shadowLight, UniversalShadowData shadowData, int visibleLightIndex)
         {
-            return GetSlopeScaleDepthBias(ref shadowLight, shadowData.bias, shadowData.depthBiasMode, shadowData.supportsSoftShadows, visibleLightIndex, UniversalRenderPipeline.asset);
+            // Only the main light uses the kernel radius setting, so the main light's cascade resolution is the one that matters
+            return GetSlopeScaleDepthBias(ref shadowLight, shadowData.bias, shadowData.depthBiasMode, shadowData.supportsSoftShadows, visibleLightIndex, shadowData.softShadowKernelRadiusPercent, shadowData.mainLightShadowResolution, UniversalRenderPipeline.asset);
         }
 
-        static float GetSlopeScaleDepthBias(ref VisibleLight shadowLight, List<Vector4> bias, ShadowDepthBiasMode depthBiasMode, bool supportsSoftShadows, int visibleLightIndex, UniversalRenderPipelineAsset asset)
+        static float GetSlopeScaleDepthBias(ref VisibleLight shadowLight, List<Vector4> bias, ShadowDepthBiasMode depthBiasMode, bool supportsSoftShadows, int visibleLightIndex, float softShadowKernelRadiusPercent, float shadowResolution, UniversalRenderPipelineAsset asset)
         {
             float normalizedSlopeScale = 0.0f;
             float softShadowKernelRadius = 1.0f;
@@ -297,7 +321,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 Debug.Assert(bias != null && visibleLightIndex >= 0 && visibleLightIndex < bias.Count, "GetSlopeScaleDepthBias expects a visible light index with an entry in the shadow bias data.");
                 normalizedSlopeScale = bias[visibleLightIndex].x;
-                softShadowKernelRadius = GetSoftShadowKernelRadius(ref shadowLight, supportsSoftShadows, asset);
+                softShadowKernelRadius = GetSoftShadowBiasKernelRadius(ref shadowLight, supportsSoftShadows, softShadowKernelRadiusPercent, shadowResolution, asset);
             }
 
             return GetSlopeScaleDepthBias(normalizedSlopeScale, depthBiasMode, softShadowKernelRadius);
@@ -326,12 +350,12 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="settings"></param>
         /// <param name="proj"></param>
         /// <param name="view"></param>
-        [Obsolete("Use the overload taking a slopeScaleDepthBias so the configured depth bias mode is respected; retrieve the value with ShadowUtils.GetSlopeScaleDepthBias. #from(6000.7)", false)]
+        [Obsolete("Use the overload taking slopeScaleDepthBias and useDepthClamp so the configured depth bias mode is respected; retrieve the slope with ShadowUtils.GetSlopeScaleDepthBias and pass false for useDepthClamp to keep the previous clipping. #from(6000.7)", false)]
         public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
             ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings,
             Matrix4x4 proj, Matrix4x4 view)
         {
-            RenderShadowSlice(cmd, ref context, ref shadowSliceData, ref settings, proj, view, k_LegacySlopeScaleDepthBias);
+            RenderShadowSlice(cmd, ref context, ref shadowSliceData, ref settings, proj, view, k_LegacySlopeScaleDepthBias, useDepthClamp: false);
         }
 
         /// <summary>
@@ -344,11 +368,31 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="proj">The projection matrix used while rendering.</param>
         /// <param name="view">The view matrix used while rendering.</param>
         /// <param name="slopeScaleDepthBias">The slope-scale depth bias to apply while rendering, see <see cref="GetSlopeScaleDepthBias(ref VisibleLight, UniversalShadowData, int)"/>.</param>
+        [Obsolete("Use the overload taking useDepthClamp; pass false to keep the previous clipping. #from(7000.0)", false)]
         public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
             ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings,
             Matrix4x4 proj, Matrix4x4 view, float slopeScaleDepthBias)
         {
+            RenderShadowSlice(cmd, ref context, ref shadowSliceData, ref settings, proj, view, slopeScaleDepthBias, useDepthClamp: false);
+        }
+
+        /// <summary>
+        /// Renders shadows to a shadow slice.
+        /// </summary>
+        /// <param name="cmd">The command buffer to record rendering commands on.</param>
+        /// <param name="context">The rendering context.</param>
+        /// <param name="shadowSliceData">The shadow slice to render.</param>
+        /// <param name="settings">The shadow drawing settings.</param>
+        /// <param name="proj">The projection matrix used while rendering.</param>
+        /// <param name="view">The view matrix used while rendering.</param>
+        /// <param name="slopeScaleDepthBias">The slope-scale depth bias to apply while rendering, see <see cref="GetSlopeScaleDepthBias(ref VisibleLight, UniversalShadowData, int)"/>.</param>
+        /// <param name="useDepthClamp">When true, casters render with depth clipping disabled (ZClip Off) so depth is clamped at the near plane instead of clipped. Pass true only for directional lights when <see cref="SystemInfo.supportsDepthClamp"/> is true.</param>
+        public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
+            ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings,
+            Matrix4x4 proj, Matrix4x4 view, float slopeScaleDepthBias, bool useDepthClamp)
+        {
             cmd.SetGlobalDepthBias(1.0f, slopeScaleDepthBias);
+            cmd.SetGlobalFloat(ShaderPropertyId.zClip, useDepthClamp ? 0.0f : 1.0f);
 
             cmd.SetViewport(new Rect(shadowSliceData.offsetX, shadowSliceData.offsetY, shadowSliceData.resolution, shadowSliceData.resolution));
             cmd.SetViewProjectionMatrices(view, proj);
@@ -358,14 +402,17 @@ namespace UnityEngine.Rendering.Universal
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
 
-            cmd.SetGlobalDepthBias(0.0f, 0.0f); // Restore previous depth bias values
+            // Restore previous depth bias and ZClip values
+            cmd.SetGlobalFloat(ShaderPropertyId.zClip, 1.0f);
+            cmd.SetGlobalDepthBias(0.0f, 0.0f);
         }
 
         internal static void RenderShadowSlice(RasterCommandBuffer cmd,
             ref ShadowSliceData shadowSliceData, ref RendererList shadowRendererList,
-            Matrix4x4 proj, Matrix4x4 view, float slopeScaleDepthBias)
+            Matrix4x4 proj, Matrix4x4 view, float slopeScaleDepthBias, bool useDepthClamp)
         {
             cmd.SetGlobalDepthBias(1.0f, slopeScaleDepthBias);
+            cmd.SetGlobalFloat(ShaderPropertyId.zClip, useDepthClamp ? 0.0f : 1.0f);
 
             cmd.SetViewport(new Rect(shadowSliceData.offsetX, shadowSliceData.offsetY, shadowSliceData.resolution, shadowSliceData.resolution));
             cmd.SetViewProjectionMatrices(view, proj);
@@ -373,7 +420,9 @@ namespace UnityEngine.Rendering.Universal
                 cmd.DrawRendererList(shadowRendererList);
 
             cmd.DisableScissorRect();
-            cmd.SetGlobalDepthBias(0.0f, 0.0f); // Restore previous depth bias values
+            // Restore previous depth bias and ZClip values
+            cmd.SetGlobalFloat(ShaderPropertyId.zClip, 1.0f);
+            cmd.SetGlobalDepthBias(0.0f, 0.0f);
         }
 
         /// <summary>
@@ -383,12 +432,12 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="context"></param>
         /// <param name="shadowSliceData"></param>
         /// <param name="settings"></param>
-        [Obsolete("Use the overload taking a slopeScaleDepthBias so the configured depth bias mode is respected; retrieve the value with ShadowUtils.GetSlopeScaleDepthBias. #from(6000.7)", false)]
+        [Obsolete("Use the overload taking slopeScaleDepthBias and useDepthClamp so the configured depth bias mode is respected; retrieve the slope with ShadowUtils.GetSlopeScaleDepthBias and pass false for useDepthClamp to keep the previous clipping. #from(6000.7)", false)]
         public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
             ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings)
         {
             RenderShadowSlice(cmd, ref context, ref shadowSliceData, ref settings,
-                shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix, k_LegacySlopeScaleDepthBias);
+                shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix, k_LegacySlopeScaleDepthBias, useDepthClamp: false);
         }
 
         /// <summary>
@@ -399,11 +448,12 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="shadowSliceData">The shadow slice to render.</param>
         /// <param name="settings">The shadow drawing settings.</param>
         /// <param name="slopeScaleDepthBias">The slope-scale depth bias to apply while rendering, see <see cref="GetSlopeScaleDepthBias(ref VisibleLight, UniversalShadowData, int)"/>.</param>
+        [Obsolete("Use the overload taking proj, view and useDepthClamp; pass shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix and false to keep the previous clipping. #from(7000.0)", false)]
         public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
             ref ShadowSliceData shadowSliceData, ref ShadowDrawingSettings settings, float slopeScaleDepthBias)
         {
             RenderShadowSlice(cmd, ref context, ref shadowSliceData, ref settings,
-                shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix, slopeScaleDepthBias);
+                shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix, slopeScaleDepthBias, useDepthClamp: false);
         }
 
         /// <summary>
@@ -416,11 +466,11 @@ namespace UnityEngine.Rendering.Universal
         public static int GetMaxTileResolutionInAtlas(int atlasWidth, int atlasHeight, int tileCount)
         {
             int resolution = Mathf.Min(atlasWidth, atlasHeight);
-            int currentTileCount = atlasWidth / resolution * atlasHeight / resolution;
+            int currentTileCount = (atlasWidth / resolution) * (atlasHeight / resolution);
             while (currentTileCount < tileCount)
             {
                 resolution = resolution >> 1;
-                currentTileCount = atlasWidth / resolution * atlasHeight / resolution;
+                currentTileCount = (atlasWidth / resolution) * (atlasHeight / resolution);
             }
             return resolution;
         }
@@ -453,10 +503,13 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="shadowData"></param>
         /// <param name="lightProjectionMatrix"></param>
         /// <param name="shadowResolution"></param>
-        /// <returns>The depth and normal bias from a visible light. In the slope-scale depth bias mode the x component (depth bias) is a small fixed texel-scaled caster offset, or 0 in the shadow-receiver normal bias mode; retrieve the rasterizer bias with GetSlopeScaleDepthBias instead. In the shadow-receiver normal bias mode the y component (normal bias) is 0; retrieve the world-space sampling offset with GetReceiverNormalBias instead.</returns>
+        /// <returns>The depth and normal bias from a visible light. In the slope-scale depth bias mode the x component (depth bias) is a small fixed texel-scaled caster offset, or 0 in the shadow-receiver normal bias mode unless the shadow map has more than 16 bit depth and the receiver normal bias is close to 0 or, for a main light that uses Screen Space Shadows, not applied; retrieve the rasterizer bias with GetSlopeScaleDepthBias instead. In the shadow-receiver normal bias mode the y component (normal bias) is 0; retrieve the world-space sampling offset with GetReceiverNormalBias instead.</returns>
         public static Vector4 GetShadowBias(ref VisibleLight shadowLight, int shadowLightIndex, ref ShadowData shadowData, Matrix4x4 lightProjectionMatrix, float shadowResolution)
         {
-            return GetShadowBias(ref shadowLight, shadowLightIndex, shadowData.bias, shadowData.supportsSoftShadows, shadowData.depthBiasMode, shadowData.normalBiasMode, lightProjectionMatrix, shadowResolution, UniversalRenderPipeline.asset);
+            bool highPrecisionShadowmap = shadowLight.lightType == LightType.Directional
+                ? IsHighPrecisionShadowmap(shadowData.mainLightShadowmapFormat, shadowData.mainLightShadowmapDepthBits)
+                : IsHighPrecisionShadowmap(shadowData.additionalLightsShadowmapFormat, shadowData.additionalLightsShadowmapDepthBits);
+            return GetShadowBias(ref shadowLight, shadowLightIndex, shadowData.bias, shadowData.supportsSoftShadows, shadowData.depthBiasMode, shadowData.normalBiasMode, shadowData.softShadowKernelRadiusPercent, lightProjectionMatrix, shadowResolution, highPrecisionShadowmap, shadowData.mainLightReceiverNormalBiasSkipped, UniversalRenderPipeline.asset);
         }
 
         /// <summary>
@@ -467,10 +520,28 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="shadowData"></param>
         /// <param name="lightProjectionMatrix"></param>
         /// <param name="shadowResolution"></param>
-        /// <returns>The depth and normal bias from a visible light. In the slope-scale depth bias mode the x component (depth bias) is a small fixed texel-scaled caster offset, or 0 in the shadow-receiver normal bias mode; retrieve the rasterizer bias with GetSlopeScaleDepthBias instead. In the shadow-receiver normal bias mode the y component (normal bias) is 0; retrieve the world-space sampling offset with GetReceiverNormalBias instead.</returns>
+        /// <returns>The depth and normal bias from a visible light. In the slope-scale depth bias mode the x component (depth bias) is a small fixed texel-scaled caster offset, or 0 in the shadow-receiver normal bias mode unless the shadow map has more than 16 bit depth and the receiver normal bias is close to 0 or, for a main light that uses Screen Space Shadows, not applied; retrieve the rasterizer bias with GetSlopeScaleDepthBias instead. In the shadow-receiver normal bias mode the y component (normal bias) is 0; retrieve the world-space sampling offset with GetReceiverNormalBias instead.</returns>
         public static Vector4 GetShadowBias(ref VisibleLight shadowLight, int shadowLightIndex, UniversalShadowData shadowData, Matrix4x4 lightProjectionMatrix, float shadowResolution)
         {
-            return GetShadowBias(ref shadowLight, shadowLightIndex, shadowData.bias, shadowData.supportsSoftShadows, shadowData.depthBiasMode, shadowData.normalBiasMode, lightProjectionMatrix, shadowResolution, UniversalRenderPipeline.asset);
+            bool highPrecisionShadowmap = shadowLight.lightType == LightType.Directional
+                ? IsHighPrecisionShadowmap(shadowData.mainLightShadowmapFormat, shadowData.mainLightShadowmapDepthBits)
+                : IsHighPrecisionShadowmap(shadowData.additionalLightsShadowmapFormat, shadowData.additionalLightsShadowmapDepthBits);
+            return GetShadowBias(ref shadowLight, shadowLightIndex, shadowData.bias, shadowData.supportsSoftShadows, shadowData.depthBiasMode, shadowData.normalBiasMode, shadowData.softShadowKernelRadiusPercent, lightProjectionMatrix, shadowResolution, highPrecisionShadowmap, shadowData.mainLightReceiverNormalBiasSkipped, UniversalRenderPipeline.asset);
+        }
+
+        internal static bool IsHighPrecisionShadowmap(DepthBits depthBits)
+        {
+            return (int)depthBits > 16;
+        }
+
+        internal static bool IsHighPrecisionShadowmap(GraphicsFormat shadowmapFormat)
+        {
+            return GraphicsFormatUtility.GetDepthBits(shadowmapFormat) > 16;
+        }
+
+        internal static bool IsHighPrecisionShadowmap(GraphicsFormat shadowmapFormat, DepthBits requestedDepthBits)
+        {
+            return shadowmapFormat != GraphicsFormat.None ? IsHighPrecisionShadowmap(shadowmapFormat) : IsHighPrecisionShadowmap(requestedDepthBits);
         }
 
         static float GetShadowTexelSizeInWorldSpace(ref VisibleLight shadowLight, Matrix4x4 lightProjectionMatrix, float shadowResolution, float receiverBiasTexels = 0.0f)
@@ -528,10 +599,10 @@ namespace UnityEngine.Rendering.Universal
         /// <returns>The world-space receiver normal bias of the light's shadow slice. In the shadow-caster normal bias mode the value is 0.</returns>
         public static float GetReceiverNormalBias(ref VisibleLight shadowLight, int visibleLightIndex, UniversalShadowData shadowData, Matrix4x4 lightProjectionMatrix, float shadowResolution)
         {
-            return GetReceiverNormalBias(ref shadowLight, shadowData.bias, shadowData.normalBiasMode, shadowData.supportsSoftShadows, visibleLightIndex, lightProjectionMatrix, shadowResolution, UniversalRenderPipeline.asset);
+            return GetReceiverNormalBias(ref shadowLight, shadowData.bias, shadowData.normalBiasMode, shadowData.supportsSoftShadows, shadowData.softShadowKernelRadiusPercent, visibleLightIndex, lightProjectionMatrix, shadowResolution, UniversalRenderPipeline.asset);
         }
 
-        static float GetReceiverNormalBias(ref VisibleLight shadowLight, List<Vector4> bias, ShadowNormalBiasMode normalBiasMode, bool supportsSoftShadows, int visibleLightIndex, Matrix4x4 lightProjectionMatrix, float shadowResolution, UniversalRenderPipelineAsset asset)
+        static float GetReceiverNormalBias(ref VisibleLight shadowLight, List<Vector4> bias, ShadowNormalBiasMode normalBiasMode, bool supportsSoftShadows, float softShadowKernelRadiusPercent, int visibleLightIndex, Matrix4x4 lightProjectionMatrix, float shadowResolution, UniversalRenderPipelineAsset asset)
         {
             float normalBias = 0.0f;
             float texelSize = 0.0f;
@@ -540,7 +611,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 Debug.Assert(bias != null && visibleLightIndex >= 0 && visibleLightIndex < bias.Count, "GetReceiverNormalBias expects a visible light index with an entry in the shadow bias data.");
                 normalBias = bias[visibleLightIndex].y;
-                softShadowKernelRadius = GetSoftShadowKernelRadius(ref shadowLight, supportsSoftShadows, asset);
+                softShadowKernelRadius = GetSoftShadowBiasKernelRadius(ref shadowLight, supportsSoftShadows, softShadowKernelRadiusPercent, shadowResolution, asset);
                 texelSize = GetShadowTexelSizeInWorldSpace(ref shadowLight, lightProjectionMatrix, shadowResolution, normalBias * softShadowKernelRadius);
             }
 
@@ -561,7 +632,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        static Vector4 GetShadowBias(ref VisibleLight shadowLight, int shadowLightIndex, List<Vector4> bias, bool supportsSoftShadows, ShadowDepthBiasMode depthBiasMode, ShadowNormalBiasMode normalBiasMode, Matrix4x4 lightProjectionMatrix, float shadowResolution, UniversalRenderPipelineAsset asset)
+        static Vector4 GetShadowBias(ref VisibleLight shadowLight, int shadowLightIndex, List<Vector4> bias, bool supportsSoftShadows, ShadowDepthBiasMode depthBiasMode, ShadowNormalBiasMode normalBiasMode, float softShadowKernelRadiusPercent, Matrix4x4 lightProjectionMatrix, float shadowResolution, bool highPrecisionShadowmap, bool mainLightReceiverNormalBiasSkipped, UniversalRenderPipelineAsset asset)
         {
             if (bias == null || shadowLightIndex < 0 || shadowLightIndex >= bias.Count)
             {
@@ -570,13 +641,14 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // depth and normal bias scale is in shadowmap texel size in world space
-            float softShadowKernelRadius = GetSoftShadowKernelRadius(ref shadowLight, supportsSoftShadows, asset);
+            float softShadowKernelRadius = GetSoftShadowBiasKernelRadius(ref shadowLight, supportsSoftShadows, softShadowKernelRadiusPercent, shadowResolution, asset);
             // The point light guard angle grows with the receiver normal bias, so the texel size must account for it too
             float receiverBiasTexels = normalBiasMode == ShadowNormalBiasMode.Receiver
                 ? bias[shadowLightIndex].y * softShadowKernelRadius
                 : 0.0f;
             float texelSize = GetShadowTexelSizeInWorldSpace(ref shadowLight, lightProjectionMatrix, shadowResolution, receiverBiasTexels);
-            float depthBias = GetCasterDepthBias(bias[shadowLightIndex].x, depthBiasMode, normalBiasMode, texelSize);
+            float appliedReceiverNormalBias = shadowLight.lightType == LightType.Directional && mainLightReceiverNormalBiasSkipped ? 0.0f : bias[shadowLightIndex].y;
+            float depthBias = GetCasterDepthBias(bias[shadowLightIndex].x, appliedReceiverNormalBias, depthBiasMode, normalBiasMode, texelSize, highPrecisionShadowmap);
             float normalBias = GetCasterNormalBias(bias[shadowLightIndex].y, normalBiasMode, texelSize, shadowLight.lightType);
 
             depthBias *= softShadowKernelRadius;
@@ -585,17 +657,22 @@ namespace UnityEngine.Rendering.Universal
             return new Vector4(depthBias, normalBias, (float)shadowLight.lightType, 0.0f);
         }
 
-        internal static float GetCasterDepthBias(float depthBias, ShadowDepthBiasMode depthBiasMode, ShadowNormalBiasMode normalBiasMode, float texelSize)
+        internal static float GetCasterDepthBias(float depthBias, float normalBias, ShadowDepthBiasMode depthBiasMode, ShadowNormalBiasMode normalBiasMode, float texelSize, bool highPrecisionShadowmap)
         {
+            bool receiverCoversHeadOn = normalBiasMode == ShadowNormalBiasMode.Receiver && normalBias >= k_HighPrecisionReceiverNormalBiasThreshold;
+            float minDepthBias = highPrecisionShadowmap && !receiverCoversHeadOn ? k_HighPrecisionMinCasterDepthBias : 0.0f;
             switch (depthBiasMode)
             {
                 case ShadowDepthBiasMode.SlopeScale:
-                    return normalBiasMode == ShadowNormalBiasMode.Caster ? -k_SlopeScaleCasterDepthBias * texelSize : 0.0f;
+                {
+                    float casterDepthBias = normalBiasMode == ShadowNormalBiasMode.Caster ? k_SlopeScaleCasterDepthBias : 0.0f;
+                    return -Mathf.Max(casterDepthBias, minDepthBias) * texelSize;
+                }
                 case ShadowDepthBiasMode.Legacy:
-                    return -depthBias * texelSize;
+                    return -Mathf.Max(depthBias, minDepthBias) * texelSize;
                 default:
                     Debug.Assert(false, "Unexpected depth bias mode.");
-                    return -depthBias * texelSize;
+                    return -Mathf.Max(depthBias, minDepthBias) * texelSize;
             }
         }
 
@@ -622,11 +699,13 @@ namespace UnityEngine.Rendering.Universal
             if (!supportsSoftShadows || shadowLight.light.shadows != LightShadows.Soft)
                 return 1.0f;
 
-            SoftShadowQuality softShadowQuality = SoftShadowQuality.UsePipelineSettings;
-            if (SupportsPerLightSoftShadowQuality() && shadowLight.light.TryGetComponent(out UniversalAdditionalLightData additionalLightData))
-                softShadowQuality = additionalLightData.softShadowQuality;
+            SoftShadowQuality softShadowQuality = GetPerLightSoftShadowQuality(shadowLight.light, asset);
 
-            return GetSoftShadowKernelRadius(ResolveSoftShadowQuality(softShadowQuality, asset));
+            // PCSS sizes its own filter, and widening the kernel would collapse its penumbra
+            if (IsPCSSEnabled(shadowLight.lightType, softShadowQuality, asset, s_PCSSSupported))
+                return 1.0f;
+
+            return GetSoftShadowKernelRadius(softShadowQuality);
         }
 
         internal static SoftShadowQuality ResolveSoftShadowQuality(SoftShadowQuality softShadowQuality, UniversalRenderPipelineAsset asset)
@@ -658,6 +737,250 @@ namespace UnityEngine.Rendering.Universal
             return kernelRadius;
         }
 
+        static SoftShadowQuality GetPerLightSoftShadowQuality(Light light, UniversalRenderPipelineAsset asset)
+        {
+            SoftShadowQuality softShadowQuality = SoftShadowQuality.UsePipelineSettings;
+            if (SupportsPerLightSoftShadowQuality() && light != null && light.TryGetComponent(out UniversalAdditionalLightData additionalLightData))
+                softShadowQuality = additionalLightData.softShadowQuality;
+
+            return ResolveSoftShadowQuality(softShadowQuality, asset);
+        }
+
+        internal static bool SupportsPCSS(GraphicsDeviceType type)
+        {
+            return type != GraphicsDeviceType.OpenGLES3 && type != GraphicsDeviceType.OpenGLCore;
+        }
+
+        static bool IsPCSSEnabled(LightType lightType, SoftShadowQuality resolvedSoftShadowQuality, UniversalRenderPipelineAsset asset, bool pcssSupported)
+        {
+            if (asset == null || !SupportsPerLightSoftShadowQuality() || !pcssSupported || resolvedSoftShadowQuality < SoftShadowQuality.High)
+                return false;
+
+            switch (lightType)
+            {
+                case LightType.Directional:
+                    return asset.mainLightShadowsPCSS;
+                case LightType.Spot:
+                case LightType.Point:
+                    return asset.additionalLightShadowsPCSS;
+                default:
+                    return false;
+            }
+        }
+
+        internal static bool IsPCSSEnabled(ref VisibleLight shadowLight, UniversalAdditionalLightData additionalLightData, bool supportsSoftShadows, UniversalRenderPipelineAsset asset)
+        {
+            Light light = shadowLight.light;
+            if (light == null || !supportsSoftShadows || light.shadows != LightShadows.Soft)
+                return false;
+
+            SoftShadowQuality softShadowQuality = additionalLightData != null ? additionalLightData.softShadowQuality : SoftShadowQuality.UsePipelineSettings;
+            return IsPCSSEnabled(shadowLight.lightType, ResolveSoftShadowQuality(softShadowQuality, asset), asset, s_PCSSSupported);
+        }
+
+        // Takes the resolved quality packed into the y channel of the shadow params. Spot and point lights share the toggle.
+        internal static bool IsAdditionalLightPCSSEnabled(float packedSoftShadowQuality, UniversalRenderPipelineAsset asset)
+        {
+            return IsAdditionalLightPCSSEnabled(packedSoftShadowQuality, asset, s_PCSSSupported);
+        }
+
+        internal static bool IsAdditionalLightPCSSEnabled(float packedSoftShadowQuality, UniversalRenderPipelineAsset asset, bool pcssSupported)
+        {
+            return IsPCSSEnabled(LightType.Spot, (SoftShadowQuality)(int)packedSoftShadowQuality, asset, pcssSupported);
+        }
+
+        // Ignores the asset toggle so the inspector can explain that it is off
+        internal static bool IsPCSSAvailableForLight(Light light, UniversalRenderPipelineAsset asset)
+        {
+            if (asset == null || light == null || !asset.supportsSoftShadows || light.shadows != LightShadows.Soft)
+                return false;
+
+            if (!SupportsPerLightSoftShadowQuality())
+                return false;
+
+            return GetPerLightSoftShadowQuality(light, asset) >= SoftShadowQuality.High;
+        }
+
+        internal static int GetPCSSTemporalFrameIndex(UniversalCameraData cameraData)
+        {
+            // The rotation only resolves under a temporal filter, and the wrap keeps InterleavedGradientNoise precise
+            return cameraData.IsTemporalAAEnabled() ? TemporalAA.CalculateTaaFrameIndex(ref cameraData.taaSettings) & 1023 : 0;
+        }
+
+        internal static void GetPCSSPresetSampleCounts(PCSSSampleQuality quality, out int blockerSampleCount, out int filterSampleCount)
+        {
+            switch (quality)
+            {
+                case PCSSSampleQuality.Low:
+                    blockerSampleCount = UniversalAdditionalLightData.k_LowSoftShadowBlockerSampleCount;
+                    filterSampleCount = UniversalAdditionalLightData.k_LowSoftShadowFilterSampleCount;
+                    break;
+
+                case PCSSSampleQuality.High:
+                    blockerSampleCount = UniversalAdditionalLightData.k_HighSoftShadowBlockerSampleCount;
+                    filterSampleCount = UniversalAdditionalLightData.k_HighSoftShadowFilterSampleCount;
+                    break;
+
+                case PCSSSampleQuality.Medium:
+                default:
+                    Debug.Assert(quality == PCSSSampleQuality.Medium, "Only the Low, Medium and High PCSS presets have sample counts.");
+                    blockerSampleCount = UniversalAdditionalLightData.k_DefaultSoftShadowBlockerSampleCount;
+                    filterSampleCount = UniversalAdditionalLightData.k_DefaultSoftShadowFilterSampleCount;
+                    break;
+            }
+        }
+
+        static bool UsesCustomPCSSSettings(UniversalAdditionalLightData additionalLightData)
+        {
+            return additionalLightData != null && additionalLightData.softShadowPCSSSampleQuality == PCSSSampleQuality.Custom;
+        }
+
+        internal static void GetPCSSSampleCounts(UniversalAdditionalLightData additionalLightData, out int blockerSampleCount, out int filterSampleCount)
+        {
+            if (UsesCustomPCSSSettings(additionalLightData))
+            {
+                blockerSampleCount = additionalLightData.softShadowBlockerSampleCount;
+                filterSampleCount = additionalLightData.softShadowFilterSampleCount;
+            }
+            else
+            {
+                PCSSSampleQuality quality = additionalLightData != null ? additionalLightData.softShadowPCSSSampleQuality : PCSSSampleQuality.Medium;
+                GetPCSSPresetSampleCounts(quality, out blockerSampleCount, out filterSampleCount);
+            }
+        }
+
+        internal static void ComputeAdditionalLightPCSSParams(float shapeRadius, UniversalAdditionalLightData additionalLightData, int sliceResolution, Matrix4x4 sliceProjectionMatrix, out Vector4 pcssParams, out Vector4 zBufferParams)
+        {
+            float softnessScale = additionalLightData != null ? additionalLightData.softShadowScale : UniversalAdditionalLightData.k_DefaultSoftShadowScale;
+            float minFilterSize = additionalLightData != null ? additionalLightData.softShadowMinFilterSize : UniversalAdditionalLightData.k_DefaultSoftShadowMinFilterSize;
+            GetPCSSSampleCounts(additionalLightData, out int blockerSampleCount, out int filterSampleCount);
+
+            // Same fit as HDGpuLightsBuilder.GetNonDirectionalSoftness in HDRP, keep the two in sync
+            float x = shapeRadius * softnessScale;
+            float x2 = x * x;
+            float softness = 0.02403461f + 3.452916f * x - 1.362672f * x2 + 0.6700115f * x2 * x + 0.2159474f * x2 * x2;
+            softness /= 100.0f;
+            softness *= sliceResolution / 512.0f;  // Make it resolution independent whereas the baseline is 512
+
+            // Divided by 1000 so the user range is [0, 1], as in HDRP
+            float minFilterRadius = minFilterSize * 0.001f;
+
+            pcssParams = new Vector4(softness, minFilterRadius, Mathf.Clamp(blockerSampleCount, 1, k_PCSSMaxSampleCount), Mathf.Clamp(filterSampleCount, 1, k_PCSSMaxSampleCount));
+
+            // From the projection, so the point light near plane clamp and guard angle are included
+            float m22 = sliceProjectionMatrix.m22;
+            float m23 = sliceProjectionMatrix.m23;
+            float near = m23 / (m22 - 1.0f);
+            float far = m23 / (m22 + 1.0f);
+            zBufferParams = SystemInfo.usesReversedZBuffer
+                ? new Vector4((far - near) / near, 1.0f, (far - near) / (near * far), 1.0f / far)
+                : new Vector4((near - far) / near, far / near, (near - far) / (near * far), 1.0f / near);
+        }
+
+        internal static void ComputeMainLightPCSSParams(UniversalAdditionalLightData additionalLightData, ShadowSliceData[] cascadeSlices, int cascadeCount, int atlasWidth, int atlasHeight, ref MainLightShadowCascadeVectors params0, ref MainLightShadowCascadeVectors params1, ref MainLightShadowCascadeVectors atlas)
+        {
+            float angularDiameter = UniversalAdditionalLightData.k_DefaultSoftShadowAngularDiameter;
+            float softnessScale = UniversalAdditionalLightData.k_DefaultSoftShadowScale;
+            float maxPenumbraSize = UniversalAdditionalLightData.k_DefaultSoftShadowMaxPenumbraSize;
+            float maxSamplingDistance = UniversalAdditionalLightData.k_DefaultSoftShadowMaxSamplingDistance;
+            float minFilterSizeTexels = UniversalAdditionalLightData.k_DefaultSoftShadowMinFilterSizeTexels;
+            float minFilterMaxAngularDiameter = UniversalAdditionalLightData.k_DefaultSoftShadowMinFilterMaxAngularDiameter;
+            float blockerSearchAngularDiameter = UniversalAdditionalLightData.k_DefaultSoftShadowBlockerSearchAngularDiameter;
+            float blockerSamplingClumpExponent = UniversalAdditionalLightData.k_DefaultSoftShadowBlockerSamplingClumpExponent;
+            if (additionalLightData != null)
+            {
+                angularDiameter = additionalLightData.softShadowAngularDiameter;
+                softnessScale = additionalLightData.softShadowScale;
+                minFilterSizeTexels = additionalLightData.softShadowMinFilterSizeTexels;
+            }
+
+            if (UsesCustomPCSSSettings(additionalLightData))
+            {
+                maxPenumbraSize = additionalLightData.softShadowMaxPenumbraSize;
+                maxSamplingDistance = additionalLightData.softShadowMaxSamplingDistance;
+                minFilterMaxAngularDiameter = additionalLightData.softShadowMinFilterMaxAngularDiameter;
+                blockerSearchAngularDiameter = additionalLightData.softShadowBlockerSearchAngularDiameter;
+                blockerSamplingClumpExponent = additionalLightData.softShadowBlockerSamplingClumpExponent;
+            }
+
+            float lightAngularDiameter = softnessScale * angularDiameter;
+            float halfTan = HalfAngularDiameterTangent(lightAngularDiameter);
+
+            // The blocker search cone can only be widened, never narrowed below the cone of the light itself
+            float blockerSearchTan = HalfAngularDiameterTangent(Mathf.Max(blockerSearchAngularDiameter, lightAngularDiameter));
+            float minFilterTan = HalfAngularDiameterTangent(Mathf.Max(Mathf.Max(minFilterMaxAngularDiameter, blockerSearchAngularDiameter), lightAngularDiameter));
+
+            // The shader takes the square root of the normalized range, so the authored exponent is halved
+            float clumpExponent = 0.5f * blockerSamplingClumpExponent;
+            float maxBlockerDistance = maxPenumbraSize / (2.0f * halfTan);
+
+            float oneOverAtlasWidth = 1.0f / atlasWidth;
+            float oneOverAtlasHeight = 1.0f / atlasHeight;
+
+            for (int i = 0; i < cascadeCount; ++i)
+            {
+                // The culling matrices are OpenGL style while the shader uses [0, 1] depth
+                Matrix4x4 projectionMatrix = cascadeSlices[i].projectionMatrix;
+                float projectionDepthToRadialScale = 2.0f * Mathf.Abs(projectionMatrix.m00 / projectionMatrix.m22);
+                float worldToDepthScale = 0.5f * Mathf.Abs(projectionMatrix.m22);
+
+                float depth2RadialScale = halfTan * projectionDepthToRadialScale;
+
+                params0[i] = new Vector4(depth2RadialScale, 1.0f / depth2RadialScale, maxBlockerDistance * worldToDepthScale, maxSamplingDistance * worldToDepthScale);
+                params1[i] = new Vector4(minFilterSizeTexels, 1.0f / (minFilterTan * projectionDepthToRadialScale), 1.0f / (blockerSearchTan * projectionDepthToRadialScale), clumpExponent);
+                atlas[i] = new Vector4(cascadeSlices[i].offsetX * oneOverAtlasWidth, cascadeSlices[i].offsetY * oneOverAtlasHeight, cascadeSlices[i].resolution * oneOverAtlasWidth, cascadeSlices[i].resolution * oneOverAtlasHeight);
+            }
+
+            // See _MainLightPCSSAtlas in GlobalShaderVariables.hlsl
+            for (int i = cascadeCount; i < MainLightShadowCascadeVectors.count; ++i)
+            {
+                params0[i] = Vector4.zero;
+                params1[i] = Vector4.zero;
+                atlas[i] = Vector4.zero;
+            }
+        }
+
+        internal static Vector4 GetMainLightPCSSScalars(UniversalAdditionalLightData additionalLightData, int tileResolution)
+        {
+            GetPCSSSampleCounts(additionalLightData, out int blockerSampleCount, out int filterSampleCount);
+
+            // Tile texel size, since the shader compares the minimum filter radius in tile space
+            return new Vector4(1.0f / tileResolution, Mathf.Clamp(blockerSampleCount, 1, k_PCSSMaxSampleCount), Mathf.Clamp(filterSampleCount, 1, k_PCSSMaxSampleCount), 0.0f);
+        }
+
+        static float HalfAngularDiameterTangent(float angularDiameterInDegrees)
+        {
+            // The shader divides by the radial scales this feeds
+            return Mathf.Max(Mathf.Tan(0.5f * Mathf.Deg2Rad * angularDiameterInDegrees), 1e-6f);
+        }
+
+        internal static float GetSoftShadowKernelRadius(float softShadowKernelRadiusPercent, float shadowResolution)
+        {
+            // Narrower than half a texel, some receivers have no texel edge within reach and the penumbra turns into blocky steps
+            const float minSoftShadowKernelRadius = 0.5f;
+
+            return Mathf.Max(softShadowKernelRadiusPercent * 0.01f * shadowResolution, minSoftShadowKernelRadius);
+        }
+
+        static float GetSoftShadowBiasKernelRadius(ref VisibleLight shadowLight, bool supportsSoftShadows, float softShadowKernelRadiusPercent, float shadowResolution, UniversalRenderPipelineAsset asset)
+        {
+            if (!supportsSoftShadows || shadowLight.light.shadows != LightShadows.Soft)
+                return 1.0f;
+
+            SoftShadowQuality softShadowQuality = GetPerLightSoftShadowQuality(shadowLight.light, asset);
+
+            // PCSS sizes its own filter, so neither the quality's kernel nor the kernel radius applies to it
+            if (IsPCSSEnabled(shadowLight.lightType, softShadowQuality, asset, s_PCSSSupported))
+                return 1.0f;
+
+            float qualityKernelRadius = GetSoftShadowKernelRadius(softShadowQuality);
+            if (softShadowKernelRadiusPercent <= 0.0f || shadowLight.lightType != LightType.Directional)
+                return qualityKernelRadius;
+
+            // It never drops below the quality's kernel, which keeps the biases of the fixed kernels,
+            // and follows a wider filter kernel since that samples farther from the receiver.
+            return Mathf.Max(qualityKernelRadius, GetSoftShadowKernelRadius(softShadowKernelRadiusPercent, shadowResolution));
+        }
 
         /// <summary>
         /// Extract scale and bias from a fade distance to achieve a linear fading of the fade distance.
@@ -729,6 +1052,11 @@ namespace UnityEngine.Rendering.Universal
         internal static void SetCameraPosition(RasterCommandBuffer cmd, Vector3 worldSpaceCameraPos)
         {
             cmd.SetGlobalVector(ShaderPropertyId.worldSpaceCameraPos, worldSpaceCameraPos);
+        }
+
+        internal static bool ShouldUseShadowDepthClamp(bool isDirectional)
+        {
+            return isDirectional && SystemInfo.supportsDepthClamp;
         }
 
         private static RenderTextureDescriptor GetTemporaryShadowTextureDescriptor(int width, int height, int bits)
@@ -922,10 +1250,17 @@ namespace UnityEngine.Rendering.Universal
         internal static void SetPerLightSoftShadowKeyword(RasterCommandBuffer cmd, UniversalShadowData shadowData, bool hasSoftShadows)
         {
             if (SupportsPerLightSoftShadowQuality())
-                cmd.SetKeyword(ShaderGlobalKeywords.SoftShadows, hasSoftShadows);
+                SetPerLightQualitySoftShadowKeywords(cmd, shadowData, hasSoftShadows);
             else
                 // keep static quality keywords in lockstep with the per-light shadow keywords (UUM-147509)
                 SetSoftShadowQualityShaderKeywords(cmd, shadowData, hasSoftShadows);
+        }
+
+        // PCSS is layered on the per-light soft shadow keyword, so shaders without it keep the PCF filters
+        static void SetPerLightQualitySoftShadowKeywords(RasterCommandBuffer cmd, UniversalShadowData shadowData, bool enabled)
+        {
+            cmd.SetKeyword(ShaderGlobalKeywords.SoftShadows, enabled);
+            cmd.SetKeyword(ShaderGlobalKeywords.ShadowsPCSS, enabled && (shadowData.isMainLightPCSSEnabled || shadowData.isAdditionalLightsPCSSEnabled));
         }
 
         internal static void SetSoftShadowQualityShaderKeywords(RasterCommandBuffer cmd, UniversalShadowData shadowData)
@@ -935,15 +1270,18 @@ namespace UnityEngine.Rendering.Universal
 
         internal static void SetSoftShadowQualityShaderKeywords(RasterCommandBuffer cmd, UniversalShadowData shadowData, bool enabled)
         {
-            cmd.SetKeyword(ShaderGlobalKeywords.SoftShadows, enabled);
             if (SupportsPerLightSoftShadowQuality())
             {
+                SetPerLightQualitySoftShadowKeywords(cmd, shadowData, enabled);
                 cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsLow, false);
                 cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsMedium, false);
                 cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsHigh, false);
             }
             else
             {
+                // XR mobile uses the static quality keywords, which never take the PCSS path
+                cmd.SetKeyword(ShaderGlobalKeywords.SoftShadows, enabled);
+                cmd.SetKeyword(ShaderGlobalKeywords.ShadowsPCSS, false);
                 if (enabled && UniversalRenderPipeline.asset?.softShadowQuality == SoftShadowQuality.Low)
                 {
                     cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsLow, true);
@@ -1031,31 +1369,65 @@ namespace UnityEngine.Rendering.Universal
             return softShadow ? kMinimumPunctualLightSoftShadowResolution : kMinimumPunctualLightHardShadowResolution;
         }
 
+        static readonly GraphicsFormat[] s_ShadowmapDepthFormats = { GraphicsFormat.D16_UNorm, GraphicsFormat.D24_UNorm, GraphicsFormat.D32_SFloat };
+        static readonly GraphicsFormat[] s_ShadowmapDepthStencilFormats = { GraphicsFormat.D16_UNorm_S8_UInt, GraphicsFormat.D24_UNorm_S8_UInt, GraphicsFormat.D32_SFloat_S8_UInt };
+        static readonly Func<GraphicsFormat, bool> s_IsShadowmapFormatSupported = format => SystemInfo.IsFormatSupported(format, GraphicsFormatUsage.Render);
         static bool s_WarnedNoShadowmapStencilFormat;
 
-        internal static GraphicsFormat GetShadowmapDepthStencilFormat(bool stencilBuffer)
+        static GraphicsFormat GetRequestedShadowmapDepthStencilFormat(DepthBits depthBits, bool stencilBuffer)
         {
-            if (stencilBuffer)
+            GraphicsFormat[] candidates = stencilBuffer ? s_ShadowmapDepthStencilFormats : s_ShadowmapDepthFormats;
+            foreach (GraphicsFormat candidate in candidates)
             {
-                // If we need stencil bits, pick whichever supported format is the smallest
-                if (SystemInfo.IsFormatSupported(GraphicsFormat.D16_UNorm_S8_UInt, GraphicsFormatUsage.Render))
-                    return GraphicsFormat.D16_UNorm_S8_UInt;
-                if (SystemInfo.IsFormatSupported(GraphicsFormat.D24_UNorm_S8_UInt, GraphicsFormatUsage.Render))
-                    return GraphicsFormat.D24_UNorm_S8_UInt;
-                if (SystemInfo.IsFormatSupported(GraphicsFormat.D32_SFloat_S8_UInt, GraphicsFormatUsage.Render))
-                    return GraphicsFormat.D32_SFloat_S8_UInt;
+                if (GraphicsFormatUtility.GetDepthBits(candidate) >= (int)depthBits)
+                    return candidate;
+            }
 
-                // No depth-stencil format is supported here: the shadowmap falls back to depth-only and
-                // stencil writes silently no-op. Warn once so an enabled Shadowmap Stencil toggle that
-                // can't be honored on this device isn't invisible.
-                if (!s_WarnedNoShadowmapStencilFormat)
+            return candidates[candidates.Length - 1];
+        }
+
+        static bool TryGetSupportedShadowmapFormat(GraphicsFormat[] candidates, int minimumDepthBits, Func<GraphicsFormat, bool> isFormatSupported, out GraphicsFormat format)
+        {
+            foreach (GraphicsFormat candidate in candidates)
+            {
+                if (GraphicsFormatUtility.GetDepthBits(candidate) >= minimumDepthBits && isFormatSupported(candidate))
                 {
-                    s_WarnedNoShadowmapStencilFormat = true;
-                    Debug.LogWarning("Shadowmap Stencil is enabled but this device supports no depth-stencil shadowmap format; falling back to a depth-only shadowmap (stencil writes will have no effect).");
+                    format = candidate;
+                    return true;
                 }
             }
 
-            return GraphicsFormatUtility.GetDepthStencilFormat(16);
+            format = GraphicsFormat.None;
+            return false;
+        }
+
+        internal static GraphicsFormat SelectShadowmapDepthStencilFormat(DepthBits depthBits, bool stencilBuffer, Func<GraphicsFormat, bool> isFormatSupported)
+        {
+            GraphicsFormat requested = GetRequestedShadowmapDepthStencilFormat(depthBits, stencilBuffer);
+            if (isFormatSupported(requested))
+                return requested;
+
+            int minimumDepthBits = GraphicsFormatUtility.GetDepthBits(requested);
+            if (stencilBuffer && TryGetSupportedShadowmapFormat(s_ShadowmapDepthStencilFormats, minimumDepthBits, isFormatSupported, out GraphicsFormat format))
+                return format;
+            if (TryGetSupportedShadowmapFormat(s_ShadowmapDepthFormats, minimumDepthBits, isFormatSupported, out format))
+                return format;
+            if (!stencilBuffer && TryGetSupportedShadowmapFormat(s_ShadowmapDepthStencilFormats, minimumDepthBits, isFormatSupported, out format))
+                return format;
+
+            return requested;
+        }
+
+        internal static GraphicsFormat GetShadowmapDepthStencilFormat(DepthBits depthBits, bool stencilBuffer)
+        {
+            GraphicsFormat format = SelectShadowmapDepthStencilFormat(depthBits, stencilBuffer, s_IsShadowmapFormatSupported);
+            if (stencilBuffer && !GraphicsFormatUtility.IsStencilFormat(format) && !s_WarnedNoShadowmapStencilFormat)
+            {
+                s_WarnedNoShadowmapStencilFormat = true;
+                Debug.LogWarning($"Shadowmap Stencil is enabled, but this device doesn’t support any depth-stencil shadow map format. URP uses {format} instead, so stencil writes have no effect. To remove this warning, disable Shadowmap Stencil.");
+            }
+
+            return format;
         }
     }
 }

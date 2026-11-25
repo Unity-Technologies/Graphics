@@ -77,8 +77,9 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             Utils.CheckArgIsNotNull(meshInstance.mesh, "meshInstance.mesh");
             Utils.CheckArg(meshInstance.mesh.HasVertexAttribute(VertexAttribute.Position), "Cant use a mesh buffer that has no positions.");
             Utils.CheckArgRange(meshInstance.subMeshIndex, 0, meshInstance.mesh.subMeshCount, "meshInstance.subMeshIndex");
+            Utils.CheckMeshLod(meshInstance);
 
-            var blas = GetOrAllocateMeshBlas(meshInstance.mesh, meshInstance.subMeshIndex);
+            var blas = GetOrAllocateMeshBlas(meshInstance.mesh, meshInstance.subMeshIndex, meshInstance.meshLod);
             blas.IncRef();
 
             FreeTopLevelAccelStruct();
@@ -228,16 +229,17 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             m_TopLevelAccelStruct = null;
         }
 
-        MeshBlas GetOrAllocateMeshBlas(Mesh mesh, int subMeshIndex)
+        MeshBlas GetOrAllocateMeshBlas(Mesh mesh, int subMeshIndex, int meshLod)
         {
-            MeshBlas blas;
-            if (m_MeshBlases.TryGetValue((mesh.GetHashCode(), subMeshIndex), out blas))
+            var geomKey = (mesh.GetEntityId(), subMeshIndex, meshLod);
+            if (m_MeshBlases.TryGetValue(geomKey, out MeshBlas blas))
                 return blas;
 
             blas = new MeshBlas();
-            AllocateMeshBlas(mesh, subMeshIndex, blas);
+            blas.geomKey = geomKey;
+            AllocateMeshBlas(mesh, subMeshIndex, meshLod, blas);
 
-            m_MeshBlases[(mesh.GetHashCode(), subMeshIndex)] = blas;
+            m_MeshBlases[geomKey] = blas;
 
             return blas;
         }
@@ -289,12 +291,11 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         }
 
         // throws UnifiedRayTracingException
-        void AllocateMeshBlas(Mesh mesh, int submeshIndex, MeshBlas blas)
+        void AllocateMeshBlas(Mesh mesh, int submeshIndex, int meshLod, MeshBlas blas)
         {
             blas.blasVertices = BlockAllocator.Allocation.Invalid;
             blas.bvhInternalNodesAlloc = BlockAllocator.Allocation.Invalid;
             blas.bvhLeafNodesAlloc = BlockAllocator.Allocation.Invalid;
-            blas.geomKey = (mesh.GetHashCode(), submeshIndex);
 
             var bvhNodeSizeInDwords = RadeonRaysAPI.BvhInternalNodeSizeInDwords();
 
@@ -323,18 +324,26 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             meshBuildInfo.baseVertex = 0;
             meshBuildInfo.triangleIndices = indexBuffer;
             meshBuildInfo.vertexCount = (uint)blas.blasVertices.block.count;
-            meshBuildInfo.triangleCount = (uint)submeshDescriptor.indexCount / 3;
-            meshBuildInfo.indicesStartOffset = submeshDescriptor.indexStart;
+            meshBuildInfo.triangleCount = mesh.GetIndexCount(submeshIndex, meshLod) / 3;
+            meshBuildInfo.indicesStartOffset = (int)mesh.GetIndexStart(submeshIndex, meshLod);
             meshBuildInfo.baseIndex = -submeshDescriptor.firstVertex;
             meshBuildInfo.indexFormat = mesh.indexFormat == IndexFormat.UInt32 ? RadeonRays.IndexFormat.Int32 : RadeonRays.IndexFormat.Int16;
             meshBuildInfo.vertexStride = 3;
             blas.buildInfo = meshBuildInfo;
 
+            if (IsEmpty(blas))
+            {
+                blas.bvhInternalNodesAlloc = AllocateBlasInternalNodes(0);
+                blas.bvhLeafNodesAlloc = AllocateBlasLeafNodes(0);
+                blas.bvhBuilt = true;
+                return;
+            }
+
             #if UNITY_EDITOR
             if (m_UseCpuBuild)
             {
                 blas.indicesForCpuBuild = new List<int>();
-                mesh.GetTriangles(blas.indicesForCpuBuild, submeshIndex, false);
+                mesh.GetTriangles(blas.indicesForCpuBuild, submeshIndex, meshLod, false);
                 blas.baseIndexForCpuBuild = -submeshDescriptor.firstVertex;
                 blas.verticesForCpuBuild = new List<Vector3>();
                 mesh.GetVertices(blas.verticesForCpuBuild);
@@ -393,7 +402,12 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             return buffer;
         }
 
-        void DeleteMeshBlas((int mesh, int subMeshIndex) geomKey, MeshBlas blas)
+        static bool IsEmpty(Blas blas)
+        {
+            return blas is MeshBlas { buildInfo: { triangleCount: 0 } };
+        }
+
+        void DeleteMeshBlas((EntityId mesh, int subMeshIndex, int meshLod) geomKey, MeshBlas blas)
         {
             m_BlasInternalNodesAllocator.FreeAllocation(blas.bvhInternalNodesAlloc);
             blas.bvhInternalNodesAlloc = BlockAllocator.Allocation.Invalid;
@@ -559,9 +573,16 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
 
         void BuildTopLevelAccelStruct(CommandBuffer cmd, GraphicsBuffer scratchBuffer)
         {
-            var radeonRaysInstances = new RadeonRays.Instance[m_RadeonInstances.Count];
-            int i = 0;
+            var nonEmptyInstances = new List<RadeonRaysInstance>(m_RadeonInstances.Count);
             foreach (var instance in m_RadeonInstances.Values)
+            {
+                if (!IsEmpty(instance.blas))
+                    nonEmptyInstances.Add(instance);
+            }
+
+            var radeonRaysInstances = new RadeonRays.Instance[nonEmptyInstances.Count];
+            int i = 0;
+            foreach (var instance in nonEmptyInstances)
             {
                 if (instance.blas is MeshBlas meshBlas)
                 {
@@ -587,7 +608,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
 
             #if UNITY_EDITOR
             if (m_UseCpuBuild)
-                m_TopLevelAccelStruct = CpuBuildForTopLevelAccelStruct(cmd, radeonRaysInstances);
+                m_TopLevelAccelStruct = CpuBuildForTopLevelAccelStruct(cmd, nonEmptyInstances, radeonRaysInstances);
             else
             #endif
                 m_TopLevelAccelStruct = m_RadeonRaysAPI.BuildSceneAccelStruct(cmd, m_BlasInternalNodesBuffer, radeonRaysInstances, scratchBuffer);
@@ -704,11 +725,11 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         }
 
 
-        TopLevelAccelStruct CpuBuildForTopLevelAccelStruct(CommandBuffer cmd, RadeonRays.Instance[] radeonRaysInstances)
+        TopLevelAccelStruct CpuBuildForTopLevelAccelStruct(CommandBuffer cmd, List<RadeonRaysInstance> instances, RadeonRays.Instance[] radeonRaysInstances)
         {
-            var prims = new GpuBvhPrimitiveDescriptor[m_RadeonInstances.Count];
+            var prims = new GpuBvhPrimitiveDescriptor[instances.Count];
             int i = 0;
-            foreach (var instance in m_RadeonInstances.Values)
+            foreach (var instance in instances)
             {
                 Blas blas = instance.blas;
                 AABB aabb = blas.aabbForCpuBuild;
@@ -732,7 +753,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                 i++;
             }
 
-            if (m_RadeonInstances.Count != 0)
+            if (instances.Count != 0)
             {
                 var options = ConvertFlagsToCpuBuild(m_BuildFlags, true);
 
@@ -910,7 +931,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         #endif
         readonly ReferenceCounter m_Counter;
 
-        readonly Dictionary<(int mesh, int subMeshIndex), MeshBlas> m_MeshBlases;
+        readonly Dictionary<(EntityId mesh, int subMeshIndex, int meshLod), MeshBlas> m_MeshBlases;
         readonly Dictionary<int, ProceduralBlas> m_ProceduralBlases;
         internal BlockAllocator m_BlasInternalNodesAllocator;
         GraphicsBuffer m_BlasInternalNodesBuffer;
@@ -954,7 +975,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
 
         sealed class MeshBlas : Blas
         {
-            public (int meshHash, int subMeshIndex) geomKey;
+            public (EntityId mesh, int subMeshIndex, int meshLod) geomKey;
             public MeshBuildInfo buildInfo;
             public BlockAllocator.Allocation blasVertices;
             #if UNITY_EDITOR

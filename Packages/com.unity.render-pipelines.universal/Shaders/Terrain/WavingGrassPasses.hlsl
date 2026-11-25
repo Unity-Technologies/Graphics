@@ -63,6 +63,7 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
     viewDirWS = SafeNormalize(viewDirWS);
 
     inputData.normalWS = NormalizeNormalPerPixel(input.normal, UseNormalMap());
+    inputData.geometricNormalWS = input.normal.xyz;
     inputData.viewDirectionWS = viewDirWS;
 
 #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
@@ -235,7 +236,7 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
 #else
     URP_LIGHT_ACCUM4 color = UniversalFragmentBlinnPhong(inputData, surfaceData,
         UseSpecGlossMap() || UseSpecularColor(), UseAlphaPremultiply(),
-        ReceiveShadows(), IsSurfaceTypeTransparent(), input.normal.xyz);
+        ReceiveShadows(), IsSurfaceTypeTransparent());
     color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, input.clipPos));
     return half4(color.rgb, OutputAlpha(surfaceData.alpha, IsSurfaceTypeTransparent(_Surface)));
 #endif

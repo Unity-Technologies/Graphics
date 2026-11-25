@@ -15,7 +15,7 @@
     "com.unity.2d.tooling": "file:../../../../../ShadowPackages/com.unity.2d.tooling",
     "com.unity.cinemachine": "6.6.0",
     "com.unity.ext.nunit": "1.0.0",
-    "com.unity.external.test-protocol": "file:../../../../../ShadowPackages/com.unity.external.test-protocol",
+    "com.unity.external.test-protocol": "file:../../../../../Packages/Internal/com.unity.external.test-protocol",
     "com.unity.feature.2d": "file:../../../../../Packages/com.unity.feature.2d",
     "com.unity.ide.rider": "file:../../../../../ShadowPackages/com.unity.ide.rider",
     "com.unity.ide.visualstudio": "file:../../../../../ShadowPackages/com.unity.ide.visualstudio",

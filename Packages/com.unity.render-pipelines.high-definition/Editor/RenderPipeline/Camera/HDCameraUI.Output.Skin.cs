@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 public static readonly GUIContent targetDisplay = L10n.TextContent("Target Display", null, null, null);
 #endif
 
-#if ENABLE_VR && ENABLE_XR_MANAGEMENT
+#if ENABLE_VR && (ENABLE_XR_MANAGEMENT || XR_FOUNDATION_7_0_0_OR_NEWER)
                 public static readonly GUIContent xrRenderingContent = L10n.TextContent("XR Rendering", null, null, null);
 #endif
 

@@ -33,7 +33,6 @@ Shader "Unlit/UITKShaders/BlurredHexagon"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            #pragma multi_compile _ _UIE_OUTPUT_LINEAR
 
             #include "UnityCG.cginc"
             #include "UnityUIEFilter.cginc"
@@ -180,9 +179,8 @@ Shader "Unlit/UITKShaders/BlurredHexagon"
                 half4 sharp = tex2D(_MainTex, i.uv);
                 col = lerp(col, sharp, border * saturate(_BorderOpacity));
 
-                #if _UIE_OUTPUT_LINEAR
-                col.rgb = GammaToLinearSpace(col.rgb);
-                #endif
+                if (UIEFilterOutputsLinear())
+                    col.rgb = GammaToLinearSpace(col.rgb);
 
                 return col;
             }

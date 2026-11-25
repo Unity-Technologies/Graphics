@@ -419,6 +419,7 @@ namespace UnityEditor.Rendering.HighDefinition
             OnUpdateLightmapEncoding(BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget));
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         bool IsShadowCorrect()
             => QualitySettings.shadows == ShadowQuality.All;
 
@@ -426,6 +427,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             QualitySettings.ForEach(() => QualitySettings.shadows = ShadowQuality.All);
         }
+#pragma warning restore CS0618
 
         bool IsShadowmaskCorrect()
             => QualitySettings.shadowmaskMode == ShadowmaskMode.DistanceShadowmask;
@@ -611,16 +613,20 @@ namespace UnityEditor.Rendering.HighDefinition
         void UpdateVRXRManagementInstalledCheck()
         {
             m_vrXRManagementInstalledCheck = Result.Pending;
+            bool foundationInstalled = false;
+            m_UsedPackageRetriever.ProcessAsync(
+                k_XRFoundationPackageName,
+                (installed, info) => foundationInstalled = installed);
             m_UsedPackageRetriever.ProcessAsync(
                 k_XRanagementPackageName,
-                (installed, info) => m_vrXRManagementInstalledCheck = installed ? Result.OK : Result.Failed);
+                (installed, info) => m_vrXRManagementInstalledCheck = (foundationInstalled || installed) ? Result.OK : Result.Failed);
         }
 
         void FixVRXRManagementPackageInstalled(bool fromAsync)
         {
             if (fromAsync)
                 RestartFixAllAfterDomainReload(InclusiveMode.VR);
-            m_PackageInstaller.ProcessAsync(k_XRanagementPackageName, null);
+            m_PackageInstaller.ProcessAsync(k_XRFoundationPackageName, null);
         }
 
         Result m_vrLegacyHelpersInstalledCheck = Result.Pending;
@@ -871,6 +877,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const string k_HdrpPackageName = "com.unity.render-pipelines.high-definition";
         const string k_HdrpConfigPackageName = "com.unity.render-pipelines.high-definition-config";
         const string k_XRanagementPackageName = "com.unity.xr.management";
+        const string k_XRFoundationPackageName = "com.unity.xr.foundation";
         const string k_LegacyInputHelpersPackageName = "com.unity.xr.legacyinputhelpers";
 
         void IsLocalConfigurationPackageEmbeddedAsync(Action<bool> callback)

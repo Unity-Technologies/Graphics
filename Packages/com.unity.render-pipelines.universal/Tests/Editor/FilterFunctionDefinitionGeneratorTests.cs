@@ -11,20 +11,9 @@ using UnityEngine.UIElements;
 namespace UnityEngine.Rendering.Universal.Tests
 {
     // Tests FilterFunctionDefinitionGenerator: Blackboard property -> FilterFunctionDefinition parameter
-    // mapping, and the generated applySettingsCallback's runtime behavior.
+    // mapping, and the pass setup that lets UI Toolkit draw it instanced.
     class FilterFunctionDefinitionGeneratorTests
     {
-        // FilterPassContext setters are internal to the engine module; reflection avoids an IVT grant needing an engine rebuild.
-        static FilterPassContext MakeContext(FilterFunction filterFunction, bool readsGamma = false)
-        {
-            object boxed = new FilterPassContext();
-            typeof(FilterPassContext).GetProperty(nameof(FilterPassContext.filterFunction))
-                .GetSetMethod(nonPublic: true).Invoke(boxed, new object[] { filterFunction });
-            typeof(FilterPassContext).GetProperty(nameof(FilterPassContext.readsGamma))
-                .GetSetMethod(nonPublic: true).Invoke(boxed, new object[] { readsGamma });
-            return (FilterPassContext)boxed;
-        }
-
         static (GraphData graph, UniversalFilterSubTarget subTarget) NewFilterGraph()
         {
             var graph = new GraphData();
@@ -105,94 +94,65 @@ namespace UnityEngine.Rendering.Universal.Tests
         }
 
         [Test]
-        public void Generate_ApplySettingsCallback_WritesLiveParameterValuesIntoPropertyBlock()
+        public void Generate_LeavesTheParametersToTheBindings()
         {
-            // parameterBindings alone is metadata; only applySettingsCallback pushes values at runtime.
+            // A settings callback would make UI Toolkit draw the pass one element at a time
             var (graph, _) = NewFilterGraph();
-
-            var floatProperty = new Vector1ShaderProperty { displayName = "Amount", generatePropertyBlock = true, value = 0.1f };
-            graph.AddGraphInput(floatProperty);
+            graph.AddGraphInput(new Vector1ShaderProperty { displayName = "Amount", generatePropertyBlock = true });
 
             var definition = FilterFunctionDefinitionGenerator.Generate(graph, NewDummyMaterial(), "TestFilter");
-            Assert.IsNotNull(definition.passes[0].applySettingsCallback,
-                "applySettingsCallback must be set -- parameterBindings alone is not applied at runtime.");
 
-            // A *different* live value than the property's baked-in default (0.1f), to prove the callback
-            // reads the live FilterFunction value rather than the definition's own default.
-            var liveFunction = new FilterFunction(definition);
-            liveFunction.AddParameter(new FilterParameter(0.75f));
-
-            var context = MakeContext(liveFunction);
-            var mpb = new MaterialPropertyBlock();
-            definition.passes[0].applySettingsCallback(mpb, context);
-
-            Assert.AreEqual(0.75f, mpb.GetFloat(floatProperty.referenceName));
+            Assert.IsNull(definition.passes[0].applySettingsCallback);
+            Assert.IsNull(definition.passes[0].writeParametersCallback);
         }
 
         [Test]
-        public void Generate_ApplySettingsCallback_WritesLiveColorValue()
+        public void Generate_EnablesInstancingOnTheMaterial()
         {
             var (graph, _) = NewFilterGraph();
+            var material = NewDummyMaterial();
+            try
+            {
+                FilterFunctionDefinitionGenerator.Generate(graph, material, "TestFilter");
 
-            var colorProperty = new ColorShaderProperty { displayName = "Tint", generatePropertyBlock = true, value = Color.black };
-            graph.AddGraphInput(colorProperty);
-
-            var definition = FilterFunctionDefinitionGenerator.Generate(graph, NewDummyMaterial(), "TestFilter");
-
-            var liveFunction = new FilterFunction(definition);
-            liveFunction.AddParameter(new FilterParameter(Color.cyan));
-
-            var context = MakeContext(liveFunction);
-            var mpb = new MaterialPropertyBlock();
-            definition.passes[0].applySettingsCallback(mpb, context);
-
-            Assert.AreEqual(Color.cyan, mpb.GetColor(colorProperty.referenceName));
+                Assert.IsTrue(material.enableInstancing);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(material);
+            }
         }
 
         [Test]
-        public void Generate_ApplySettingsCallback_UnderSpecifiedFilterFunction_LeavesMaterialDefaults()
+        public void InstancedParameters_DeclareEveryExposedNumberPerInstance()
         {
-            // The public FilterFunction ctor does not pad missing parameters; the callback must skip them.
             var (graph, _) = NewFilterGraph();
+            var numbers = new (AbstractShaderProperty property, string type)[]
+            {
+                (new Vector1ShaderProperty { displayName = "Amount", generatePropertyBlock = true }, "float"),
+                (new BooleanShaderProperty { displayName = "Enabled", generatePropertyBlock = true }, "float"),
+                (new Vector2ShaderProperty { displayName = "Offset", generatePropertyBlock = true }, "float2"),
+                (new Vector3ShaderProperty { displayName = "Axis", generatePropertyBlock = true }, "float3"),
+                (new Vector4ShaderProperty { displayName = "Bounds", generatePropertyBlock = true }, "float4"),
+                (new ColorShaderProperty { displayName = "Tint", generatePropertyBlock = true }, "float4"),
+            };
+            foreach (var (property, _) in numbers)
+            {
+                graph.AddGraphInput(property);
+            }
+            var texture = new Texture2DShaderProperty { displayName = "Mask", generatePropertyBlock = true };
+            graph.AddGraphInput(texture);
 
-            var colorProperty = new ColorShaderProperty { displayName = "Tint", generatePropertyBlock = true, value = Color.red };
-            graph.AddGraphInput(colorProperty);
+            var builder = new ShaderStringBuilder();
+            new FilterInstancedParametersProperty(graph.properties)
+                .ForeachHLSLProperty(GenerationMode.ForReals, declaration => declaration.AppendTo(builder));
+            var code = builder.ToCodeBlock();
 
-            var definition = FilterFunctionDefinitionGenerator.Generate(graph, NewDummyMaterial(), "TestFilter");
-
-            var liveFunction = new FilterFunction(definition); // no AddParameter: parameterCount == 0
-
-            var mpb = new MaterialPropertyBlock();
-            definition.passes[0].applySettingsCallback(mpb, MakeContext(liveFunction));
-
-            Assert.IsTrue(mpb.isEmpty,
-                "Bindings without a live parameter value must not be written; the material's own defaults (the blackboard values) must show through.");
-        }
-
-        [Test]
-        public void Generate_ApplySettingsCallback_ReadsGamma_WritesRawSRGBColor()
-        {
-            // Assert.Ignore, not Assume: UTR reports Inconclusive as a failure, and PRV projects run in Gamma.
-            if (QualitySettings.activeColorSpace != ColorSpace.Linear)
-                Assert.Ignore("Only meaningful in a Linear color-space project, where SetColor linearizes.");
-
-            var (graph, _) = NewFilterGraph();
-
-            var gray = new Color(0.5f, 0.5f, 0.5f, 1f);
-            var colorProperty = new ColorShaderProperty { displayName = "Tint", generatePropertyBlock = true, value = gray };
-            graph.AddGraphInput(colorProperty);
-
-            var definition = FilterFunctionDefinitionGenerator.Generate(graph, NewDummyMaterial(), "TestFilter");
-
-            var liveFunction = new FilterFunction(definition);
-            liveFunction.AddParameter(new FilterParameter(gray));
-
-            var mpb = new MaterialPropertyBlock();
-            definition.passes[0].applySettingsCallback(mpb, MakeContext(liveFunction, readsGamma: true));
-
-            var stored = mpb.GetVector(colorProperty.referenceName);
-            Assert.AreEqual(0.5f, stored.x, 1e-3f,
-                "A gamma-reading pass must receive the raw sRGB value, not a linearized one.");
+            foreach (var (property, type) in numbers)
+            {
+                StringAssert.Contains($"UNITY_DEFINE_INSTANCED_PROP({type}, {property.referenceName})", code);
+            }
+            StringAssert.DoesNotContain(texture.referenceName, code);
         }
 
         [Test]

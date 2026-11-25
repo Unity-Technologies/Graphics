@@ -626,7 +626,7 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        protected IVFXControl fieldControl => (IVFXControl)field;
+        protected IVFXControl fieldControl => (IVFXControl)this.field;
 
         protected override void UpdateIndeterminate()
         {

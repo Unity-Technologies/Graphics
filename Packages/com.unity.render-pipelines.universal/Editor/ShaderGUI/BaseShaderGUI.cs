@@ -167,6 +167,25 @@ namespace UnityEditor
         }
 
         /// <summary>
+        /// The options for controlling the Emission Intensity Unit.
+        /// </summary>
+        public enum EmissionUnits
+        {
+            /// <summary>
+            /// Nits.
+            /// </summary>
+            Nits = 0,
+
+            /// <summary>
+            /// EV100.
+            /// </summary>
+            EV100 = 1
+        }
+
+        // Max EV Value.
+        private const float k_MaxEvValue = 130.0f;
+
+        /// <summary>
         /// Container for the text and tooltips used to display the shader.
         /// </summary>
         protected internal class Styles
@@ -548,6 +567,26 @@ namespace UnityEditor
         protected MaterialProperty emissionColorProp { get; set; }
 
         /// <summary>
+        /// The MaterialProperty for emission intensity on/off.
+        /// </summary>
+        protected MaterialProperty useEmissionIntensityProp { get; set; }
+
+        /// <summary>
+        /// The MaterialProperty for emission color with intensity.
+        /// </summary>
+        protected MaterialProperty emissionColorLDRProp { get; set; }
+
+        /// <summary>
+        /// The MaterialProperty for emission intensity value.
+        /// </summary>
+        protected MaterialProperty emissionIntensityProp { get; set; }
+
+        /// <summary>
+        /// The MaterialProperty for emission intensity units.
+        /// </summary>
+        protected MaterialProperty emissionIntensityUnitProp { get; set; }
+
+        /// <summary>
         /// The MaterialProperty for queue offset.
         /// </summary>
         protected MaterialProperty queueOffsetProp { get; set; }
@@ -637,6 +676,11 @@ namespace UnityEditor
             emissionMapProp = FindProperty(Property.EmissionMap, properties, false);
             emissionColorProp = FindProperty(Property.EmissionColor, properties, false);
             queueOffsetProp = FindProperty(Property.QueueOffset, properties, false);
+
+            useEmissionIntensityProp = FindProperty(Property.UseEmissionIntensity, properties, false);
+            emissionColorLDRProp = FindProperty(Property.EmissionColorLDR, properties, false);
+            emissionIntensityProp = FindProperty(Property.EmissionIntensity, properties, false);
+            emissionIntensityUnitProp = FindProperty(Property.EmissionIntensityUnit, properties, false);
         }
 
         /// <inheritdoc/>
@@ -1117,10 +1161,190 @@ namespace UnityEditor
         {
             if ((emissionMapProp == null) || (emissionColorProp == null))
                 return;
+            // Fallback: old behavior if new properties don't exist (backward compatibility)
+            if (useEmissionIntensityProp == null || emissionColorLDRProp == null ||
+                emissionIntensityProp == null || emissionIntensityUnitProp == null)
+            {
+                using (new EditorGUI.IndentLevelScope(2))
+                {
+                    materialEditor.TexturePropertyWithHDRColor(Styles.emissionMap, emissionMapProp, emissionColorProp, false);
+                }
+                return;
+            }
+
+
+            // Emission with intensity control
+            EditorGUI.BeginChangeCheck();
+            materialEditor.ShaderProperty(useEmissionIntensityProp, "Use Emission Intensity");
+            bool updateEmissionColor = EditorGUI.EndChangeCheck();
+
+            // Convert HDR -> LDR when switching to intensity mode
+            if (updateEmissionColor && useEmissionIntensityProp.floatValue > 0.5f)
+            {
+                ConvertHDRColorToLDR(emissionColorProp.colorValue, out Color ldr, out float intensity);
+                emissionColorLDRProp.colorValue = ldr.gamma;
+                emissionIntensityProp.floatValue = intensity;
+            }
+
+            // Draw emission controls (indented)
+            EditorGUI.BeginChangeCheck();
 
             using (new EditorGUI.IndentLevelScope(2))
             {
-                materialEditor.TexturePropertyWithHDRColor(Styles.emissionMap, emissionMapProp, emissionColorProp, false);
+                if (useEmissionIntensityProp.floatValue == 0)
+                {
+                    // HDR Color Mode
+                    materialEditor.TexturePropertyWithHDRColor(Styles.emissionMap, emissionMapProp, emissionColorProp, false);
+                    EditorGUILayout.HelpBox("Emission intensity is derived from the HDR color picker in luminance", MessageType.Info, true);
+                }
+                else
+                {
+                    // LDR color + Intensity
+                    materialEditor.TexturePropertySingleLine(Styles.emissionMap, emissionMapProp, emissionColorLDRProp);
+                    DoEmissionIntensityGUI(materialEditor, emissionIntensityProp, emissionIntensityUnitProp);
+                }
+            }
+
+            // Update _EmissionColor when properties change
+            if (EditorGUI.EndChangeCheck() || updateEmissionColor)
+            {
+                ValidateEmission();
+            }
+        }
+
+        internal static void DoEmissionIntensityGUI(MaterialEditor materialEditor, MaterialProperty emissionIntensity, MaterialProperty emissionIntensityUnit)
+        {
+            const int k_ValueUnitSeparator = 2;
+            const int k_UnitWidth = 100;
+
+            MaterialEditor.BeginProperty(emissionIntensity);
+            MaterialEditor.BeginProperty(emissionIntensityUnit);
+
+            bool unitIsMixed = emissionIntensityUnit.hasMixedValue;
+            bool intensityIsMixed = unitIsMixed || emissionIntensity.hasMixedValue;
+
+            float indent = 15 * EditorGUI.indentLevel;
+            Rect valueRect = EditorGUILayout.GetControlRect();
+            valueRect.width += indent - k_ValueUnitSeparator - k_UnitWidth;
+
+            Rect unitRect = valueRect;
+            unitRect.x += valueRect.width - indent + k_ValueUnitSeparator;
+            unitRect.width = k_UnitWidth + .5f;
+
+            EditorGUI.showMixedValue = intensityIsMixed;
+            EmissionUnits unit = (EmissionUnits)emissionIntensityUnit.floatValue;
+
+            if (unitIsMixed)
+            {
+                using (new EditorGUI.DisabledScope(true))
+                    materialEditor.ShaderProperty(valueRect, emissionIntensity, "Emission Intensity");
+            }
+            else
+            {
+                if (!intensityIsMixed && unit == EmissionUnits.EV100)
+                {
+                    EditorGUI.BeginChangeCheck();
+                    float evValue = LightUnitUtils.NitsToEv100(emissionIntensity.floatValue);
+                    evValue = EditorGUI.FloatField(valueRect, "Emission Intensity", evValue);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        evValue = Mathf.Clamp(evValue, 0, k_MaxEvValue);
+                        emissionIntensity.floatValue = LightUnitUtils.Ev100ToNits(evValue);
+                    }
+                }
+                else
+                {
+                    EditorGUI.BeginChangeCheck();
+                    materialEditor.ShaderProperty(valueRect, emissionIntensity, "Emission Intensity");
+                    if (EditorGUI.EndChangeCheck())
+                        emissionIntensity.floatValue = Mathf.Clamp(emissionIntensity.floatValue, 0, float.MaxValue);
+                }
+            }
+
+            EditorGUI.showMixedValue = emissionIntensityUnit.hasMixedValue;
+            EditorGUI.BeginChangeCheck();
+            var newUnit = (EmissionUnits)EditorGUI.EnumPopup(unitRect, unit);
+            if (EditorGUI.EndChangeCheck())
+                emissionIntensityUnit.floatValue = (float)newUnit;
+
+            EditorGUI.showMixedValue = false;
+
+            MaterialEditor.EndProperty();
+            MaterialEditor.EndProperty();
+        }
+
+        private static void ConvertHDRColorToLDR(Color hdr, out Color ldr, out float intensity)
+        {
+            const float k_MaxByteForOverexposedColor = 191;
+
+            hdr.a = 1.0f;
+            ldr = hdr;
+            intensity = 1.0f;
+
+            var maxColorComponent = hdr.maxColorComponent;
+            if (maxColorComponent != 0f)
+            {
+                var scaleFactor = k_MaxByteForOverexposedColor / maxColorComponent;
+
+                ldr.r = Mathf.Min(k_MaxByteForOverexposedColor, scaleFactor * hdr.r) / 255f;
+                ldr.g = Mathf.Min(k_MaxByteForOverexposedColor, scaleFactor * hdr.g) / 255f;
+                ldr.b = Mathf.Min(k_MaxByteForOverexposedColor, scaleFactor * hdr.b) / 255f;
+
+                intensity = 255f / scaleFactor;
+            }
+        }
+
+        /// <summary>
+        /// Updates the final HDR emission color based on LDR color + intensity settings.
+        /// Called whenever emission properties change to keep _EmissionColor in sync.
+        /// </summary>
+        /// <param name="material">The material to update.</param>
+        protected virtual void UpdateEmissionColor(Material material)
+        {
+            if (material == null)
+                return;
+
+            // Only update if the material has the intensity properties
+            if (!material.HasProperty(Property.UseEmissionIntensity))
+                return;
+
+            float useIntensity = material.GetFloat(Property.UseEmissionIntensity);
+
+            if (useIntensity > 0.5f)
+            {
+                // Intensity mode: Calculate HDR color from LDR + intensity
+                if (material.HasProperty(Property.EmissionColorLDR) &&
+                    material.HasProperty(Property.EmissionIntensity) &&
+                    material.HasProperty(Property.EmissionIntensityUnit))
+                {
+                    Color ldrColor = material.GetColor(Property.EmissionColorLDR);
+                    float intensity = material.GetFloat(Property.EmissionIntensity);
+
+                    // Calculate final HDR color: LDR.linear × intensity
+                    Color hdrColor = ldrColor.linear * intensity;
+                    hdrColor.a = 1.0f;
+
+                    material.SetColor("_EmissionColor", hdrColor);
+                }
+            }
+            // else: HDR mode - _EmissionColor is set directly by user, don't touch it
+        }
+
+        /// <summary>
+        /// Validates and updates emission properties for all selected materials.
+        /// Ensures _EmissionColor stays in sync with LDR + intensity settings.
+        /// </summary>
+        protected void ValidateEmission()
+        {
+            if (materialEditor == null || materialEditor.targets == null)
+                return;
+
+            foreach (var obj in materialEditor.targets)
+            {
+                if (obj is Material material)
+                {
+                    UpdateEmissionColor(material);
+                }
             }
         }
 

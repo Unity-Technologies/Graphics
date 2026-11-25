@@ -45,7 +45,7 @@ half4 _SubtractiveShadowColor;
 float4 _ScaledScreenParams;
 
 float4 _MainLightPosition;
-half4 _MainLightColor;
+float4 _MainLightColor;
 half4 _MainLightOcclusionProbes;
 
 // xyz are currently unused
@@ -63,7 +63,7 @@ StructuredBuffer<int> _AdditionalLightsIndices;
 CBUFFER_START(AdditionalLights)
 #endif
 float4 _AdditionalLightsPosition[MAX_VISIBLE_LIGHTS];
-half4 _AdditionalLightsColor[MAX_VISIBLE_LIGHTS];
+float4 _AdditionalLightsColor[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsAttenuation[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsSpotDir[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightsOcclusionProbes[MAX_VISIBLE_LIGHTS];

@@ -22,6 +22,12 @@
 //     res += "float2 (" + Math.cos(theta) + ", " + Math.sin(theta) + "),\n";
 // }
 
+// Indexing the table hangs some mobile GPUs, so they compute the directions instead
+#if defined(SHADER_API_MOBILE)
+#define PCSS_COMPUTE_SPIRAL_DIRECTIONS
+#endif
+
+#if !defined(PCSS_COMPUTE_SPIRAL_DIRECTIONS)
 static const float2 fibonacciSpiralDirection[PCSS_DISK_SAMPLE_COUNT] =
 {
     float2 (1, 0),
@@ -89,13 +95,25 @@ static const float2 fibonacciSpiralDirection[PCSS_DISK_SAMPLE_COUNT] =
     float2 (-0.4149890815356195, -0.9098263912451776),
     float2 (0.9205789302157817, 0.3905565685566777)
 };
+#endif
+
+real2 GetFibonacciSpiralDirection(int sampleIndex)
+{
+#if defined(PCSS_COMPUTE_SPIRAL_DIRECTIONS)
+    // Same angle as the generator above, (3 - sqrt(5)) / 2 of a turn per sample
+    float theta = frac(sampleIndex * 0.381966011250105) * TWO_PI;
+    return real2(cos(theta), sin(theta));
+#else
+    return fibonacciSpiralDirection[sampleIndex];
+#endif
+}
 
 // Samples uniformly spread across the disk kernel, radius baked in.
 // The radius is in texels so the disk stays circular on a non-square atlas.
 real2 ComputeFibonacciSpiralDiskSample_Punctual(const in int sampleIndex, const in real diskRadiusTexels, const in real sampleCountInverse, const in real sampleCountBias)
 {
     real sampleRadius = diskRadiusTexels * sqrt((real)sampleIndex * sampleCountInverse + sampleCountBias);
-    return fibonacciSpiralDirection[sampleIndex] * sampleRadius;
+    return GetFibonacciSpiralDirection(sampleIndex) * sampleRadius;
 }
 
 real PenumbraSizePunctual(real receiver, real blocker)
@@ -239,7 +257,7 @@ real2 ComputeFibonacciSpiralDiskSampleClumped(const in int sampleIndex, const in
     // Third power chosen arbitrarily - center area is really that much more important
     sampleDistNorm = sampleDistNorm * sampleDistNorm * sampleDistNorm;
 
-    return fibonacciSpiralDirection[sampleIndex] * sampleDistNorm;
+    return GetFibonacciSpiralDirection(sampleIndex) * sampleDistNorm;
 }
 
 // Samples uniformly spread across the disk kernel
@@ -251,7 +269,7 @@ real2 ComputeFibonacciSpiralDiskSampleUniform(const in int sampleIndex, const in
     // sqrt results in uniform distribution
     sampleDistNorm = sqrt(sampleDistNorm);
 
-    return fibonacciSpiralDirection[sampleIndex] * sampleDistNorm;
+    return GetFibonacciSpiralDirection(sampleIndex) * sampleDistNorm;
 }
 
 void FilterScaleOffset(real3 coord, real maxSampleZDistance, real shadowmapSamplingScale, out real2 filterScalePos, out real2 filterScaleNeg, out real2 filterOffset)
@@ -353,7 +371,7 @@ real2 ComputeFibonacciSpiralDiskSampleClumped_Directional(const in int sampleInd
     // More samples in the middle
     sampleDistNorm = PositivePow(sampleDistNorm, clumpExponent);
 
-    return fibonacciSpiralDirection[sampleIndex] * sampleDistNorm;
+    return GetFibonacciSpiralDirection(sampleIndex) * sampleDistNorm;
 }
 
 bool BlockerSearch_Directional(inout real averageBlocker, real filterSize, real3 posTCAtlas, float2 shadowmapInAtlasScale, float2 shadowmapInAtlasOffset, real2 sampleJitter, Texture2D shadowMap, SamplerState pointSampler, int sampleCount, float radial2DepthScale, real minFilterRadius, real minFilterRadial2DepthScale, real blockerClumpSampleExponent)

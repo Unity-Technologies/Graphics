@@ -87,6 +87,43 @@ namespace UnityEngine.Rendering.Tests
         }
 
 
+        [TestCase(TextureUVOrigin.BottomLeft)]
+        [TestCase(TextureUVOrigin.TopLeft)]
+        public void CanAddCopyPass_OnIdleGraphWithImportedTextures_DoesNotThrow(TextureUVOrigin destinationUVOrigin)
+        {
+            var sourceTexture = new RenderTexture(64, 64, 0, GraphicsFormat.R8G8B8A8_UNorm);
+            var destinationTexture = new RenderTexture(64, 64, 0, GraphicsFormat.R8G8B8A8_UNorm);
+            var sourceHandle = RTHandles.Alloc(sourceTexture);
+            var destinationHandle = RTHandles.Alloc(destinationTexture);
+
+            try
+            {
+                var info = new RenderTargetInfo
+                {
+                    width = 64,
+                    height = 64,
+                    volumeDepth = 1,
+                    msaaSamples = 1,
+                    format = GraphicsFormat.R8G8B8A8_UNorm,
+                };
+                var source = m_RenderGraph.ImportTexture(sourceHandle, info, new ImportResourceParams { textureUVOrigin = TextureUVOrigin.BottomLeft });
+                var destination = m_RenderGraph.ImportTexture(destinationHandle, info, new ImportResourceParams { textureUVOrigin = destinationUVOrigin });
+
+                bool canAddCopyPass = false;
+                Assert.DoesNotThrow(() => canAddCopyPass = m_RenderGraph.CanAddCopyPass(source, destination));
+
+                bool originsDiffer = SystemInfo.graphicsUVStartsAtTop && destinationUVOrigin != TextureUVOrigin.BottomLeft;
+                Assert.AreEqual(!originsDiffer, canAddCopyPass);
+            }
+            finally
+            {
+                sourceHandle.Release();
+                destinationHandle.Release();
+                UnityEngine.Object.DestroyImmediate(sourceTexture);
+                UnityEngine.Object.DestroyImmediate(destinationTexture);
+            }
+        }
+
         [Test]
         public void RenderPassAddBlitUseTexture()
         {

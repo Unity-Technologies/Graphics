@@ -148,7 +148,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             }
         }
 
-        public void AddInstance(UInt64 objectHandle, Mesh mesh, Matrix4x4 localToWorldMatrix, Span<uint> perSubMeshMask, Span<uint> perSubMeshMaterialIDs, Span<bool> perSubMeshIsOpaque, uint renderingLayerMask)
+        public void AddInstance(UInt64 objectHandle, Mesh mesh, Matrix4x4 localToWorldMatrix, Span<uint> perSubMeshMask, Span<uint> perSubMeshMaterialIDs, Span<bool> perSubMeshIsOpaque, uint renderingLayerMask, int meshLod = 0)
         {
             int subMeshCount = mesh.subMeshCount;
 
@@ -157,6 +157,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             {
                 var instanceDesc = new MeshInstanceDesc(mesh, i)
                 {
+                    meshLod = meshLod,
                     localToWorldMatrix = localToWorldMatrix,
                     mask = perSubMeshMask[i],
                     opaqueGeometry = perSubMeshIsOpaque[i]

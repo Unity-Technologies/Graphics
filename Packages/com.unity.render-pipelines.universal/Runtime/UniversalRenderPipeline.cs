@@ -290,13 +290,39 @@ namespace UnityEngine.Rendering.Universal
 
         private UniversalRenderPipelineGlobalSettings m_GlobalSettings;
 
-        // Set by any camera that needs the real back buffer multisampled; one camera keeps it on for the
-        // whole frame. Reset and consumed only in Render() so it can never be read stale.
-        private bool m_FrameNeedsRealBackbufferMSAA;
+        struct DisplayMSAARequest
+        {
+            // Set by any camera that needs the surface multisampled; one camera keeps it on for the
+            // whole frame. Reset and consumed only in Render() so it can never be read stale.
+            bool m_NeededThisFrame;
 
-        // Hysteresis on dropping back buffer MSAA to 1: counts consecutive frames not needing back buffer
-        // MSAA so a per-frame flip-flop of the decision doesn't keep reallocating the back buffer.
-        private int m_FramesSinceRealBackbufferMSAANeeded;
+            // Hysteresis on dropping MSAA to 1: counts consecutive frames not needing MSAA so a per-frame
+            // flip-flop of the decision doesn't keep reallocating the surface.
+            int m_FramesSinceNeeded;
+
+            public void BeginFrame() => m_NeededThisFrame = false;
+            public void Require() => m_NeededThisFrame = true;
+            public void ResetDowngradeDelay() => m_FramesSinceNeeded = 0;
+
+            // Returns the sample count to request. Upgrades apply immediately; downgrades wait out the
+            // hysteresis, since extra MSAA frames cost only bandwidth, never correctness.
+            public int Resolve(int assetSamples, int currentSamples)
+            {
+                if (m_NeededThisFrame)
+                {
+                    m_FramesSinceNeeded = 0;
+                    return assetSamples;                        // upgrade immediately
+                }
+                if (++m_FramesSinceNeeded >= realBackbufferMSAADowngradeDelayFrames)
+                    return 1;                                   // downgrade only after the delay
+                return currentSamples;                          // hold current during the delay
+            }
+        }
+
+        // The real backbuffer and XR eye textures each need their own: a camera with allowXRRendering disabled
+        // will render into the real back buffer in the same frame as the XR cameras render into the eye textures.
+        private DisplayMSAARequest m_RealBackbufferMSAARequest;
+        private DisplayMSAARequest m_XRDisplayMSAARequest;
 
         // Must be > 1: when the renderer configuration changes for only a few frames (different render passes
         // enqueued, e.g. by the volume system), this keeps us from setting back buffer MSAA to 1 and back
@@ -319,6 +345,41 @@ namespace UnityEngine.Rendering.Universal
         // Therefore they are marked with [NoAutoStaticsCleanup] to mute analyzer warnings about them.
         [NoAutoStaticsCleanup] internal static RenderGraph s_RenderGraph;
         [NoAutoStaticsCleanup] internal static RTHandleResourcePool s_RTHandlePool;
+
+#if UNITY_EDITOR
+        // Time.frameCount does not advance while an edit mode view repaints, so pooled resources would never age.
+        [NoAutoStaticsCleanup] static int s_ResourcePoolFrameIndex;
+        [NoAutoStaticsCleanup] static int s_LastResourcePoolFrameCount;
+
+        internal static int resourcePoolFrameIndex => s_ResourcePoolFrameIndex;
+
+        static void AdvanceResourcePoolFrameIndex(List<Camera> cameras)
+        {
+            int frameCount = Time.frameCount;
+            int frameDelta = frameCount - s_LastResourcePoolFrameCount;
+            s_LastResourcePoolFrameCount = frameCount;
+
+            if (frameDelta != 0)
+            {
+                s_ResourcePoolFrameIndex += Math.Max(frameDelta, 1);
+                return;
+            }
+
+            if (Application.isPlaying)
+                return;
+
+            foreach (var camera in cameras)
+            {
+                if (camera.cameraType != CameraType.Preview)
+                {
+                    s_ResourcePoolFrameIndex++;
+                    return;
+                }
+            }
+        }
+#else
+        internal static int resourcePoolFrameIndex => Time.frameCount;
+#endif
 
         // Store locally the value on the instance due as the Render Pipeline Asset data might change before the disposal of the asset, making some APV Resources leak.
         internal bool apvIsEnabled = false;
@@ -413,7 +474,7 @@ namespace UnityEngine.Rendering.Universal
             // Apply the asset's MSAA to the back buffer at bind time so it doesn't lag asset changes by a
             // frame; ApplyRealBackbufferMSAARequest still turns it off per-frame when no camera needs it.
             RequestRealBackbufferMSAA(asset.msaaSampleCount);
-            m_FramesSinceRealBackbufferMSAANeeded = 0;
+            m_RealBackbufferMSAARequest.ResetDowngradeDelay();
 
             var defaultVolumeProfileSettings = GraphicsSettings.GetRenderPipelineSettings<URPDefaultVolumeProfileSettings>();
             VolumeManager.instance.Initialize(defaultVolumeProfileSettings.volumeProfile, asset.volumeProfile);
@@ -421,6 +482,7 @@ namespace UnityEngine.Rendering.Universal
             // Configure initial XR settings
             MSAASamples msaaSamples = (MSAASamples)Mathf.Clamp(Mathf.NextPowerOfTwo(QualitySettings.antiAliasing), (int)MSAASamples.None, (int)MSAASamples.MSAA8x);
             XRSystem.SetDisplayMSAASamples(msaaSamples);
+            m_XRDisplayMSAARequest.ResetDowngradeDelay();
             XRSystem.SetRenderScale(asset.renderScale);
 
             Lightmapping.SetDelegate(s_LightsDelegate);
@@ -553,6 +615,7 @@ namespace UnityEngine.Rendering.Universal
             CameraCaptureBridge.enabled = false;
 
             ConstantBuffer.ReleaseAll();
+            ConstantBufferPropertyWarnings.OnPipelineDisposed();
             VolumeManager.instance.Deinitialize();
 
             DisposeAdditionalCameraData();
@@ -648,17 +711,30 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         protected override void Render(ScriptableRenderContext renderContext, List<Camera> cameras)
         {
-            // RenderPipelineManager calls this once per frame: reset the back buffer MSAA request, let each
-            // camera rendered here report its need, then apply. Cameras rendered outside this path (render
-            // requests) are not counted — safe only because they target a destination texture, never the back
-            // buffer. If that changes, this decision becomes incomplete.
-            m_FrameNeedsRealBackbufferMSAA = false;
-            RenderCameras(renderContext, cameras);
-            ApplyRealBackbufferMSAARequest();
+            ConstantBufferPropertyWarnings.BeginRender();
+            try
+            {
+                // RenderPipelineManager calls this once per frame: reset the back buffer MSAA request, let each
+                // camera rendered here report its need, then apply. Cameras rendered outside this path (render
+                // requests) are not counted — safe only because they target a destination texture, never the back
+                // buffer. If that changes, this decision becomes incomplete.
+                m_RealBackbufferMSAARequest.BeginFrame();
+                m_XRDisplayMSAARequest.BeginFrame();
+                RenderCameras(renderContext, cameras);
+                ApplyRealBackbufferMSAARequest();
+                ApplyXRDisplayMSAARequest();
+            }
+            finally
+            {
+                ConstantBufferPropertyWarnings.EndRender();
+            }
         }
 
         void RenderCameras(ScriptableRenderContext renderContext, List<Camera> cameras)
         {
+#if UNITY_EDITOR
+            AdvanceResourcePoolFrameIndex(cameras);
+#endif
             SetHDRState(cameras);
 
             int cameraCount = cameras.Count;
@@ -681,10 +757,7 @@ namespace UnityEngine.Rendering.Universal
                 GraphicsSettings.lightsUseColorTemperature = true;
                 SetupPerFrameShaderConstants();
 
-                var cbSettings = GraphicsSettings.GetRenderPipelineSettings<RenderingCapabilitiesSettings>();
-                useGlobalConstantBuffer = cbSettings != null && cbSettings.useGlobalConstantBuffer;
-
-                XRSystem.SetDisplayMSAASamples((MSAASamples)asset.msaaSampleCount);
+                RefreshGlobalConstantBufferFlag();
 
 #if UNITY_ENABLE_CHECKS
                 if (DebugManager.instance.isAnyDebugUIActive)
@@ -740,7 +813,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 s_RenderGraph.EndFrame();
-                s_RTHandlePool.PurgeUnusedResources(Time.frameCount);
+                s_RTHandlePool.PurgeUnusedResources(resourcePoolFrameIndex);
 
                 // Clean up expired upscaler contexts (unused for > 400 frames)
                 if (upscaling != null)
@@ -757,32 +830,19 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
-        // Renderers call this (via ScriptableRenderer.ReportRealBackbufferMSAA) to report that a camera needs
+        // Renderers call this (via ScriptableRenderer.ReportDisplayTargetMSAA) to report that a camera needs
         // the real back buffer multisampled.
         internal void RequireRealBackbufferMSAA()
         {
-            m_FrameNeedsRealBackbufferMSAA = true;
+            m_RealBackbufferMSAARequest.Require();
         }
 
         // Only sets the request for the next frame. The current frame already imported the live back buffer
         // value (Screen.currentBackbufferMSAASamples) into RenderGraph, so rendering stays correct no matter
         // when the surface is actually reallocated (deferred to the next frame on platforms like Metal).
-        // Upgrades apply immediately; downgrades wait out the hysteresis, since extra MSAA frames cost only
-        // bandwidth, never correctness.
         private void ApplyRealBackbufferMSAARequest()
         {
-            int desired;
-            if (m_FrameNeedsRealBackbufferMSAA)
-            {
-                m_FramesSinceRealBackbufferMSAANeeded = 0;
-                desired = asset.msaaSampleCount;                // upgrade immediately
-            }
-            else if (++m_FramesSinceRealBackbufferMSAANeeded >= realBackbufferMSAADowngradeDelayFrames)
-                desired = 1;                                    // downgrade only after the delay
-            else
-                desired = Screen.msaaSamples;                   // hold current during the delay
-
-            RequestRealBackbufferMSAA(desired);
+            RequestRealBackbufferMSAA(m_RealBackbufferMSAARequest.Resolve(asset.msaaSampleCount, Screen.msaaSamples));
         }
 
         // Sets the real back buffer MSAA count, clamped to 1 where MSAA is resolved explicitly (the
@@ -794,6 +854,23 @@ namespace UnityEngine.Rendering.Universal
                 samples = 1;
             if (samples != Screen.msaaSamples)
                 Screen.SetMSAASamples(samples);
+        }
+
+        // XR counterpart of RequireRealBackbufferMSAA, for the XR eye textures.
+        internal void RequireXRDisplayMSAA()
+        {
+            m_XRDisplayMSAARequest.Require();
+        }
+
+        // XR counterpart of ApplyRealBackbufferMSAARequest. The eye textures are reallocated at the next XR
+        // frame start, and URP imports their live descriptor each frame, so rendering stays correct.
+        private void ApplyXRDisplayMSAARequest()
+        {
+            if (!XRSystem.displayActive)
+                return;
+
+            int samples = m_XRDisplayMSAARequest.Resolve(asset.msaaSampleCount, (int)XRSystem.GetDisplayMSAASamples());
+            XRSystem.SetDisplayMSAASamples((MSAASamples)samples);
         }
 
         /// <summary>
@@ -861,6 +938,10 @@ namespace UnityEngine.Rendering.Universal
                 RTDesc.width = Mathf.Max(1, RTDesc.width);
                 RTDesc.height = Mathf.Max(1, RTDesc.height);
 
+                RTDesc.depthStencilFormat = destination.depthStencilFormat;
+                if (RTDesc.depthStencilFormat == GraphicsFormat.None)
+                    RTDesc.depthStencilFormat = CoreUtils.GetDefaultDepthStencilFormat();
+
                 //if mip is 0 and target is Texture2D we can immediately render to the requested destination
                 if(destination.dimension != TextureDimension.Tex2D || mipLevel != 0)
                 {
@@ -872,28 +953,37 @@ namespace UnityEngine.Rendering.Universal
                 camera.targetTexture = temporaryRT ? temporaryRT : destination;
 
                 // Do not call Render() here — it must run once per frame (see its back buffer MSAA bookkeeping).
-                if (standardRequest != null)
+                ConstantBufferPropertyWarnings.BeginRender();
+                try
                 {
-                    RenderCameras(context, new List<Camera>{ camera });
-                }
-                else
-                {
-                    if (camera.targetTexture != null)
+                    if (standardRequest != null)
                     {
-                        camera.targetTexture.IncrementUpdateCount();
+                        RenderCameras(context, new List<Camera>{ camera });
                     }
-
-                    using (UnityEngine.Pool.ListPool<Camera>.Get(out var tmp))
+                    else
                     {
-                        tmp.Add(camera);
-
-                        using (new ContextRenderingScope(context, tmp))
-                        using (new CameraRenderingScope(context, camera))
+                        if (camera.targetTexture != null)
                         {
-                            camera.gameObject.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData);
-                            RenderSingleCameraInternal(context, camera, ref additionalCameraData);
+                            camera.targetTexture.IncrementUpdateCount();
+                        }
+
+                        using (UnityEngine.Pool.ListPool<Camera>.Get(out var tmp))
+                        {
+                            tmp.Add(camera);
+
+                            using (new ContextRenderingScope(context, tmp))
+                            using (new CameraRenderingScope(context, camera))
+                            {
+                                camera.gameObject.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData);
+                                UpdateVolumeFramework(camera, additionalCameraData);
+                                RenderSingleCameraInternal(context, camera, ref additionalCameraData);
+                            }
                         }
                     }
+                }
+                finally
+                {
+                    ConstantBufferPropertyWarnings.EndRender();
                 }
 
                 if(temporaryRT)
@@ -967,7 +1057,17 @@ namespace UnityEngine.Rendering.Universal
         [Obsolete("RenderSingleCamera is obsolete, please use RenderPipeline.SubmitRenderRequest with UniversalRenderer.SingleCameraRequest as RequestData type. #from(2023.1)")]
         public static void RenderSingleCamera(ScriptableRenderContext context, Camera camera)
         {
-            RenderSingleCameraInternal(context, camera);
+            ConstantBufferPropertyWarnings.BeginRender();
+            try
+            {
+                camera.gameObject.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData);
+                UpdateVolumeFramework(camera, additionalCameraData);
+                RenderSingleCameraInternal(context, camera);
+            }
+            finally
+            {
+                ConstantBufferPropertyWarnings.EndRender();
+            }
         }
 
         internal static void RenderSingleCameraInternal(ScriptableRenderContext context, Camera camera, bool isLastBaseCamera = true)
@@ -1001,6 +1101,9 @@ namespace UnityEngine.Rendering.Universal
                 Debug.LogWarning($"Camera '{camera.name}' has an invalid render target size (width: {camera.targetTexture.width}, height: {camera.targetTexture.height}) or pixel dimensions (width: {camera.pixelWidth}, height: {camera.pixelHeight}). Camera will be skipped.");
                 return;
             }
+
+            // Render requests don't go through RenderCameras.
+            RefreshGlobalConstantBufferFlag();
 
             var frameData = GetRenderer(camera, additionalCameraData).frameData;
             var cameraData = CreateCameraData(frameData, camera, additionalCameraData);
@@ -1088,7 +1191,8 @@ namespace UnityEngine.Rendering.Universal
                 SetupPerCameraShaderConstants(cmd);
 
                 ProbeVolumesOptions apvOptions = null;
-                if (camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
+                var additionalCameraData = cameraData.additionalCameraData;
+                if (additionalCameraData != null)
                     apvOptions = additionalCameraData.volumeStack?.GetComponent<ProbeVolumesOptions>();
 
                 bool supportProbeVolume = asset != null && asset.lightProbeSystem == LightProbeSystem.ProbeVolumes;
@@ -1470,7 +1574,6 @@ namespace UnityEngine.Rendering.Universal
                             }
 #endif
 
-                            InitializeAdditionalCameraData(overlayCamera, overlayAdditionalCameraData, false, isLastBaseCamera, overlayCameraData);
                             overlayCameraData.camera = overlayCamera;
                             overlayCameraData.baseCamera = baseCamera;
 
@@ -1494,6 +1597,9 @@ namespace UnityEngine.Rendering.Universal
                                 UpdateVolumeFramework(overlayCamera, overlayAdditionalCameraData);
 #endif
 
+                                // We call InitializeAdditionalCameraData once per overlay camera, as for the base camera.
+                                // The call comes after the XR setup above and after the BeginCameraRendering callbacks,
+                                // which can move the camera.
                                 bool isLastOverlayCamera = i == lastActiveOverlayCameraIndex;
                                 InitializeAdditionalCameraData(overlayCamera, overlayAdditionalCameraData, isLastOverlayCamera, isLastBaseCamera, overlayCameraData);
 
@@ -1772,12 +1878,29 @@ namespace UnityEngine.Rendering.Universal
             SupportedRenderingFeatures.active.rendersUIOverlay = true;
         }
 
-        static ScriptableRenderer GetRenderer(Camera camera, UniversalAdditionalCameraData additionalCameraData)
+        internal static ScriptableRenderer GetRenderer(Camera camera, UniversalAdditionalCameraData additionalCameraData)
         {
             var renderer = additionalCameraData != null ? additionalCameraData.scriptableRenderer : null;
             if (renderer == null || camera.cameraType == CameraType.SceneView)
                 renderer = asset.scriptableRenderer;
             return renderer;
+        }
+
+        static ShadowsVolumeOverride s_DefaultShadowsVolume;
+
+        // Players only create the volume component types found in the Default Volume Profile, so the stack can lack this one.
+        internal static ShadowsVolumeOverride GetShadowsVolume(VolumeStack stack)
+        {
+            var shadowsVolume = stack.GetComponent<ShadowsVolumeOverride>();
+            if (shadowsVolume != null)
+                return shadowsVolume;
+
+            if (s_DefaultShadowsVolume == null)
+            {
+                s_DefaultShadowsVolume = ScriptableObject.CreateInstance<ShadowsVolumeOverride>();
+                s_DefaultShadowsVolume.hideFlags = HideFlags.HideAndDontSave;
+            }
+            return s_DefaultShadowsVolume;
         }
 
         internal static void InitializeScaledDimensions(Camera camera, UniversalCameraData cameraData)
@@ -2144,11 +2267,15 @@ namespace UnityEngine.Rendering.Universal
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.initializeAdditionalCameraData);
 
+            cameraData.additionalCameraData = additionalCameraData;
+
             var renderer = GetRenderer(camera, additionalCameraData);
             var settings = asset;
 
             bool anyShadowsEnabled = settings.supportsMainLightShadows || settings.supportsAdditionalLightShadows;
-            cameraData.maxShadowDistance = Mathf.Min(settings.shadowDistance, camera.farClipPlane);
+            Debug.Assert(VolumeManager.instance.stack != null);
+            var shadowsVolume = GetShadowsVolume(VolumeManager.instance.stack);
+            cameraData.maxShadowDistance = Mathf.Min(shadowsVolume.maxShadowDistance.value, camera.farClipPlane);
             cameraData.maxShadowDistance = (anyShadowsEnabled && cameraData.maxShadowDistance >= camera.nearClipPlane) ? cameraData.maxShadowDistance : 0.0f;
 
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
@@ -2325,10 +2452,15 @@ namespace UnityEngine.Rendering.Universal
             s_ShadowBiasData.Clear();
             s_ShadowResolutionData.Clear();
 
-            shadowData.shadowmapDepthBufferBits = 16;
-            shadowData.mainLightShadowCascadeBorder = urpAsset.cascadeBorder;
-            shadowData.mainLightShadowCascadesCount = urpAsset.shadowCascadeCount;
-            shadowData.mainLightShadowCascadesSplit = GetMainLightCascadeSplit(shadowData.mainLightShadowCascadesCount, urpAsset);
+            shadowData.mainLightShadowmapDepthBits = urpAsset.mainLightShadowmapDepthBits;
+            shadowData.additionalLightsShadowmapDepthBits = urpAsset.additionalLightsShadowmapDepthBits;
+#pragma warning disable 618
+            shadowData.shadowmapDepthBufferBits = (int)shadowData.mainLightShadowmapDepthBits;
+#pragma warning restore 618
+            var shadowsVolume = GetShadowsVolume(VolumeManager.instance.stack);
+            shadowData.mainLightShadowCascadeBorder = shadowsVolume.lastCascadeBorder.value;
+            shadowData.mainLightShadowCascadesCount = shadowsVolume.cascadeCount.value;
+            shadowData.mainLightShadowCascadesSplit = shadowsVolume.GetCascadeSplit();
             shadowData.mainLightShadowmapWidth = urpAsset.mainLightShadowmapResolution;
             shadowData.mainLightShadowmapHeight = urpAsset.mainLightShadowmapResolution;
             shadowData.additionalLightsShadowmapWidth = shadowData.additionalLightsShadowmapHeight =
@@ -2337,6 +2469,8 @@ namespace UnityEngine.Rendering.Universal
             // This will be setup in AdditionalLightsShadowCasterPass.
             shadowData.isKeywordAdditionalLightShadowsEnabled = false;
             shadowData.isKeywordSoftShadowsEnabled = false;
+            shadowData.isMainLightPCSSEnabled = false;
+            shadowData.isAdditionalLightsPCSSEnabled = false;
 
             // Those fields must be setup after ApplyAdaptivePerformance is called on RenderingData.
             // This is because this function can currently modify mainLightShadowmapWidth, mainLightShadowmapHeight and mainLightShadowCascadesCount.
@@ -2383,7 +2517,7 @@ namespace UnityEngine.Rendering.Universal
                     if (i == mainLightIndex)
                         continue;
 
-                    ref VisibleLight vl = ref visibleLights.UnsafeElementAtMutable(i);
+                    ref VisibleLight vl = ref visibleLights.UnsafeElementAt(i);
 
                     // UniversalRP doesn't support additional directional light shadows yet
                     if (vl.lightType == LightType.Spot || vl.lightType == LightType.Point)
@@ -2419,7 +2553,7 @@ namespace UnityEngine.Rendering.Universal
                     continue;
                 }
 
-                ref VisibleLight vl = ref visibleLights.UnsafeElementAtMutable(i);
+                ref VisibleLight vl = ref visibleLights.UnsafeElementAt(i);
                 Light light = vl.light;
                 UniversalAdditionalLightData data = null;
                 if (light != null)
@@ -2452,6 +2586,7 @@ namespace UnityEngine.Rendering.Universal
             GraphicsSettings.TryGetRenderPipelineSettings<URPShadowBiasSettings>(out var shadowBiasSettings);
             shadowData.depthBiasMode = ShadowUtils.GetConfiguredDepthBiasMode(shadowBiasSettings);
             shadowData.normalBiasMode = ShadowUtils.GetConfiguredNormalBiasMode(shadowBiasSettings);
+            shadowData.softShadowKernelRadiusPercent = urpAsset.softShadowKernelRadiusPercent;
             shadowData.supportsSoftShadows = urpAsset.supportsSoftShadows && (shadowData.supportsMainLightShadows || shadowData.supportsAdditionalLightShadows);
 
             return shadowData;
@@ -2462,17 +2597,6 @@ namespace UnityEngine.Rendering.Universal
             var cullData = frameData.Create<CullContextData>();
             cullData.SetRenderContext(context);
             return cullData;
-        }
-
-        private static Vector3 GetMainLightCascadeSplit(int mainLightShadowCascadesCount, UniversalRenderPipelineAsset urpAsset)
-        {
-            switch (mainLightShadowCascadesCount)
-            {
-                case 1:  return new Vector3(1.0f, 0.0f, 0.0f);
-                case 2:  return new Vector3(urpAsset.cascade2Split, 1.0f, 0.0f);
-                case 3:  return urpAsset.cascade3Split;
-                default: return urpAsset.cascade4Split;
-            }
         }
 
         static void InitializeMainLightShadowResolution(UniversalShadowData shadowData)
@@ -2702,7 +2826,7 @@ namespace UnityEngine.Rendering.Universal
             int totalVisibleLights = visibleLights.Length;
             for (int i = 0; i < totalVisibleLights; ++i)
             {
-                ref VisibleLight currVisibleLight = ref visibleLights.UnsafeElementAtMutable(i);
+                ref VisibleLight currVisibleLight = ref visibleLights.UnsafeElementAt(i);
                 Light currLight = currVisibleLight.light;
 
                 // Particle system lights have the light property as null. We sort lights so all particles lights
@@ -2744,9 +2868,43 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Whether URP uploads its global shader variables as a persistent constant buffer.
-        /// Read once per frame, this setting cannot change between the cameras of a frame.
+        /// Refreshed by RefreshGlobalConstantBufferFlag before anything renders.
         /// </summary>
         internal static bool useGlobalConstantBuffer { get; private set; }
+
+        /// <summary>
+        /// Reads the requested mode into useGlobalConstantBuffer, see <see cref="IsGlobalConstantBufferRequested"/>.
+        /// </summary>
+        internal static void RefreshGlobalConstantBufferFlag()
+        {
+            bool wasPersistent = useGlobalConstantBuffer;
+            useGlobalConstantBuffer = IsGlobalConstantBufferRequested();
+
+            // The engine doesn't fill a bound constant buffer, so back in the transient mode the slot must be unbound.
+            if (wasPersistent && !useGlobalConstantBuffer)
+                GlobalShaderVariablesUploader.UnbindGlobal();
+        }
+
+        /// <summary>
+        /// Whether URP's shaders declare its global constant buffer on this graphics API, see GlobalShaderVariables.hlsl.
+        /// OpenGL ES 3 outside WebGL and OpenGL Core keep loose uniforms.
+        /// </summary>
+        internal static bool IsGlobalConstantBufferSupported()
+        {
+            return RenderingUtils.usePersistentConstantBuffer && SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore;
+        }
+
+        /// <summary>
+        /// The Use Persistent Global Constant Buffer setting, where <see cref="IsGlobalConstantBufferSupported"/>.
+        /// </summary>
+        internal static bool IsGlobalConstantBufferRequested()
+        {
+            if (!IsGlobalConstantBufferSupported())
+                return false;
+
+            var cbSettings = GraphicsSettings.GetRenderPipelineSettings<RenderingCapabilitiesSettings>();
+            return cbSettings != null && cbSettings.useGlobalConstantBuffer;
+        }
 
         /// <summary>
         /// Inverse width of the LOD cross fade dithering texture, resolved once per frame from the pipeline asset.
@@ -2757,9 +2915,6 @@ namespace UnityEngine.Rendering.Universal
         void SetupPerFrameShaderConstants()
         {
             using var profScope = new ProfilingScope(Profiling.Pipeline.setupPerFrameShaderConstants);
-
-            // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
-            Shader.SetGlobalColor(ShaderPropertyId.rendererColor, Color.white);
 
             Texture2D ditheringTexture = null;
             switch (asset.lodCrossFadeDitheringType)

@@ -11,55 +11,46 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Cached unique id for unity_StereoCameraProjection
         /// </summary>
-        [NoAutoStaticsCleanup]
         static public readonly int unity_StereoCameraProjection = Shader.PropertyToID("unity_StereoCameraProjection");
 
         /// <summary>
         /// Cached unique id for unity_StereoCameraInvProjection
         /// </summary>
-        [NoAutoStaticsCleanup]
         static public readonly int unity_StereoCameraInvProjection = Shader.PropertyToID("unity_StereoCameraInvProjection");
 
         /// <summary>
         /// Cached unique id for unity_StereoMatrixV
         /// </summary>
-        [NoAutoStaticsCleanup]
         static public readonly int unity_StereoMatrixV = Shader.PropertyToID("unity_StereoMatrixV");
 
         /// <summary>
         /// Cached unique id for unity_StereoMatrixInvV
         /// </summary>
-        [NoAutoStaticsCleanup]
         static public readonly int unity_StereoMatrixInvV = Shader.PropertyToID("unity_StereoMatrixInvV");
 
         /// <summary>
         /// Cached unique id for unity_StereoMatrixP
         /// </summary>
-        [NoAutoStaticsCleanup]
         static public readonly int unity_StereoMatrixP = Shader.PropertyToID("unity_StereoMatrixP");
 
         /// <summary>
         /// Cached unique id for unity_StereoMatrixInvP
         /// </summary>
-        [NoAutoStaticsCleanup]
         static public readonly int unity_StereoMatrixInvP = Shader.PropertyToID("unity_StereoMatrixInvP");
 
         /// <summary>
         /// Cached unique id for unity_StereoMatrixVP
         /// </summary>
-        [NoAutoStaticsCleanup]
         static public readonly int unity_StereoMatrixVP = Shader.PropertyToID("unity_StereoMatrixVP");
 
         /// <summary>
         /// Cached unique id for unity_StereoMatrixInvVP
         /// </summary>
-        [NoAutoStaticsCleanup]
         static public readonly int unity_StereoMatrixInvVP = Shader.PropertyToID("unity_StereoMatrixInvVP");
 
         /// <summary>
         /// Cached unique id for unity_StereoWorldSpaceCameraPos
         /// </summary>
-        [NoAutoStaticsCleanup]
         static public readonly int unity_StereoWorldSpaceCameraPos = Shader.PropertyToID("unity_StereoWorldSpaceCameraPos");
 
         /// <summary>

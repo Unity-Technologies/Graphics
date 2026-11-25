@@ -211,6 +211,111 @@ namespace UnityEngine.Rendering.Universal
         {
             get => GraphicsSettings.GetRenderPipelineSettings<URPLightFalloffSettings>().lightFalloffMode;
         }
+
+        static bool s_WarnedObsoleteShadowSetter;
+
+        static ShadowsVolumeOverride GetShadowsVolumeFromStack()
+        {
+            return VolumeManager.instance.isInitialized ? VolumeManager.instance.stack.GetComponent<ShadowsVolumeOverride>() : null;
+        }
+
+        static void WarnObsoleteShadowSetterOnce()
+        {
+            if (s_WarnedObsoleteShadowSetter)
+                return;
+
+            s_WarnedObsoleteShadowSetter = true;
+            Debug.LogWarning("UniversalRenderPipelineAsset shadow distance and cascade properties are obsolete and have no effect. Edit the ShadowsVolumeOverride in a Volume Profile instead.");
+        }
+
+#pragma warning disable 618 // Obsolete warning
+        /// <summary>
+        /// The maximum shadow distance from the ShadowsVolumeOverride in the current volume stack. Setting it has no effect.
+        /// </summary>
+        [Obsolete("Moved to the ShadowsVolumeOverride volume component. Setting this value has no effect; edit a VolumeProfile instead. #from(7000.0)", false)]
+        public float shadowDistance
+        {
+            get
+            {
+                var shadowsVolume = GetShadowsVolumeFromStack();
+                return shadowsVolume != null ? shadowsVolume.maxShadowDistance.value : m_ObsoleteShadowDistance;
+            }
+            set => WarnObsoleteShadowSetterOnce();
+        }
+
+        /// <summary>
+        /// The shadow cascade count from the ShadowsVolumeOverride in the current volume stack. Setting it has no effect.
+        /// </summary>
+        [Obsolete("Moved to the ShadowsVolumeOverride volume component. Setting this value has no effect; edit a VolumeProfile instead. #from(7000.0)", false)]
+        public int shadowCascadeCount
+        {
+            get
+            {
+                var shadowsVolume = GetShadowsVolumeFromStack();
+                return shadowsVolume != null ? shadowsVolume.cascadeCount.value : m_ObsoleteShadowCascadeCount;
+            }
+            set => WarnObsoleteShadowSetterOnce();
+        }
+
+        /// <summary>
+        /// The first cascade split from the ShadowsVolumeOverride in the current volume stack. Setting it has no effect.
+        /// </summary>
+        /// <returns>Returns a Float with the first cascade split.</returns>
+        [Obsolete("Moved to the ShadowsVolumeOverride volume component. Setting this value has no effect; edit a VolumeProfile instead. #from(7000.0)", false)]
+        public float cascade2Split
+        {
+            get
+            {
+                var shadowsVolume = GetShadowsVolumeFromStack();
+                return shadowsVolume != null ? shadowsVolume.cascadeSplit0.value : m_ObsoleteCascade2Split;
+            }
+            set => WarnObsoleteShadowSetterOnce();
+        }
+
+        /// <summary>
+        /// The first two cascade splits from the ShadowsVolumeOverride in the current volume stack. Setting it has no effect.
+        /// </summary>
+        /// <returns>Returns a Vector2 with the first two cascade splits.</returns>
+        [Obsolete("Moved to the ShadowsVolumeOverride volume component. Setting this value has no effect; edit a VolumeProfile instead. #from(7000.0)", false)]
+        public Vector2 cascade3Split
+        {
+            get
+            {
+                var shadowsVolume = GetShadowsVolumeFromStack();
+                return shadowsVolume != null ? new Vector2(shadowsVolume.cascadeSplit0.value, shadowsVolume.cascadeSplit1.value) : m_ObsoleteCascade3Split;
+            }
+            set => WarnObsoleteShadowSetterOnce();
+        }
+
+        /// <summary>
+        /// The three cascade splits from the ShadowsVolumeOverride in the current volume stack. Setting it has no effect.
+        /// </summary>
+        /// <returns>Returns a Vector3 with the three cascade splits.</returns>
+        [Obsolete("Moved to the ShadowsVolumeOverride volume component. Setting this value has no effect; edit a VolumeProfile instead. #from(7000.0)", false)]
+        public Vector3 cascade4Split
+        {
+            get
+            {
+                var shadowsVolume = GetShadowsVolumeFromStack();
+                return shadowsVolume != null ? new Vector3(shadowsVolume.cascadeSplit0.value, shadowsVolume.cascadeSplit1.value, shadowsVolume.cascadeSplit2.value) : m_ObsoleteCascade4Split;
+            }
+            set => WarnObsoleteShadowSetterOnce();
+        }
+
+        /// <summary>
+        /// The last cascade border from the ShadowsVolumeOverride in the current volume stack. Setting it has no effect.
+        /// </summary>
+        [Obsolete("Moved to the ShadowsVolumeOverride volume component. Setting this value has no effect; edit a VolumeProfile instead. #from(7000.0)", false)]
+        public float cascadeBorder
+        {
+            get
+            {
+                var shadowsVolume = GetShadowsVolumeFromStack();
+                return shadowsVolume != null ? shadowsVolume.lastCascadeBorder.value : m_ObsoleteCascadeBorder;
+            }
+            set => WarnObsoleteShadowSetterOnce();
+        }
+#pragma warning restore 618 // Obsolete warning
     }
 
     public abstract partial class ScriptableRenderer

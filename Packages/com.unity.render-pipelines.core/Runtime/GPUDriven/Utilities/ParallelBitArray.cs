@@ -53,16 +53,15 @@ namespace UnityEngine.Rendering
                 var newBits = new NativeArray<long>(newBitsLength, m_Allocator, NativeArrayOptions.UninitializedMemory);
                 if (m_Bits.IsCreated)
                 {
-                    NativeArray<long>.Copy(m_Bits, newBits, m_Bits.Length);
+                    NativeArray<long>.Copy(m_Bits, newBits, Math.Min(oldBitsLength, newBitsLength));
                     m_Bits.Dispose();
                 }
                 m_Bits = newBits;
             }
 
-            // mask off bits past the length
+            // mask off bits past the length, including stale bits in the last valid chunk
             int validLength = Math.Min(oldLength, newLength);
-            int validBitsLength = Math.Min(oldBitsLength, newBitsLength);
-            for (int chunkIndex = validBitsLength; chunkIndex < m_Bits.Length; ++chunkIndex)
+            for (int chunkIndex = validLength / 64; chunkIndex < m_Bits.Length; ++chunkIndex)
             {
                 int validBitCount = Math.Max(validLength - 64 * chunkIndex, 0);
                 if (validBitCount < 64)

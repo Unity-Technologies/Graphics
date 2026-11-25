@@ -63,7 +63,7 @@ float4 TransformPosition(float3 posOS)
 
                 if (_ShadingMode == DEBUGPROBESHADINGMODE_RENDERING_LAYER_MASKS)
                 {
-                    o.centerCoordSS = _ScreenSize.xy * ComputeNormalizedDeviceCoordinatesWithZ(probePosition_WS, UNITY_MATRIX_VP).xy;
+                    o.centerCoordSS = _ProbeVolumeDebugScreenSize.xy * ComputeNormalizedDeviceCoordinatesWithZ(probePosition_WS, UNITY_MATRIX_VP).xy;
                     if (_APVLayerCount != 1 & (asuint(UNITY_ACCESS_INSTANCED_PROP(Props, _RenderingLayer)) & _RenderingLayerMask) == 0)
                         DoCull(o);
                 }

@@ -96,6 +96,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PreviewPanelSettings.clearDepthStencil = true;
             m_PreviewPanelSettings.isTransient = true;
             m_PreviewPanelSettings.disableNoThemeWarning = true;
+            // The graph may read any optional channel (UV1-3, Normal, Tangent). Enable them all so the panel's
+            // vertex layout always provides them (zero-filled), otherwise Metal logs "Missing vertex input".
+            m_PreviewPanelSettings.extraVertexChannels = ExtraVertexChannels.TexCoord1 | ExtraVertexChannels.TexCoord2 |
+                ExtraVertexChannels.TexCoord3 | ExtraVertexChannels.Normal | ExtraVertexChannels.Tangent;
             var root = m_PreviewPanelSettings.panel.visualTree;
             root.StretchToParentSize();
             var previewElementUxml = Resources.Load<VisualTreeAsset>("UXML/UITKMasterNodePreview");
@@ -644,7 +648,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         private static readonly ProfilerMarker RenderPreviewsMarker = new ProfilerMarker("RenderPreviews");
         private static int k_spriteProps = Shader.PropertyToID("unity_SpriteProps");
         private static int k_spriteColor = Shader.PropertyToID("unity_SpriteColor");
-        private static int k_rendererColor = Shader.PropertyToID("_RendererColor");
         private float previewTime = 0;
 
         public void RenderPreviews(EditorWindow editorWindow, bool requestShaders = true)
@@ -822,7 +825,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     //but I dont believe such a place exists and would be too costly to add.
                     masterRenderData.shaderData.mat.SetVector(k_spriteProps, new Vector4(1, 1, -1, 0));
                     masterRenderData.shaderData.mat.SetVector(k_spriteColor, new Vector4(1, 1, 1, 1));
-                    masterRenderData.shaderData.mat.SetVector(k_rendererColor, new Vector4(1, 1, 1, 1));
                     RenderPreview(masterRenderData, mesh, previewTransform, perMaterialPreviewProperties);
                 }
 
@@ -1346,10 +1348,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                         Graphics.DrawMesh(mesh, transform, renderData.shaderData.mat, 1, m_SceneResources.camera, 0, m_SharedPreviewPropertyBlock, ShadowCastingMode.Off, false, null, false);
                     }
 
+#pragma warning disable CS0618 // Type or member is obsolete
                     var previousUseSRP = Unsupported.useScriptableRenderPipeline;
                     Unsupported.useScriptableRenderPipeline = (renderData == m_MasterRenderData);
                     m_SceneResources.camera.Render();
                     Unsupported.useScriptableRenderPipeline = previousUseSRP;
+#pragma warning restore CS0618
                 }
 
                 Graphics.Blit(temp, renderData.renderTexture, m_SceneResources.blitNoAlphaMaterial);
@@ -1382,10 +1386,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_SceneResources.camera.targetTexture = temp;
 
+#pragma warning disable CS0618 // Type or member is obsolete
             var previousUseSRP = Unsupported.useScriptableRenderPipeline;
             Unsupported.useScriptableRenderPipeline = true;
             m_SceneResources.camera.Render();
             Unsupported.useScriptableRenderPipeline = previousUseSRP;
+#pragma warning restore CS0618
 
             RenderTexture.ReleaseTemporary(temp);
 

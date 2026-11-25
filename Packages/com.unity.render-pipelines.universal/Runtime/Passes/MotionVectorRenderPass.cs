@@ -209,7 +209,8 @@ namespace UnityEngine.Rendering.Universal
             if (!cameraData.xr.enabled || !cameraData.xr.singlePassEnabled)
                 return;
 
-            if (cameraData.camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
+            var additionalCameraData = cameraData.additionalCameraData;
+            if (additionalCameraData != null)
             {
                 using (var builder = renderGraph.AddRasterRenderPass<MotionMatrixPassData>(s_SetMotionMatrixProfilingSampler.name, out var passData, s_SetMotionMatrixProfilingSampler))
                 {

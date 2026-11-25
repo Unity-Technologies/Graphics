@@ -6,16 +6,13 @@ using Unity.GraphAuthoring.Editor.ProviderSystem;
 
 namespace UnityEditor.ShaderGraph.ProviderSystem
 {
-    // A Base Node serving as the entry point for Provider based function definitions.
-    // This Model object can work with any sort of function provider, interpret the function definition,
-    // and generate a valid model representation of that object. This abstracts the need for node definitions
-    // to be aware of how the model functions.
+    // Calls a function from any function provider; its slots follow the function's definition.
 
     // NOTE: There exists an ExpressionProvider currently, so it's not a problem to have Models that are specializations,
     // but ideally the expression input type would be gracefully handled in a generic way and it wouldn't be necessary.
     [Serializable]
     [HasDependencies(typeof(MinimalProviderNode))]
-    internal class ProviderNode : AbstractMaterialNode, IHasAssetDependencies, IGeneratesBodyCode, IGeneratesFunction
+    internal class ProviderNode : AbstractProviderNode<IShaderFunction>, IGeneratesBodyCode, IGeneratesFunction
     {
         [Serializable]
         internal class MinimalProviderNode : IHasDependencies
@@ -40,12 +37,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
         [GroupVariantControl]
         internal ProviderNode groupVariantSentinel => this;
 
-        [SerializeReference]
-        IProvider<IShaderFunction> m_provider;
-
         internal FunctionHeader Header { get; private set; }
-
-        internal IProvider<IShaderFunction> Provider => m_provider;
 
         const int kReservedOutputSlot = ProviderSlotUtils.kReturnSlotId;
 
@@ -57,73 +49,22 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
         public override string documentationURL => Header?.helpUrl ?? base.documentationURL;
 
-        internal override bool ExposeToSearcher => false;
-
         public ProviderNode()
         {
             name = "Provider Based Node";
         }
 
-        internal void InitializeFromProvider(IProvider<IShaderFunction> provider)
+        private protected override void BuildModel(IShaderFunction definition)
         {
-            this.m_provider = (IProvider<IShaderFunction>)provider.Clone();
-            UpdateModel();
+            Header = new FunctionHeader(definition, Provider);
+            name = Header.displayName;
+            synonyms = Header.searchTerms;
+            ProviderSlotUtils.Rebuild(this, definition);
         }
-
-        public override void UpdateNodeAfterDeserialization()
-        {
-            base.UpdateNodeAfterDeserialization();
-            Refresh();
-        }
-
-        public override void Concretize()
-        {
-            UpdateModel();
-            base.Concretize();
-        }
-
-        public bool Reload(HashSet<string> changedAssetGuids)
-        {
-            // Scripted providers don't react to asset changes — their definition is in-memory.
-            if (Provider.AssetID != default && changedAssetGuids.Contains(Provider.AssetID.ToString()))
-            {
-                Refresh();
-                return true;
-            }
-            return false;
-        }
-
-        protected void Refresh()
-        {
-            Provider?.Reload();
-            UpdateModel();
-            ValidateNode();
-            Dirty(ModificationScope.Graph);
-        }
-
-        internal void UpdateModel()
-        {
-            if (Provider == null || Provider.Definition == null || !Provider.IsValid)
-                return;
-
-            Header = new FunctionHeader(Provider.Definition, Provider);
-
-            var header = Header;
-            this.name = header.displayName;
-            this.synonyms = header.searchTerms;
-
-            ProviderSlotUtils.Rebuild(this, Provider.Definition);
-        }
-
-        static Rendering.ShaderCompilerMessageSeverity ToCompilerSeverity(MessageType severity) => severity switch
-        {
-            MessageType.Error => Rendering.ShaderCompilerMessageSeverity.Error,
-            _                  => Rendering.ShaderCompilerMessageSeverity.Warning,
-        };
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            if (this.Provider == null || this.Provider.Definition == null)
+            if (isOrphaned)
                 return;
 
             // Apply legacy precision/dynamic only before code generation/usage.
@@ -192,32 +133,11 @@ namespace UnityEditor.ShaderGraph.ProviderSystem
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            if (Provider == null || !Provider.IsValid || Provider.Definition == null)
+            if (isOrphaned)
                 return;
 
             HeaderUtils.TryApplyLegacyPrecisionTokens(Provider.Definition, PrecisionUtil.Token, lastKnownDynamicVectorLength, out var func);
             DefinitionCodeGenerator.CollectFunctions(func, registry);
-        }
-
-        public override void ValidateNode()
-        {
-            base.ValidateNode();
-            if (Provider == null)
-            {
-                owner?.AddSetupError(this.objectId, "Node is in an invalid state and cannot recover.");
-                return;
-            }
-            else if (Provider.AssetID != default && (Provider.Definition == null || !Provider.Definition.IsValid))
-            {
-                var path = AssetDatabase.GUIDToAssetPath(Provider.AssetID);
-                owner?.AddSetupError(this.objectId, $"Data for '{Provider.ProviderKey}' expected in '{path}'.");
-                return;
-            }
-            else if (Header != null)
-            {
-                foreach (var (_, text, severity) in Header.messages)
-                    owner?.AddValidationError(this.objectId, text, ToCompilerSeverity(severity));
-            }
         }
     }
 }

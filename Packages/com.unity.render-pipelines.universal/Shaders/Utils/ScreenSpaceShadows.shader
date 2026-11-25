@@ -33,7 +33,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
             float4 coords = TransformWorldToShadowCoord(wpos, false);
 
             // Screenspace shadowmap is only used for directional lights which use orthogonal projection.
-            half realtimeShadow = SampleMainLightRealtimeShadow(coords, false);
+            half realtimeShadow = SampleMainLightRealtimeShadow(coords, wpos, false, input.positionCS.xy);
 
             return realtimeShadow;
         }
@@ -50,6 +50,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceShadows"
             HLSLPROGRAM
             #pragma multi_compile _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
+            #pragma multi_compile_fragment _ _SHADOWS_PCSS
 
             #pragma vertex   Vert
             #pragma fragment Fragment

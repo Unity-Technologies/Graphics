@@ -73,7 +73,7 @@ namespace UnityEditor.Rendering.Universal
             bool pixelPerfectEnabled = camera.TryGetComponent<PixelPerfectCamera>(out var pixelPerfectCamera) && pixelPerfectCamera.enabled;
             if (pixelPerfectEnabled)
                 EditorGUILayout.HelpBox(Styles.pixelPerfectInfo, MessageType.Info);
-#if XR_MANAGEMENT_4_0_1_OR_NEWER && ENABLE_VR && ENABLE_XR_MODULE
+#if (XR_MANAGEMENT_4_0_1_OR_NEWER || XR_FOUNDATION_7_0_0_OR_NEWER) && ENABLE_VR && ENABLE_XR_MODULE
             if (p.baseCameraSettings.orthographic.boolValue && p.allowXRRendering.boolValue)
             {
                 var buildTargetGroup = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);

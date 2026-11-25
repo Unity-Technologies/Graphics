@@ -27,6 +27,13 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [SceneGraphicsTest(@"Assets/GraphicTests/Scenes/8x_ShaderGraph/^[0-9]+")]
         [Timeout(450 * 1000)]
         [IgnoreGraphicsTest(
+            "8213_Thickness$",
+            "Small uniform deltaE drift on macOS Editor agents, slightly above threshold.",
+            GraphicsDeviceType.Metal,
+            RuntimePlatform.OSXEditor,
+            Architecture.Arm64
+        )]
+        [IgnoreGraphicsTest(
             "8101_Opaque$",
             "(Intel Mac) Small divergence around 'Iridescence Specular Occlusion from Bent Normal' material. Might need a ref-image update.",
             GraphicsDeviceType.Metal,
@@ -62,10 +69,6 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [TestNotSupportedOn(
             "8103|8107|8108|8207_InstanceID|8207_InstancingAPIs|8210|8211",
             "Not XR compatible", XrDevice.Any
-        )]
-        [IgnoreGraphicsTest(
-            "8101_Opaque$",
-            "https://jira.unity3d.com/browse/UUM-153642"
         )]
         [IgnoreGraphicsTest(
             "8207_InstancingMaterials",

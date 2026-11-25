@@ -1504,7 +1504,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.ShadowCaster(target),
                 pragmas = CorePragmas.Instanced,
-                defines = new DefineCollection(),
+                defines = new DefineCollection { { CoreKeywordDescriptors.ShadowCasterZClip, 1 } },
                 keywords = new KeywordCollection { CoreKeywords.ShadowCaster },
                 includes = new IncludeCollection { CoreIncludes.ShadowCaster },
 
@@ -2154,6 +2154,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 { UberSwitchedCullRenderState(target) },
                 { RenderState.ColorMask("ColorMask 0") },
+                { RenderState.ZClip("[_ZClip]") },
             };
 
             if (!target.depthStencilPassMask.Has(DepthStencilPassMask.ShadowPass))
@@ -2659,6 +2660,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             stages = KeywordShaderStage.Vertex,
         };
 
+        public static readonly KeywordDescriptor ShadowCasterZClip = new KeywordDescriptor()
+        {
+            displayName = "Shadow Caster ZClip",
+            referenceName = "_SHADOW_CASTER_ZCLIP",
+            type = KeywordType.Boolean,
+        };
+
         public static readonly KeywordDescriptor AutomaticTimeBasedMotionVectors = new KeywordDescriptor()
         {
             displayName = "Automatic Time-Based Motion Vectors",
@@ -2750,6 +2758,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 new KeywordEntry() { displayName = "Soft Shadows Medium", referenceName = "SHADOWS_SOFT_MEDIUM" },
                 new KeywordEntry() { displayName = "Soft Shadows High", referenceName = "SHADOWS_SOFT_HIGH" },
             }
+        };
+
+        public static readonly KeywordDescriptor ShadowsPCSS = new KeywordDescriptor()
+        {
+            displayName = "Shadows PCSS",
+            referenceName = ShaderKeywordStrings.ShadowsPCSS,
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor LightmapShadowMixing = new KeywordDescriptor()
@@ -2948,6 +2966,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             displayName = "Light Falloff Quadratic",
             referenceName = "_LIGHT_FALLOFF_QUADRATIC",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static readonly KeywordDescriptor ShadowReceiverNormalBias = new KeywordDescriptor()
+        {
+            displayName = "Shadow Receiver Normal Bias",
+            referenceName = "_SHADOW_RECEIVER_NORMAL_BIAS",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,

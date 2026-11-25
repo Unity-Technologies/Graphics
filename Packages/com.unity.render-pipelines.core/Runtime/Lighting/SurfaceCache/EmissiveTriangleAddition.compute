@@ -1,13 +1,13 @@
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal ps5 switch2
 #pragma kernel Add
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "EmissiveTriangles.hlsl"
 
 RWStructuredBuffer<EmissiveTriangle> _EmissiveTriangles;
 RWStructuredBuffer<uint> _EmissiveTriangleCounter;
 
-uint _SubmeshInstanceId;
-uint _SubmeshTriangleCount;
+#include "EmissiveTriangleAdditionConstants.cs.hlsl"
 
 groupshared uint _GroupAddCount;
 groupshared uint _GroupAddBaseOffset;

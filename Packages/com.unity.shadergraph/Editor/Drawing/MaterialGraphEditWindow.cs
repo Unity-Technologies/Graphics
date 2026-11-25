@@ -328,14 +328,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         }
                     }
 
-                    var nodesWithDependencies = graphObject.graph.GetNodes<IHasAssetDependencies>();
-                    foreach (var node in nodesWithDependencies)
-                    {
-                        var reloaded = node.Reload(m_ChangedFileDependencyGUIDs);
-                        reloadedSomething |= reloaded;
-                    }
-
-                    reloadedSomething |= materialGraph.ReloadDataExtensions(m_ChangedFileDependencyGUIDs);
+                    reloadedSomething |= materialGraph.ReloadAssetDependencies(m_ChangedFileDependencyGUIDs);
 
                     var subGraphNodes = graphObject.graph.GetNodes<SubGraphNode>();
                     if (subGraphNodes.Count() > 0)
@@ -453,6 +446,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnDisable()
         {
+            graphEditorView = null;
+
             messageManager.ClearAll();
 
             m_MessageManager = null;

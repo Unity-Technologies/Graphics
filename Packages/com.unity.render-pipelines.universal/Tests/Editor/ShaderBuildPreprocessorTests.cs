@@ -46,6 +46,9 @@ namespace ShaderStrippingAndPrefiltering
                     if (PlayerSettings.allowHDRDisplaySupport)
                         defaultFeatures |= ShaderFeatures.HdrGrading;
 
+                    if (ShadowUtils.IsShadowReceiverNormalBiasEnabled())
+                        defaultFeatures |= ShaderFeatures.ShadowReceiverNormalBias;
+
                     return defaultFeatures;
                 }
             }
@@ -431,6 +434,30 @@ namespace ShaderStrippingAndPrefiltering
             finally
             {
                 lightFalloffSettings.lightFalloffMode = previousLightFalloffMode;
+            }
+        }
+
+        // ShaderFeatures.ShadowReceiverNormalBias - _SHADOW_RECEIVER_NORMAL_BIAS
+        [Test]
+        public void TestGetSupportedShaderFeaturesFromAsset_ShadowReceiverNormalBias()
+        {
+            var shadowBiasSettings = GraphicsSettings.GetRenderPipelineSettings<URPShadowBiasSettings>();
+            ShadowNormalBiasMode previousNormalBiasMode = shadowBiasSettings.normalBiasMode;
+            try
+            {
+                shadowBiasSettings.normalBiasMode = ShadowNormalBiasMode.Caster;
+                ShaderFeatures actual = m_TestHelper.GetSupportedShaderFeaturesFromAsset();
+                ShaderFeatures expected = m_TestHelper.defaultURPAssetFeatures & ~ShaderFeatures.ShadowReceiverNormalBias;
+                m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
+
+                shadowBiasSettings.normalBiasMode = ShadowNormalBiasMode.Receiver;
+                actual = m_TestHelper.GetSupportedShaderFeaturesFromAsset();
+                expected = m_TestHelper.defaultURPAssetFeatures | ShaderFeatures.ShadowReceiverNormalBias;
+                m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
+            }
+            finally
+            {
+                shadowBiasSettings.normalBiasMode = previousNormalBiasMode;
             }
         }
 
@@ -891,6 +918,29 @@ namespace ShaderStrippingAndPrefiltering
         }
 
         [Test]
+        public void TestStripUnusedPostProcessingVariants_ScreenSpaceLensFlare_WithoutBloom()
+        {
+            AssertVolumeFeaturesFromProfile(profile =>
+            {
+                var lensFlare = profile.Add<ScreenSpaceLensFlare>(overrides: true);
+                lensFlare.intensity.Override(1f);
+            }, VolumeFeatures.BloomLQ);
+        }
+
+        [Test]
+        public void TestStripUnusedPostProcessingVariants_ScreenSpaceLensFlare_WithInactiveBloom()
+        {
+            AssertVolumeFeaturesFromProfile(profile =>
+            {
+                var lensFlare = profile.Add<ScreenSpaceLensFlare>(overrides: true);
+                lensFlare.intensity.Override(1f);
+                var bloom = profile.Add<Bloom>(overrides: true);
+                bloom.intensity.Override(0f);
+                bloom.highQualityFiltering.Override(true);
+            }, VolumeFeatures.BloomHQ);
+        }
+
+        [Test]
         public void TestStripUnusedPostProcessingVariants_InactiveFeatures_AreNotReturned()
         {
             AssertVolumeFeaturesFromProfile(profile =>
@@ -905,6 +955,7 @@ namespace ShaderStrippingAndPrefiltering
                 profile.Add<MotionBlur>(overrides: true);
                 profile.Add<PaniniProjection>(overrides: true);
                 profile.Add<ChromaticAberration>(overrides: true);
+                profile.Add<ScreenSpaceLensFlare>(overrides: true);
             }, VolumeFeatures.None);
         }
 
@@ -1041,12 +1092,21 @@ namespace ShaderStrippingAndPrefiltering
 
             // Initial
             RendererRequirements rendererRequirements = m_TestHelper.defaultRendererRequirements;
+            rendererRequirements.needsMainLightShadows = true;
             ShaderFeatures actual = m_TestHelper.GetSupportedShaderFeaturesFromRendererFeatures(rendererRequirements);
             ShaderFeatures expected = ShaderFeatures.ScreenSpaceShadows;
             m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
 
+            // Main light shadows disabled
+            rendererRequirements = m_TestHelper.defaultRendererRequirements;
+            rendererRequirements.needsMainLightShadows = false;
+            actual = m_TestHelper.GetSupportedShaderFeaturesFromRendererFeatures(rendererRequirements);
+            expected = ShaderFeatures.None;
+            m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);
+
             m_TestHelper.rendererFeatures[0].SetActive(false);
             rendererRequirements = m_TestHelper.defaultRendererRequirements;
+            rendererRequirements.needsMainLightShadows = true;
             actual = m_TestHelper.GetSupportedShaderFeaturesFromRendererFeatures(rendererRequirements);
             expected = ShaderFeatures.None;
             m_TestHelper.AssertShaderFeaturesAndReset(expected, actual);

@@ -11,11 +11,24 @@ namespace UnityEngine.Rendering.Tests
 {
     internal partial class RenderGraphTests : RenderGraphTestsCore
     {
+        UniversalRenderPipelineRuntimeShaders m_URPRuntimeShaders;
+
         [OneTimeSetUp]
         public void OneTimeSetup()
         {
-            if (!(GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset))
-                Assert.Ignore("Current pipeline is not URP. Skipping tests...");
+            // RenderGraphTestsCore.Setup() has already replaced the project's render pipeline.
+            var projectRenderPipeline = m_OldQualityRenderPipeline != null ? m_OldQualityRenderPipeline : m_OldDefaultRenderPipeline;
+            if (!(projectRenderPipeline is UniversalRenderPipelineAsset))
+                Assert.Ignore("The project's render pipeline is not URP. Skipping tests...");
+
+            Assert.IsTrue(EditorGraphicsSettings.TryGetRenderPipelineSettingsForPipeline<UniversalRenderPipelineRuntimeShaders, UniversalRenderPipeline>(out m_URPRuntimeShaders),
+                "URP project without URP runtime shaders in its URP global settings.");
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            Blitter.Cleanup();
         }
 
         static GraphicsFormat[] depthBlitTestFormats =
@@ -63,13 +76,9 @@ namespace UnityEngine.Rendering.Tests
             const int kWidth = 4;
             const int kHeight = 4;
 
-            // Verify if the test is being executed in a non-URP project (e.g pipeline asset set to null)
-            if (!EditorGraphicsSettings.TryGetRenderPipelineSettingsForPipeline<UniversalRenderPipelineRuntimeShaders, UniversalRenderPipeline>(out var shaders))
-                return;
-
-            if (Blitter.GetBlitMaterial(TextureDimension.Tex2D) == null && shaders != null)
+            if (Blitter.GetBlitMaterial(TextureDimension.Tex2D) == null)
             {
-                Blitter.Initialize(shaders.coreBlitPS, shaders.coreBlitColorAndDepthPS);
+                Blitter.Initialize(m_URPRuntimeShaders.coreBlitPS, m_URPRuntimeShaders.coreBlitColorAndDepthPS);
             }
 
             float expectedDepthValue = 0.20f;
@@ -108,7 +117,6 @@ namespace UnityEngine.Rendering.Tests
             sourceDepth.Release();
             destinationDepth.Release();
             depthAsColor.Release();
-            Blitter.Cleanup();
         }
 
         [Test]
@@ -117,13 +125,9 @@ namespace UnityEngine.Rendering.Tests
             const int kWidth = 4;
             const int kHeight = 4;
 
-            // Verify if the test is being executed in a non-URP project (e.g pipeline asset set to null)
-            if (!EditorGraphicsSettings.TryGetRenderPipelineSettingsForPipeline<UniversalRenderPipelineRuntimeShaders, UniversalRenderPipeline>(out var shaders))
-                return;
-
-            if (Blitter.GetBlitMaterial(TextureDimension.Tex2D) == null && shaders != null)
+            if (Blitter.GetBlitMaterial(TextureDimension.Tex2D) == null)
             {
-                Blitter.Initialize(shaders.coreBlitPS, shaders.coreBlitColorAndDepthPS);
+                Blitter.Initialize(m_URPRuntimeShaders.coreBlitPS, m_URPRuntimeShaders.coreBlitColorAndDepthPS);
             }
 
             float expectedDepthValue = 0.20f;
@@ -136,7 +140,7 @@ namespace UnityEngine.Rendering.Tests
             var destinationDepth = CreateDepthTexture(kWidth, kHeight, 0.0f, depthFormat, false, true);
             var depthAsColor = RTHandles.Alloc(kWidth, kHeight,
                 GraphicsFormat.R32_SFloat,
-                dimension: TextureXR.dimension,
+                dimension: TextureDimension.Tex2D,
                 useMipMap: false,
                 autoGenerateMips: false,
                 name: "Depth As Color Texture 32 bit");
@@ -156,7 +160,7 @@ namespace UnityEngine.Rendering.Tests
                 var destination = m_RenderGraph.ImportTexture(depthAsColor);
 
                 // First do a copy from depth to depth, moving the value of 0.25 depth to the intermediate buffer.
-                m_RenderGraph.AddBlitPass(new BlitMaterialParameters(source, intermediate, customDepthToColorMaterial, 0));
+                m_RenderGraph.AddBlitPass(new BlitMaterialParameters(source, destination, customDepthToColorMaterial, 0) { destinationDepth = intermediate });
                 m_RenderGraph.AddBlitPass(new BlitMaterialParameters(intermediate, destination, customDepthToColorMaterial, 1));
             };
 
@@ -164,8 +168,8 @@ namespace UnityEngine.Rendering.Tests
 
             CoreUtils.Destroy(customDepthToColorMaterial);
             sourceDepth.Release();
+            destinationDepth.Release();
             depthAsColor.Release();
-            Blitter.Cleanup();
         }
 
         void RenderReadbackAndAssert(RTHandle colorBuffer, float expectedDepthValue)

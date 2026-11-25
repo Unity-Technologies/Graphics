@@ -64,7 +64,7 @@ namespace UnityEngine.Rendering.Universal
         // NOTE: off variants are atm always removed when shadows are supported
         // Note: StencilDeferred is intentionally NOT carved out here.
         // Additional-light shadows keep their carve-out below.
-        [ShaderKeywordFilter.RemoveIf(PrefilteringModeMainLightShadows.Remove,                     keywordNames: new [] {ShaderKeywordStrings.MainLightShadows, ShaderKeywordStrings.MainLightShadowCascades})]
+        [ShaderKeywordFilter.RemoveIf(PrefilteringModeMainLightShadows.Remove,                     keywordNames: new [] {ShaderKeywordStrings.MainLightShadows, ShaderKeywordStrings.MainLightShadowCascades, ShaderKeywordStrings.MainLightShadowScreen})]
         [ShaderKeywordFilter.SelectIf(PrefilteringModeMainLightShadows.SelectMainLight,            keywordNames: ShaderKeywordStrings.MainLightShadows)]
         [ShaderKeywordFilter.SelectIf(PrefilteringModeMainLightShadows.SelectMainLightAndOff,      keywordNames: new [] {"", ShaderKeywordStrings.MainLightShadows})]
         [ShaderKeywordFilter.SelectIf(PrefilteringModeMainLightShadows.SelectMainLightAndCascades, keywordNames: new [] {ShaderKeywordStrings.MainLightShadows, ShaderKeywordStrings.MainLightShadowCascades})]
@@ -182,6 +182,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] private bool m_PrefilterSoftShadowsQualityHigh = false;
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.SoftShadows)]
         [SerializeField] private bool m_PrefilterSoftShadows = false;
+        [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.ShadowsPCSS)]
+        [SerializeField] private bool m_PrefilterShadowsPCSS = false;
 
         // Screen Coord Override - Controlled by the Global Settings
         [ShaderKeywordFilter.RemoveIf(true, keywordNames: ShaderKeywordStrings.SCREEN_COORD_OVERRIDE)]
@@ -241,6 +243,11 @@ namespace UnityEngine.Rendering.Universal
         [ShaderKeywordFilter.SelectIf(false, keywordNames: ShaderKeywordStrings.LightFalloffQuadratic)]
         [SerializeField] private bool m_PrefilterLightFalloffQuadratic = true;
 
+        // Shadow receiver normal bias (_SHADOW_RECEIVER_NORMAL_BIAS)
+        [ShaderKeywordFilter.RemoveIf(true,  keywordNames: ShaderKeywordStrings.ShadowReceiverNormalBias)]
+        [ShaderKeywordFilter.SelectIf(false, keywordNames: ShaderKeywordStrings.ShadowReceiverNormalBias)]
+        [SerializeField] private bool m_PrefilterShadowReceiverNormalBias = false;
+
         // Hidden/Light2D variant prefiltering. The 6-keyword combo space (USE_NORMAL_MAP,
         // USE_SHADOW_MAP, USE_ADDITIVE_BLENDING, USE_VOLUMETRIC, USE_POINT_LIGHT_COOKIES,
         // LIGHT_QUALITY_FAST) is too dynamic to express with declarative ShaderKeywordFilter
@@ -279,6 +286,7 @@ namespace UnityEngine.Rendering.Universal
             public bool stripSoftShadowsQualityLow;
             public bool stripSoftShadowsQualityMedium;
             public bool stripSoftShadowsQualityHigh;
+            public bool stripShadowsPCSS;
 
             public bool stripSSAOKeywords;
 
@@ -295,6 +303,8 @@ namespace UnityEngine.Rendering.Universal
             public bool stripVolumetricFog;
 
             public bool stripLightFalloffQuadratic;
+
+            public bool stripShadowReceiverNormalBias;
 
             public bool stripScreenSpaceIrradiance;
 
@@ -352,6 +362,7 @@ namespace UnityEngine.Rendering.Universal
             m_PrefilterSoftShadowsQualityMedium      = prefilteringData.stripSoftShadowsQualityMedium;
             m_PrefilterSoftShadowsQualityHigh        = prefilteringData.stripSoftShadowsQualityHigh;
             m_PrefilterSoftShadows                   = !m_PrefilterSoftShadowsQualityLow || !m_PrefilterSoftShadowsQualityMedium || !m_PrefilterSoftShadowsQualityHigh;
+            m_PrefilterShadowsPCSS                   = prefilteringData.stripShadowsPCSS;
 
             m_PrefilterSSAOKeywords                  = prefilteringData.stripSSAOKeywords;
 
@@ -368,6 +379,8 @@ namespace UnityEngine.Rendering.Universal
             m_PrefilterVolumetricFog                 = prefilteringData.stripVolumetricFog;
 
             m_PrefilterLightFalloffQuadratic         = prefilteringData.stripLightFalloffQuadratic;
+
+            m_PrefilterShadowReceiverNormalBias      = prefilteringData.stripShadowReceiverNormalBias;
 
             m_PrefilterScreenSpaceIrradiance         = prefilteringData.stripScreenSpaceIrradiance;
 

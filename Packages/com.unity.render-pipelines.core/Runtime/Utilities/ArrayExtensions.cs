@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering
             var newArray = new NativeArray<T>(capacity, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
             if (array.IsCreated)
             {
-                NativeArray<T>.Copy(array, newArray, array.Length);
+                NativeArray<T>.Copy(array, newArray, Math.Min(array.Length, capacity));
                 array.Dispose();
             }
             array = newArray;
@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering
             var newArray = new TransformAccessArray(capacity);
             if (array.isCreated)
             {
-                for (int i = 0; i < array.length; ++i)
+                for (int i = 0, count = Math.Min(array.length, capacity); i < count; ++i)
                     newArray.Add(array[i]);
 
                 array.Dispose();

@@ -133,6 +133,8 @@ namespace UnityEditor.VFX.UI
         public virtual void Detach()
         {
             RemoveFromHierarchy();
+            VFXProfilingBoard.ProfilingItemLeaf.DisposeAll(m_ProfilingGPUItemLeaves);
+            VFXProfilingBoard.ProfilingItemLeaf.DisposeAll(m_ProfilingCPUItemLeaves);
         }
 
         public void ToggleLockState()
@@ -157,7 +159,7 @@ namespace UnityEditor.VFX.UI
             if (attachedComponent == null)
             {
                 if(m_ProfilingGPUItemLeaves != null)
-                    m_ProfilingGPUItemLeaves.Clear();
+                    VFXProfilingBoard.ProfilingItemLeaf.DisposeAll(m_ProfilingGPUItemLeaves);
                 else
                     m_ProfilingGPUItemLeaves = new List<VFXProfilingBoard.ProfilingItemLeaf>();
                 return;
@@ -205,7 +207,7 @@ namespace UnityEditor.VFX.UI
                     var timingLabel = leaf.label;
                     if (timingLabel != null)
                     {
-                        int sampleCount = leaf.recorder.gpuSampleBlockCount;
+                        int sampleCount = leaf.sampleBlockCount;
 
                         float timeMs = NanoToMilli(leaf.average);
                         timingLabel.text = $"{timeMs:F3} ms ({sampleCount.ToString()})";
@@ -246,7 +248,7 @@ namespace UnityEditor.VFX.UI
             {
                 foreach (var leaf in m_ProfilingGPUItemLeaves)
                 {
-                    leaf.UpdateTimingStats(leaf.recorder.gpuElapsedNanoseconds);
+                    leaf.UpdateTimingStats(leaf.elapsedNanoseconds);
                 }
             }
 
@@ -254,7 +256,7 @@ namespace UnityEditor.VFX.UI
             {
                 foreach (var leaf in m_ProfilingCPUItemLeaves)
                 {
-                    leaf.UpdateTimingStats(leaf.recorder.elapsedNanoseconds);
+                    leaf.UpdateTimingStats(leaf.elapsedNanoseconds);
                 }
             }
         }

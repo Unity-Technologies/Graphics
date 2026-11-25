@@ -10,12 +10,11 @@
         "UnityEditor.TestTools.Graphics",
         "UnityEngine.TestTools.Graphics",
         "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.RenderPipelines.Core.Editor",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "Unity.Timeline",
-        "Unity.Timeline.Editor",
-        "Unity.UI.TestFramework.Runtime",
-        "Unity.UI.TestFramework.Editor"
+        "Unity.Timeline.Editor"
     ],
     "includePlatforms": [
         "Editor"

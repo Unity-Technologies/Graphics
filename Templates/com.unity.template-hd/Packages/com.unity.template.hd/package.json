@@ -1,19 +1,21 @@
 {
   "name": "com.unity.template.hd",
   "displayName": "High Definition Render Pipeline Sample",
-  "version": "16.3.0",
+  "version": "16.4.0",
   "type": "template",
   "host": "hub",
-  "unity": "6000.7",
+  "unity": "7000.0",
   "description": "This template utilizes the High Definition Render Pipeline. Making it a good starting point for people focused on high-end graphics that want to develop games for platforms that support Shader Model 5.0 (DX11 and above). \n\nBeyond being tuned for High End visuals this project includes\n▪ Shadergraph \n▪ Visual Effect Graph  \n▪ Presets \n▪ Example content",
   "dependencies": {
     "com.unity.cinemachine": "6.7.0",
+    "com.unity.collab-proxy": "2.14.0",
+    "com.unity.ide.rider": "3.1.0",
+    "com.unity.ide.visualstudio": "2.0.29",
     "com.unity.inputsystem": "6.7.0",
+    "com.unity.learn.iet-framework": "6.0.7",
+    "com.unity.learn.iet-framework.authoring": "2.0.7",
     "com.unity.render-pipelines.high-definition": "17.7.0",
     "com.unity.timeline": "6.7.0",
-    "com.unity.ugui": "2.7.0",
-    "com.unity.ide.rider": "3.0.40",
-    "com.unity.ide.visualstudio": "2.0.28",
-    "com.unity.collab-proxy": "2.13.6"
+    "com.unity.ugui": "7.0.0"
   }
 }

@@ -1,6 +1,7 @@
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal glcore ps5 switch2
 #pragma kernel AllocateMono DISABLE_TEXTURE2D_X_ARRAY
 #pragma kernel AllocateSinglePassStereoInstancing
+#pragma multi_compile _ _EXPOSURE
 
 #define PATCH_UTIL_USE_RW_PATCH_IRRADIANCE_BUFFER
 #define PATCH_UTIL_USE_RW_CELL_PATCH_INDEX_BUFFER
@@ -12,7 +13,9 @@
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/VectorLogic.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/IrradianceCompression.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/SurfaceCache/PatchUtil.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ExposureFunctions.hlsl"
 
+Texture2D<float2> _ExposureMultiplier;
 RWStructuredBuffer<uint> _RingConfigBuffer;
 RWStructuredBuffer<PatchUtil::PatchGeometry> _PatchGeometries;
 RWStructuredBuffer<PatchUtil::PatchStatisticsSet> _PatchStatistics;
@@ -32,18 +35,7 @@ TYPED_TEXTURE2D_X(float3, _PreviousLowResScreenIrradiancesL11);
 TYPED_TEXTURE2D_X(float3, _PreviousLowResScreenIrradiancesL12);
 TYPED_TEXTURE2D_X(float, _PreviousLowResScreenNdcDepths);
 
-uint _FrameIdx;
-uint _StereoEyeIndex;
-uint _VolumeSpatialResolution;
-float _VolumeVoxelMinSize;
-uint _VolumeCascadeCount;
-uint _RingConfigOffset;
-float4x4 _CurrentClipToWorldTransforms[2];
-float4x4 _PreviousClipToWorldTransforms[2];
-float3 _VolumeTargetPos;
-uint2 _LowResScreenSize;
-uint2 _FullResPixelOffset;
-int _PatchWarping;
+#include "Packages/com.unity.render-pipelines.universal/Runtime/RendererFeatures/SurfaceCacheGIRendererFeature/PatchAllocationConstants.cs.hlsl"
 
 uint CountLeadingZeroes(uint x)
 {
@@ -118,7 +110,7 @@ void Allocate(uint2 lowResPixelPos)
     const float3 sourceWorldFlatNormal = _CurrentFullResScreenFlatNormals[COORD_TEXTURE2D_X(fullResPixelPos)];
 
     PatchUtil::VolumeParamSet volumeParams;
-    volumeParams.targetPos = _VolumeTargetPos;
+    volumeParams.targetPos = _VolumeTargetPos.xyz;
     volumeParams.spatialResolution = _VolumeSpatialResolution;
     volumeParams.voxelMinSize = _VolumeVoxelMinSize;
     volumeParams.cascadeOffsets = _VolumeCascadeOffsets;
@@ -188,7 +180,11 @@ void Allocate(uint2 lowResPixelPos)
                                 seedLowResPixelPos);
 
                             if (PatchUtil::IsValid(irradianceSeed))
+                            {
+                                // Screen irradiances are pre-exposed, patch irradiances are not.
+                                SphericalHarmonics::MulMut(irradianceSeed, GetInvPreExposureMultiplier(_ExposureMultiplier));
                                 patchUpdateCount = PatchUtil::updateMax / 2;
+                            }
                         }
                     }
                 }

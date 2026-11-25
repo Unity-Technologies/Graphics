@@ -48,8 +48,10 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             Utils.CheckArgIsNotNull(meshInstance.mesh, "meshInstance.mesh");
             Utils.CheckArg(meshInstance.mesh.HasVertexAttribute(VertexAttribute.Position), "Cant use a mesh buffer that has no positions.");
             Utils.CheckArgRange(meshInstance.subMeshIndex, 0, meshInstance.mesh.subMeshCount, "meshInstance.subMeshIndex");
+            Utils.CheckMeshLod(meshInstance);
 
             var instanceDesc = new RayTracingMeshInstanceConfig(meshInstance.mesh, (uint)meshInstance.subMeshIndex, null);
+            instanceDesc.meshLod = meshInstance.meshLod;
             instanceDesc.mask = meshInstance.mask;
             instanceDesc.enableTriangleCulling = meshInstance.enableTriangleCulling;
             instanceDesc.frontTriangleCounterClockwise = meshInstance.frontTriangleCounterClockwise;

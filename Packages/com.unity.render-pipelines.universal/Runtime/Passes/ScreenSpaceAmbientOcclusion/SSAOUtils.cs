@@ -126,7 +126,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (isGTAOMode)
                 {
-                    // GTAO always uses depth normals
+                    // GTAO always uses depth normals, which ShaderScriptableStripper relies on
                     sourceDepthNormals = true;
                     this.useDepthPyramid = useDepthPyramid;
 

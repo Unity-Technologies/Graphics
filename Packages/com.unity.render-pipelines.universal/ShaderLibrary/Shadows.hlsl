@@ -84,21 +84,21 @@
     #endif
 #endif
 
-#if !defined(_MAIN_LIGHT_SHADOWS_SOFT_PCSS_KEYWORD_DECLARED)
-    #if !defined(_MAIN_LIGHT_SHADOWS_SOFT_PCSS)
-        static const bool _MAIN_LIGHT_SHADOWS_SOFT_PCSS = 0;
-    #elif DEFINED_NONZERO(_MAIN_LIGHT_SHADOWS_SOFT_PCSS)
-        #undef _MAIN_LIGHT_SHADOWS_SOFT_PCSS
-        #define _MAIN_LIGHT_SHADOWS_SOFT_PCSS 1
+#if !defined(_SHADOWS_PCSS_KEYWORD_DECLARED)
+    #if !defined(_SHADOWS_PCSS)
+        static const bool _SHADOWS_PCSS = 0;
+    #elif DEFINED_NONZERO(_SHADOWS_PCSS)
+        #undef _SHADOWS_PCSS
+        #define _SHADOWS_PCSS 1
     #endif
 #endif
 
-#if !defined(_ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS_KEYWORD_DECLARED)
-    #if !defined(_ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS)
-        static const bool _ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS = 0;
-    #elif DEFINED_NONZERO(_ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS)
-        #undef _ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS
-        #define _ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS 1
+#if !defined(_SHADOW_RECEIVER_NORMAL_BIAS_KEYWORD_DECLARED)
+    #if !defined(_SHADOW_RECEIVER_NORMAL_BIAS)
+        static const bool _SHADOW_RECEIVER_NORMAL_BIAS = 0;
+    #elif DEFINED_NONZERO(_SHADOW_RECEIVER_NORMAL_BIAS)
+        #undef _SHADOW_RECEIVER_NORMAL_BIAS
+        #define _SHADOW_RECEIVER_NORMAL_BIAS 1
     #endif
 #endif
 
@@ -175,14 +175,10 @@ bool SoftShadowsAvailable()
     return _SHADOWS_SOFT || _SHADOWS_SOFT_LOW || _SHADOWS_SOFT_MEDIUM || _SHADOWS_SOFT_HIGH;
 }
 
-bool MainLightPCSSAvailable()
+// PCSS is layered on the per-light soft shadows. Each light still picks its filter.
+bool ShadowsPCSSAvailable()
 {
-    return _MAIN_LIGHT_SHADOWS_SOFT_PCSS;
-}
-
-bool AdditionalLightPCSSAvailable()
-{
-    return _ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS;
+    return _SHADOWS_PCSS;
 }
 
 // Should match: UnityEngine.Rendering.Universal + 1
@@ -190,6 +186,7 @@ bool AdditionalLightPCSSAvailable()
 #define SOFT_SHADOW_QUALITY_LOW     half(1)
 #define SOFT_SHADOW_QUALITY_MEDIUM  half(2)
 #define SOFT_SHADOW_QUALITY_HIGH    half(3)
+#define SOFT_SHADOW_QUALITY_PCSS    half(4)
 
 // Passed by entry points that have no screen position. Those paths never take the PCSS branch.
 #define INVALID_SHADOW_SCREEN_POS float2(-1.0, -1.0)
@@ -272,13 +269,8 @@ SAMPLER_CMP(sampler_LinearClampCompare);
 
 float4      _MainLightShadowParams;   // (x: shadowStrength, y: >= 1.0 if soft shadows, 0.0 otherwise, z: main light fade scale, w: main light fade bias)
 float4      _MainLightShadowReceiverNormalBias; // world-space receiver normal bias, one component per cascade (all zero in caster mode)
-float4      _AdditionalShadowFadeParams; // x: additional light fade scale, y: additional light fade bias, z: 0.0, w: 0.0)
-
-// Main light PCSS. Loose uniforms until the C# side fills them, then they move into GlobalShaderVariables.hlsl.
-float4      _MainLightPCSSParams0[MAX_SHADOW_CASCADES + 1]; // (x: depth2RadialScale, y: radial2DepthScale, z: maxSampleZDistance, w: maxPCSSOffset)
-float4      _MainLightPCSSParams1[MAX_SHADOW_CASCADES + 1]; // (x: minFilterSizeTexels, y: minFilterRadial2DepthScale, z: blockerRadial2DepthScale, w: blockerClumpSampleExponent)
-float4      _MainLightPCSSAtlas[MAX_SHADOW_CASCADES + 1];   // (xy: atlas tile offset in UV, zw: atlas tile scale in UV)
-float4      _MainLightPCSSScalars;                          // (x: tile texel size = 1/tileResolution, y: blockerSampleCount, z: filterSampleCount, w: TAA frame index)
+float2      _MainLightSoftShadowKernelParams; // (x: soft shadow kernel radius, y: TAA frame index)
+float4      _AdditionalShadowFadeParams; // (x: additional light fade scale, y: additional light fade bias, z: PCSS temporal frame index, w: 0.0)
 
 // Point lights can use 6 shadow slices. Some mobile GPUs performance decrease drastically with uniform
 // blocks bigger than 8kb while others have a 64kb max uniform block size. This number ensures size of buffer
@@ -286,25 +278,33 @@ float4      _MainLightPCSSScalars;                          // (x: tile texel si
 // devices where max number of uniforms per shader GL_MAX_FRAGMENT_UNIFORM_VECTORS is low (224)
 
 // GLES3 causes a performance regression in some devices when using CBUFFER.
-#ifndef LIGHT_SHADOWS_NO_CBUFFER
+#if defined(URP_PERSISTENT_CONSTANT_BUFFERS_ACTIVE)
 CBUFFER_START(AdditionalLightShadows)
 #endif
 float4x4    _AdditionalLightsWorldToShadow[MAX_VISIBLE_LIGHTS];  // Per-shadow-slice-data
 float4      _AdditionalShadowParams[MAX_VISIBLE_LIGHTS];         // Per-light data: (x: shadowStrength, y: softShadows, z: light type (Spot: 0, Point: 1), w: perLightFirstShadowSliceIndex)
-float4      _AdditionalLightsPCSSParams[MAX_VISIBLE_LIGHTS];     // Per-light data: (x: softness, y: min filter radius, z: blocker sample count, w: filter sample count)
-float4      _AdditionalLightsPCSSZParams[MAX_VISIBLE_LIGHTS];    // Per-light data: blocker depth linearization ((f-n)/n, 1.0, (f-n)/(n*f), 1/f)
-float4      _AdditionalLightsPCSSAtlas[MAX_VISIBLE_LIGHTS];      // Per-shadow-slice-data: (xy: atlas tile offset in UV, zw: atlas tile scale in UV)
 float4      _AdditionalShadowReceiverNormalBias[(MAX_VISIBLE_LIGHTS + 3) / 4]; // Per-light world-space receiver normal bias, four lights packed per float4 (all zero in caster mode)
-#ifndef LIGHT_SHADOWS_NO_CBUFFER
+#if defined(URP_PERSISTENT_CONSTANT_BUFFERS_ACTIVE)
 CBUFFER_END
 #endif
-float4      _AdditionalLightsPCSSScalars;                        // (xy: shadow atlas size in texels, z: TAA frame index, w: unused)
+
+// Kept out of AdditionalLightShadows so that only the PCSS variants reference it, and in a structured buffer so that it
+// takes no constant buffer slot. MAX_VISIBLE_LIGHTS float4 of each, in this order:
+// per-light params (x: softness, y: min filter radius, z: blocker sample count, w: filter sample count),
+// per-light blocker depth linearization ((f-n)/n, 1.0, (f-n)/(n*f), 1/f),
+// per-shadow-slice atlas rects (xy: atlas tile offset in UV, zw: atlas tile scale in UV).
+// OpenGL has no PCSS (ShadowUtils.SupportsPCSS), and OpenGL ES fragment shaders may not read structured buffers.
+#if !defined(SHADER_API_GLES3) && !defined(URP_SHADER_API_GLCORE)
+StructuredBuffer<float4> _AdditionalLightsPCSSData;
+#endif
 
 // x: depth bias,
 // y: normal bias,
 // z: light type (Spot = 0, Directional = 1, Point = 2, Area/Rectangle = 3, Disc = 4, Pyramid = 5, Box = 6, Tube = 7)
 // w: unused
 float4 _ShadowBias;
+
+float _ZClip;
 
 half IsSpotLight()
 {
@@ -334,6 +334,8 @@ ShadowSamplingData GetMainLightShadowSamplingData()
     // shadowmapSize is used in SampleShadowmapFiltered otherwise
     shadowSamplingData.shadowmapSize = _MainLightShadowmapSize;
     shadowSamplingData.softShadowQuality = half(_MainLightShadowParams.y);
+    shadowSamplingData.softShadowKernelRadius = _MainLightSoftShadowKernelParams.x;
+    shadowSamplingData.softShadowFrameIndex = _MainLightSoftShadowKernelParams.y;
 
     return shadowSamplingData;
 }
@@ -419,56 +421,217 @@ half SampleScreenSpaceShadowmap(float4 shadowCoord)
     return attenuation;
 }
 
-real SampleShadowmapFilteredLowQuality(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData)
+// Must match ShadowUtils.GetSoftShadowKernelRadius
+#define SOFT_SHADOW_KERNEL_RADIUS_LOW    1.5
+#define SOFT_SHADOW_KERNEL_RADIUS_MEDIUM 2.5
+#define SOFT_SHADOW_KERNEL_RADIUS_HIGH   3.5
+
+bool IsSoftShadowKernelNarrowed(float kernelRadius, float qualityKernelRadius)
 {
-    // 4-tap hardware comparison
-    real4 attenuation4;
-    attenuation4.x = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz + float3(samplingData.shadowOffset0.xy, 0)));
-    attenuation4.y = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz + float3(samplingData.shadowOffset0.zw, 0)));
-    attenuation4.z = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz + float3(samplingData.shadowOffset1.xy, 0)));
-    attenuation4.w = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz + float3(samplingData.shadowOffset1.zw, 0)));
-    return dot(attenuation4, real(0.25));
+    return kernelRadius > 0.0 && kernelRadius < qualityKernelRadius;
 }
 
-real SampleShadowmapFilteredMediumQuality(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData)
+bool IsSoftShadowKernelWidened(float kernelRadius, float qualityKernelRadius)
 {
-    float fetchesWeights[9];
-    float2 fetchesUV[9];
-    SampleShadow_ComputeSamples_Tent_Filter_5x5(float, samplingData.shadowmapSize, shadowCoord, fetchesWeights, fetchesUV);
-
-    return fetchesWeights[0] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[0].xy, shadowCoord.z))
-                + fetchesWeights[1] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[1].xy, shadowCoord.z))
-                + fetchesWeights[2] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[2].xy, shadowCoord.z))
-                + fetchesWeights[3] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[3].xy, shadowCoord.z))
-                + fetchesWeights[4] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[4].xy, shadowCoord.z))
-                + fetchesWeights[5] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[5].xy, shadowCoord.z))
-                + fetchesWeights[6] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[6].xy, shadowCoord.z))
-                + fetchesWeights[7] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[7].xy, shadowCoord.z))
-                + fetchesWeights[8] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[8].xy, shadowCoord.z));
+    return kernelRadius > qualityKernelRadius;
 }
 
-real SampleShadowmapFilteredHighQuality(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData)
+// Bilinear fetches per axis of the quality's filter
+int GetSoftShadowFetchCount(float qualityKernelRadius)
 {
-    float fetchesWeights[16];
-    float2 fetchesUV[16];
-    SampleShadow_ComputeSamples_Tent_Filter_7x7(float, samplingData.shadowmapSize, shadowCoord, fetchesWeights, fetchesUV);
+    return (int)(qualityKernelRadius + 0.5);
+}
 
-    return fetchesWeights[0] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[0].xy, shadowCoord.z))
-                + fetchesWeights[1] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[1].xy, shadowCoord.z))
-                + fetchesWeights[2] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[2].xy, shadowCoord.z))
-                + fetchesWeights[3] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[3].xy, shadowCoord.z))
-                + fetchesWeights[4] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[4].xy, shadowCoord.z))
-                + fetchesWeights[5] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[5].xy, shadowCoord.z))
-                + fetchesWeights[6] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[6].xy, shadowCoord.z))
-                + fetchesWeights[7] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[7].xy, shadowCoord.z))
-                + fetchesWeights[8] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[8].xy, shadowCoord.z))
-                + fetchesWeights[9] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[9].xy, shadowCoord.z))
-                + fetchesWeights[10] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[10].xy, shadowCoord.z))
-                + fetchesWeights[11] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[11].xy, shadowCoord.z))
-                + fetchesWeights[12] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[12].xy, shadowCoord.z))
-                + fetchesWeights[13] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[13].xy, shadowCoord.z))
-                + fetchesWeights[14] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[14].xy, shadowCoord.z))
-                + fetchesWeights[15] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[15].xy, shadowCoord.z));
+// Uniform disk of PCF fetches, rotated per pixel.
+real SampleShadowmapFilteredDisk(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData, float kernelRadius, int fetchCount, float2 positionSS)
+{
+    int sampleCount = fetchCount * fetchCount;
+    float2 noiseCoord = all(positionSS >= 0.0) ? positionSS : shadowCoord.xy * samplingData.shadowmapSize.zw;
+    float rotationAngle = InterleavedGradientNoise(noiseCoord, (int)samplingData.softShadowFrameIndex) * TWO_PI;
+    float2 rotation = float2(sin(rotationAngle), cos(rotationAngle));
+
+    // 0.81649658 is sqrt(2/3): a uniform disk of this radius has the same variance per axis as a tent of radius 1, so the penumbra width carries over
+    float diskRadius = kernelRadius * 0.81649658;
+    float sampleCountInverse = rcp((float)sampleCount);
+    float sampleCountBias = 0.5 * sampleCountInverse;
+
+    real attenuation = 0.0;
+    for (int i = 0; i < sampleCount; i++)
+    {
+        float2 offset = ComputeFibonacciSpiralDiskSample_Punctual(i, diskRadius, sampleCountInverse, sampleCountBias);
+        offset = float2(offset.x * rotation.y + offset.y * rotation.x, offset.x * -rotation.x + offset.y * rotation.y);
+        attenuation += real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(shadowCoord.xy + offset * samplingData.shadowmapSize.xy, shadowCoord.z)));
+    }
+
+    return attenuation * real(sampleCountInverse);
+}
+
+float SoftShadowTentIntegral(float x, float radiusRcp)
+{
+    // x in units of the radius
+    float t = clamp(x * radiusRcp, -1.0, 1.0);
+
+    // Area of a unit-radius tent from -1 to t, which equals the area of the radius tent from -radius to x
+    return 0.5 + t * (1.0 - 0.5 * abs(t));
+}
+
+// Weights and texel offsets of the bilinear fetches along one axis for a tent of any radius
+void GetSoftShadowTentFetches(int fetchCount, float offsetFromTentCenterToCenterOfFetches, float radiusRcp, out float4 fetchesWeights, out float4 fetchesOffsets)
+{
+    fetchesWeights = 0.0;
+    fetchesOffsets = 0.0;
+
+    float pairStart = SoftShadowTentIntegral(-fetchCount - offsetFromTentCenterToCenterOfFetches, radiusRcp);
+    UNITY_UNROLL
+    for (int i = 0; i < fetchCount; i++)
+    {
+        float pairEdge = 2 * i - fetchCount;
+        float pairMiddle = SoftShadowTentIntegral(pairEdge + 1.0 - offsetFromTentCenterToCenterOfFetches, radiusRcp);
+        float pairEnd = SoftShadowTentIntegral(pairEdge + 2.0 - offsetFromTentCenterToCenterOfFetches, radiusRcp);
+
+        // The difference of the integrals at a texel's edges is the tent's area over that texel, which is its weight
+        float firstTexelWeight = pairMiddle - pairStart;
+        float secondTexelWeight = pairEnd - pairMiddle;
+
+        fetchesWeights[i] = firstTexelWeight + secondTexelWeight;
+        fetchesOffsets[i] = pairEdge + 0.5 + secondTexelWeight / max(fetchesWeights[i], 1e-6);
+        pairStart = pairEnd;
+    }
+}
+
+// Tent PCF of any radius up to fetchCount - 0.5 texels, from fetchCount x fetchCount bilinear fetches.
+void ComputeSoftShadowTentSamples(int fetchCount, float4 shadowMapTexelSize, float2 coord, float radius, out float fetchesWeights[16], out float2 fetchesUV[16])
+{
+    UNITY_UNROLL for (int z = 0; z < 16; z++) { fetchesWeights[z] = 0.0; fetchesUV[z] = coord; }
+
+    float2 tentCenterInTexelSpace = coord * shadowMapTexelSize.zw;
+    float2 centerOfFetchesInTexelSpace = floor(tentCenterInTexelSpace + 0.5);
+    float2 offsetFromTentCenterToCenterOfFetches = tentCenterInTexelSpace - centerOfFetchesInTexelSpace;
+
+    // Callers only take this path with a positive radius; the clamp avoids a division by zero in dead code
+    float radiusRcp = rcp(max(radius, FLT_MIN));
+    float4 fetchesWeightsU, fetchesOffsetsU, fetchesWeightsV, fetchesOffsetsV;
+    GetSoftShadowTentFetches(fetchCount, offsetFromTentCenterToCenterOfFetches.x, radiusRcp, fetchesWeightsU, fetchesOffsetsU);
+    GetSoftShadowTentFetches(fetchCount, offsetFromTentCenterToCenterOfFetches.y, radiusRcp, fetchesWeightsV, fetchesOffsetsV);
+
+    float2 bilinearFetchOrigin = centerOfFetchesInTexelSpace * shadowMapTexelSize.xy;
+    UNITY_UNROLL
+    for (int v = 0; v < fetchCount; v++)
+    {
+        UNITY_UNROLL
+        for (int u = 0; u < fetchCount; u++)
+        {
+            fetchesWeights[v * fetchCount + u] = fetchesWeightsU[u] * fetchesWeightsV[v];
+            fetchesUV[v * fetchCount + u] = bilinearFetchOrigin + float2(fetchesOffsetsU[u], fetchesOffsetsV[v]) * shadowMapTexelSize.xy;
+        }
+    }
+}
+
+real SampleShadowmapFilteredLowQuality(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData, float2 positionSS = INVALID_SHADOW_SCREEN_POS)
+{
+    real attenuation;
+    UNITY_BRANCH
+    if (IsSoftShadowKernelWidened(samplingData.softShadowKernelRadius, SOFT_SHADOW_KERNEL_RADIUS_LOW))
+    {
+        attenuation = SampleShadowmapFilteredDisk(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData, samplingData.softShadowKernelRadius, GetSoftShadowFetchCount(SOFT_SHADOW_KERNEL_RADIUS_LOW), positionSS);
+    }
+    else if (IsSoftShadowKernelNarrowed(samplingData.softShadowKernelRadius, SOFT_SHADOW_KERNEL_RADIUS_LOW))
+    {
+        float fetchesWeights[16];
+        float2 fetchesUV[16];
+        ComputeSoftShadowTentSamples(GetSoftShadowFetchCount(SOFT_SHADOW_KERNEL_RADIUS_LOW), samplingData.shadowmapSize, shadowCoord.xy, samplingData.softShadowKernelRadius, fetchesWeights, fetchesUV);
+
+        attenuation = fetchesWeights[0] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[0].xy, shadowCoord.z))
+                    + fetchesWeights[1] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[1].xy, shadowCoord.z))
+                    + fetchesWeights[2] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[2].xy, shadowCoord.z))
+                    + fetchesWeights[3] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[3].xy, shadowCoord.z));
+    }
+    else
+    {
+        // 4-tap hardware comparison
+        real4 attenuation4;
+        attenuation4.x = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz + float3(samplingData.shadowOffset0.xy, 0)));
+        attenuation4.y = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz + float3(samplingData.shadowOffset0.zw, 0)));
+        attenuation4.z = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz + float3(samplingData.shadowOffset1.xy, 0)));
+        attenuation4.w = real(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz + float3(samplingData.shadowOffset1.zw, 0)));
+        attenuation = dot(attenuation4, real(0.25));
+    }
+    return attenuation;
+}
+
+real SampleShadowmapFilteredMediumQuality(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData, float2 positionSS = INVALID_SHADOW_SCREEN_POS)
+{
+    real attenuation;
+    UNITY_BRANCH
+    if (IsSoftShadowKernelWidened(samplingData.softShadowKernelRadius, SOFT_SHADOW_KERNEL_RADIUS_MEDIUM))
+    {
+        attenuation = SampleShadowmapFilteredDisk(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData, samplingData.softShadowKernelRadius, GetSoftShadowFetchCount(SOFT_SHADOW_KERNEL_RADIUS_MEDIUM), positionSS);
+    }
+    else
+    {
+        float fetchesWeights[16];
+        float2 fetchesUV[16];
+        if (IsSoftShadowKernelNarrowed(samplingData.softShadowKernelRadius, SOFT_SHADOW_KERNEL_RADIUS_MEDIUM))
+        {
+            ComputeSoftShadowTentSamples(GetSoftShadowFetchCount(SOFT_SHADOW_KERNEL_RADIUS_MEDIUM), samplingData.shadowmapSize, shadowCoord.xy, samplingData.softShadowKernelRadius, fetchesWeights, fetchesUV);
+        }
+        else
+        {
+            SampleShadow_ComputeSamples_Tent_Filter_5x5(float, samplingData.shadowmapSize, shadowCoord, fetchesWeights, fetchesUV);
+        }
+
+        attenuation = fetchesWeights[0] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[0].xy, shadowCoord.z))
+                    + fetchesWeights[1] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[1].xy, shadowCoord.z))
+                    + fetchesWeights[2] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[2].xy, shadowCoord.z))
+                    + fetchesWeights[3] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[3].xy, shadowCoord.z))
+                    + fetchesWeights[4] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[4].xy, shadowCoord.z))
+                    + fetchesWeights[5] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[5].xy, shadowCoord.z))
+                    + fetchesWeights[6] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[6].xy, shadowCoord.z))
+                    + fetchesWeights[7] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[7].xy, shadowCoord.z))
+                    + fetchesWeights[8] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[8].xy, shadowCoord.z));
+    }
+    return attenuation;
+}
+
+real SampleShadowmapFilteredHighQuality(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData, float2 positionSS = INVALID_SHADOW_SCREEN_POS)
+{
+    real attenuation;
+    UNITY_BRANCH
+    if (IsSoftShadowKernelWidened(samplingData.softShadowKernelRadius, SOFT_SHADOW_KERNEL_RADIUS_HIGH))
+    {
+        attenuation = SampleShadowmapFilteredDisk(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData, samplingData.softShadowKernelRadius, GetSoftShadowFetchCount(SOFT_SHADOW_KERNEL_RADIUS_HIGH), positionSS);
+    }
+    else
+    {
+        float fetchesWeights[16];
+        float2 fetchesUV[16];
+        if (IsSoftShadowKernelNarrowed(samplingData.softShadowKernelRadius, SOFT_SHADOW_KERNEL_RADIUS_HIGH))
+        {
+            ComputeSoftShadowTentSamples(GetSoftShadowFetchCount(SOFT_SHADOW_KERNEL_RADIUS_HIGH), samplingData.shadowmapSize, shadowCoord.xy, samplingData.softShadowKernelRadius, fetchesWeights, fetchesUV);
+        }
+        else
+        {
+            SampleShadow_ComputeSamples_Tent_Filter_7x7(float, samplingData.shadowmapSize, shadowCoord, fetchesWeights, fetchesUV);
+        }
+
+        attenuation = fetchesWeights[0] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[0].xy, shadowCoord.z))
+                    + fetchesWeights[1] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[1].xy, shadowCoord.z))
+                    + fetchesWeights[2] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[2].xy, shadowCoord.z))
+                    + fetchesWeights[3] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[3].xy, shadowCoord.z))
+                    + fetchesWeights[4] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[4].xy, shadowCoord.z))
+                    + fetchesWeights[5] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[5].xy, shadowCoord.z))
+                    + fetchesWeights[6] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[6].xy, shadowCoord.z))
+                    + fetchesWeights[7] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[7].xy, shadowCoord.z))
+                    + fetchesWeights[8] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[8].xy, shadowCoord.z))
+                    + fetchesWeights[9] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[9].xy, shadowCoord.z))
+                    + fetchesWeights[10] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[10].xy, shadowCoord.z))
+                    + fetchesWeights[11] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[11].xy, shadowCoord.z))
+                    + fetchesWeights[12] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[12].xy, shadowCoord.z))
+                    + fetchesWeights[13] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[13].xy, shadowCoord.z))
+                    + fetchesWeights[14] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[14].xy, shadowCoord.z))
+                    + fetchesWeights[15] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[15].xy, shadowCoord.z));
+    }
+    return attenuation;
 }
 
 // Separable tent kernel, one axis: 4 fetch columns cover the 7x7 (HIGH) tent; the 5x5 (MEDIUM) tent uses three of
@@ -489,59 +652,112 @@ void SampleShadow_TentAxis(float o, bool high, out float4 weights, out float4 of
 }
 
 // Soft filter for runtime-selected quality (per-light value, and dynamic-keyword builds).
-half SampleShadowmapFilteredRuntimeQuality(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData, half quality)
+half SampleShadowmapFilteredRuntimeQuality(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData, half quality, float2 positionSS = INVALID_SHADOW_SCREEN_POS)
 {
     half attenuation = 0.0;
     if (quality < SOFT_SHADOW_QUALITY_MEDIUM)
     {
-        attenuation = half(SampleShadowmapFilteredLowQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData));
+        attenuation = half(SampleShadowmapFilteredLowQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData, positionSS));
     }
     else
     {
-        float4 texelSize = samplingData.shadowmapSize;
-        float2 tentCenter = shadowCoord.xy * texelSize.zw;
-        float2 fetchCenter = floor(tentCenter + 0.5);
-        float2 o = tentCenter - fetchCenter;
+        float kernelRadius = samplingData.softShadowKernelRadius;
+        float qualityKernelRadius = quality >= SOFT_SHADOW_QUALITY_HIGH ? SOFT_SHADOW_KERNEL_RADIUS_HIGH : SOFT_SHADOW_KERNEL_RADIUS_MEDIUM;
 
-        float4 wU, wV, u, v;
         UNITY_BRANCH
-        if (quality >= SOFT_SHADOW_QUALITY_HIGH)
+        if (IsSoftShadowKernelWidened(kernelRadius, qualityKernelRadius))
         {
-            SampleShadow_TentAxis(o.x, true, wU, u);
-            SampleShadow_TentAxis(o.y, true, wV, v);
-            wV *= 0.081632 * 0.081632;
-            u = fetchCenter.x * texelSize.x + u * texelSize.x;
-            v = fetchCenter.y * texelSize.y + v * texelSize.y;
+            attenuation = half(SampleShadowmapFilteredDisk(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData, kernelRadius, GetSoftShadowFetchCount(qualityKernelRadius), positionSS));
         }
         else
         {
-            SampleShadow_TentAxis(o.x, false, wU, u);
-            SampleShadow_TentAxis(o.y, false, wV, v);
-            wV *= 0.16 * 0.16;
-            u = fetchCenter.x * texelSize.x + u * texelSize.x;
-            v = fetchCenter.y * texelSize.y + v * texelSize.y;
-        }
-        half4 hwU = half4(wU);
+            float4 texelSize = samplingData.shadowmapSize;
+            float2 tentCenter = shadowCoord.xy * texelSize.zw;
+            float2 fetchCenter = floor(tentCenter + 0.5);
+            float2 o = tentCenter - fetchCenter;
 
-        UNITY_UNROLL for (int j = 0; j < 4; j++)
-        {
-            half4 s;
-            s.x = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.x, v[j], shadowCoord.z)));
-            s.y = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.y, v[j], shadowCoord.z)));
-            s.z = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.z, v[j], shadowCoord.z)));
-            s.w = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.w, v[j], shadowCoord.z)));
-            attenuation += half(wV[j]) * dot(s, hwU);
+            bool narrowed = IsSoftShadowKernelNarrowed(kernelRadius, qualityKernelRadius);
+            float radiusRcp = rcp(max(kernelRadius, FLT_MIN));
+
+            float4 wU, wV, u, v;
+            UNITY_BRANCH
+            if (quality >= SOFT_SHADOW_QUALITY_HIGH)
+            {
+                UNITY_BRANCH
+                if (narrowed)
+                {
+                    GetSoftShadowTentFetches(GetSoftShadowFetchCount(SOFT_SHADOW_KERNEL_RADIUS_HIGH), o.x, radiusRcp, wU, u);
+                    GetSoftShadowTentFetches(GetSoftShadowFetchCount(SOFT_SHADOW_KERNEL_RADIUS_HIGH), o.y, radiusRcp, wV, v);
+                }
+                else
+                {
+                    SampleShadow_TentAxis(o.x, true, wU, u);
+                    SampleShadow_TentAxis(o.y, true, wV, v);
+                    wV *= 0.081632 * 0.081632;
+                }
+
+                u = fetchCenter.x * texelSize.x + u * texelSize.x;
+                v = fetchCenter.y * texelSize.y + v * texelSize.y;
+                half4 hwU = half4(wU);
+                half4 hwV = half4(wV);
+
+                UNITY_UNROLL for (int j = 0; j < 4; j++)
+                {
+                    half4 s;
+                    s.x = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.x, v[j], shadowCoord.z)));
+                    s.y = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.y, v[j], shadowCoord.z)));
+                    s.z = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.z, v[j], shadowCoord.z)));
+                    s.w = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.w, v[j], shadowCoord.z)));
+                    attenuation += hwV[j] * dot(s, hwU);
+                }
+            }
+            else
+            {
+                UNITY_BRANCH
+                if (narrowed)
+                {
+                    GetSoftShadowTentFetches(GetSoftShadowFetchCount(SOFT_SHADOW_KERNEL_RADIUS_MEDIUM), o.x, radiusRcp, wU, u);
+                    GetSoftShadowTentFetches(GetSoftShadowFetchCount(SOFT_SHADOW_KERNEL_RADIUS_MEDIUM), o.y, radiusRcp, wV, v);
+
+                    // The loop below reads the x, y and w columns of the 5x5 tent
+                    wU = wU.xyzz; u = u.xyzz;
+                    wV = wV.xyzz; v = v.xyzz;
+                }
+                else
+                {
+                    SampleShadow_TentAxis(o.x, false, wU, u);
+                    SampleShadow_TentAxis(o.y, false, wV, v);
+                    wV *= 0.16 * 0.16;
+                }
+
+                u = fetchCenter.x * texelSize.x + u * texelSize.x;
+                v = fetchCenter.y * texelSize.y + v * texelSize.y;
+
+                half3 hwU = half3(wU.xyw);
+                half3 hwV = half3(wV.xyw);
+                float3 rowV = v.xyw;
+
+                UNITY_UNROLL for (int j = 0; j < 3; j++)
+                {
+                    half3 s;
+                    s.x = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.x, rowV[j], shadowCoord.z)));
+                    s.y = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.y, rowV[j], shadowCoord.z)));
+                    s.z = half(SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(u.w, rowV[j], shadowCoord.z)));
+                    attenuation += hwV[j] * dot(s, hwU);
+                }
+            }
         }
     }
     return attenuation;
 }
 
-half SampleShadowmapFiltered(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData)
+half SampleShadowmapFiltered(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData, float2 positionSS = INVALID_SHADOW_SCREEN_POS)
 {
-    return SampleShadowmapFilteredRuntimeQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData, samplingData.softShadowQuality);
+    return SampleShadowmapFilteredRuntimeQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData, samplingData.softShadowQuality, positionSS);
 }
 
-real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData, half4 shadowParams, bool isPerspectiveProjection = true)
+// positionSS rotates the disk filter of a widened soft shadow kernel
+real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float4 shadowCoord, ShadowSamplingData samplingData, half4 shadowParams, bool isPerspectiveProjection = true, float2 positionSS = INVALID_SHADOW_SCREEN_POS)
 {
     // Compiler will optimize this branch away as long as isPerspectiveProjection is known at compile time
     if (isPerspectiveProjection)
@@ -559,7 +775,7 @@ real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float
 
     if (quality > SOFT_SHADOW_QUALITY_OFF)
     {
-        attenuation = SampleShadowmapFilteredRuntimeQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData, quality);
+        attenuation = SampleShadowmapFilteredRuntimeQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData, quality, positionSS);
     }
     else
     {
@@ -568,21 +784,21 @@ real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float
 #else
     if (_SHADOWS_SOFT_LOW)
     {
-        attenuation = SampleShadowmapFilteredLowQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
+        attenuation = SampleShadowmapFilteredLowQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData, positionSS);
     }
     else if (_SHADOWS_SOFT_MEDIUM)
     {
-        attenuation = SampleShadowmapFilteredMediumQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
+        attenuation = SampleShadowmapFilteredMediumQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData, positionSS);
     }
     else if (_SHADOWS_SOFT_HIGH)
     {
-        attenuation = SampleShadowmapFilteredHighQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
+        attenuation = SampleShadowmapFilteredHighQuality(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData, positionSS);
     }
     else if (_SHADOWS_SOFT)
     {
         if (shadowParams.y > (half)SOFT_SHADOW_QUALITY_OFF)
         {
-            attenuation = SampleShadowmapFiltered(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
+            attenuation = SampleShadowmapFiltered(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData, positionSS);
         }
         else
         {
@@ -643,11 +859,17 @@ float4 TransformWorldToShadowCoord(float3 positionWS, bool isSurfaceTypeTranspar
         half cascadeIndex = 0;
         if (_MAIN_LIGHT_SHADOWS_CASCADE)
             cascadeIndex = ComputeCascadeIndexAndWeights(positionWS, cascadeWeights);
-        positionWS += normalWS * GetMainLightShadowReceiverNormalBias(cascadeWeights);
+        if (_SHADOW_RECEIVER_NORMAL_BIAS)
+            positionWS += normalWS * GetMainLightShadowReceiverNormalBias(cascadeWeights);
         shadowCoord = float4(mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0)).xyz, 1.0);
     }
 
     return shadowCoord;
+}
+
+float4 TransformWorldToShadowCoord(float3 positionWS, bool isSurfaceTypeTransparent)
+{
+    return TransformWorldToShadowCoord(positionWS, isSurfaceTypeTransparent, float3(0.0, 0.0, 0.0));
 }
 
 half SampleShadowmapPCSSDirectional(float4 shadowCoord, half cascadeIndex, float2 positionSS, half4 shadowParams)
@@ -695,10 +917,10 @@ half SampleMainLightRealtimeShadow(float4 shadowCoord, half4 shadowParams, Shado
         else
         {
             UNITY_BRANCH
-            if (MainLightPCSSAvailable() && usePCSS)
+            if (ShadowsPCSSAvailable() && usePCSS && shadowParams.y == SOFT_SHADOW_QUALITY_PCSS)
                 result = SampleShadowmapPCSSDirectional(shadowCoord, cascadeIndex, positionSS, shadowParams);
             else
-                result = SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_LinearClampCompare), shadowCoord, shadowSamplingData, shadowParams, false);
+                result = SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_LinearClampCompare), shadowCoord, shadowSamplingData, shadowParams, false, positionSS);
         }
     }
 
@@ -715,13 +937,20 @@ half SampleMainLightRealtimeShadow(float4 shadowCoord, bool isSurfaceTypeTranspa
     return SampleMainLightRealtimeShadow(shadowCoord, GetMainLightShadowParams(), GetMainLightShadowSamplingData(), isSurfaceTypeTransparent);
 }
 
+// positionSS seeds the PCSS sample rotation
+half SampleMainLightRealtimeShadow(float4 shadowCoord, float3 positionWS, bool isSurfaceTypeTransparent, float2 positionSS)
+{
+    return SampleMainLightRealtimeShadow(shadowCoord, GetMainLightShadowParams(), GetMainLightShadowSamplingData(), isSurfaceTypeTransparent, GetMainLightCascadeIndex(positionWS), positionSS, true);
+}
+
 half SampleShadowmapPCSSPunctual(int lightIndex, int shadowSliceIndex, float4 shadowCoord, float2 positionSS, half4 shadowParams)
 {
+#if !defined(SHADER_API_GLES3) && !defined(URP_SHADER_API_GLCORE)
     // Spot and point shadows use a perspective projection.
     shadowCoord.xyz /= shadowCoord.w;
 
-    float4 pcssParams = _AdditionalLightsPCSSParams[lightIndex];
-    float4 atlas = _AdditionalLightsPCSSAtlas[shadowSliceIndex];
+    float4 pcssParams = _AdditionalLightsPCSSData[lightIndex];
+    float4 atlas = _AdditionalLightsPCSSData[2 * MAX_VISIBLE_LIGHTS + shadowSliceIndex];
 
     // A slice with no rectangle was never rendered, for example a culled face of a point light.
     if (atlas.z <= 0.0)
@@ -732,13 +961,16 @@ half SampleShadowmapPCSSPunctual(int lightIndex, int shadowSliceIndex, float4 sh
         atlas.zw, atlas.xy,
         pcssParams.x, pcssParams.y,
         (int)pcssParams.z, (int)pcssParams.w,
-        _AdditionalLightsPCSSZParams[lightIndex], _AdditionalLightsPCSSScalars.xy,
-        (uint)_AdditionalLightsPCSSScalars.z, 0.0,
+        _AdditionalLightsPCSSData[MAX_VISIBLE_LIGHTS + lightIndex], _AdditionalShadowmapSize.zw,
+        (uint)_AdditionalShadowFadeParams.z, 0.0,
         _AdditionalLightsShadowmapTexture, sampler_LinearClampCompare, sampler_PointClamp);
 
     attenuation = LerpWhiteTo(attenuation, shadowParams.x);
 
     return BEYOND_SHADOW_FAR(shadowCoord) ? half(1.0) : attenuation;
+#else
+    return half(1.0);
+#endif
 }
 
 // returns 0.0 if position is in light's shadow
@@ -766,15 +998,16 @@ half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half
         #endif
 
             // Read behind the slice-index guard above, so the bias data may stay stale while the shadowmap is empty
-            positionWS += normalWS * GetAdditionalLightShadowReceiverNormalBias(lightIndex);
+            if (_SHADOW_RECEIVER_NORMAL_BIAS)
+                positionWS += normalWS * GetAdditionalLightShadowReceiverNormalBias(lightIndex);
 
             float4 shadowCoord = mul(_AdditionalLightsWorldToShadow[shadowSliceIndex], float4(positionWS, 1.0));
 
             UNITY_BRANCH
-            if (AdditionalLightPCSSAvailable() && usePCSS && shadowParams.y >= SOFT_SHADOW_QUALITY_HIGH)
+            if (ShadowsPCSSAvailable() && usePCSS && shadowParams.y == SOFT_SHADOW_QUALITY_PCSS)
                 result = SampleShadowmapPCSSPunctual(lightIndex, shadowSliceIndex, shadowCoord, positionSS, shadowParams);
             else
-                result = SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_LinearClampCompare), shadowCoord, shadowSamplingData, shadowParams, true);
+                result = SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_LinearClampCompare), shadowCoord, shadowSamplingData, shadowParams, true, positionSS);
         }
     }
 
@@ -786,6 +1019,11 @@ half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half
     return SampleAdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection, shadowParams, shadowSamplingData, normalWS, INVALID_SHADOW_SCREEN_POS, false);
 }
 
+half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowParams, ShadowSamplingData shadowSamplingData)
+{
+    return SampleAdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection, shadowParams, shadowSamplingData, float3(0.0, 0.0, 0.0));
+}
+
 half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection, float3 normalWS)
 {
     half result = half(1.0);
@@ -794,19 +1032,14 @@ half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half
     return result;
 }
 
-float3 GetShadowFadeCameraPositionWS()
+half SampleAdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection)
 {
-#if defined(USING_STEREO_MATRICES)
-    // Using unity_StereoWorldSpaceCameraPos[unity_StereoEyeIndex] directly trips a bug in FXC (X8000 or a stale index).
-    return unity_StereoEyeIndex == 0 ? unity_StereoWorldSpaceCameraPos[0] : unity_StereoWorldSpaceCameraPos[1];
-#else
-    return _WorldSpaceCameraPos;
-#endif
+    return SampleAdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection, float3(0.0, 0.0, 0.0));
 }
 
 half GetMainLightShadowFade(float3 positionWS)
 {
-    float3 camToPixel = positionWS - GetShadowFadeCameraPositionWS();
+    float3 camToPixel = positionWS - _WorldSpaceCameraPos;
     float distanceCamToPixel2 = dot(camToPixel, camToPixel);
 
     float fade = saturate(distanceCamToPixel2 * float(_MainLightShadowParams.z) + float(_MainLightShadowParams.w));
@@ -818,7 +1051,7 @@ half GetAdditionalLightShadowFade(float3 positionWS)
     half shadowFade = half(1.0);
     if (AdditionalLightShadowsAvailable())
     {
-        float3 camToPixel = positionWS - GetShadowFadeCameraPositionWS();
+        float3 camToPixel = positionWS - _WorldSpaceCameraPos;
         float distanceCamToPixel2 = dot(camToPixel, camToPixel);
 
         float fade = saturate(distanceCamToPixel2 * float(_AdditionalShadowFadeParams.x) + float(_AdditionalShadowFadeParams.y));
@@ -913,6 +1146,16 @@ half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirecti
     return AdditionalLightShadow(lightIndex, positionWS, lightDirection, shadowMask, occlusionProbeChannels, receiveShadows, normalWS, INVALID_SHADOW_SCREEN_POS, false);
 }
 
+half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowMask, half4 occlusionProbeChannels, bool receiveShadows, float3 normalWS, float2 positionSS)
+{
+    return AdditionalLightShadow(lightIndex, positionWS, lightDirection, shadowMask, occlusionProbeChannels, receiveShadows, normalWS, positionSS, true);
+}
+
+half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowMask, half4 occlusionProbeChannels, bool receiveShadows)
+{
+    return AdditionalLightShadow(lightIndex, positionWS, lightDirection, shadowMask, occlusionProbeChannels, receiveShadows, float3(0.0, 0.0, 0.0));
+}
+
 float4 GetShadowCoord(VertexPositionInputs vertexInput, bool isSurfaceTypeTransparent, float3 normalWS)
 {
     float4 result = (float4)0;
@@ -927,6 +1170,11 @@ float4 GetShadowCoord(VertexPositionInputs vertexInput, bool isSurfaceTypeTransp
     }
 
     return result;
+}
+
+float4 GetShadowCoord(VertexPositionInputs vertexInput, bool isSurfaceTypeTransparent)
+{
+    return GetShadowCoord(vertexInput, isSurfaceTypeTransparent, float3(0.0, 0.0, 0.0));
 }
 
 float3 ApplyShadowBias(float3 positionWS, float3 normalWS, float3 lightDirection)
@@ -953,7 +1201,12 @@ float4 ApplyShadowClamping(float4 positionCS)
     // (see: Shadows.cpp::RenderShadowMaps() #L2161-L2162)
     // (see: Shadows.cpp::RenderShadowMaps() #L2086-L2102)
     // (see: Shadows.cpp::PrepareStateForShadowMap() #L1685-L1686)
+#if defined(_SHADOW_CASTER_ZCLIP)
+    // Defined only by passes that also set ZClip [_ZClip]: pancaking is needed only while the rasterizer clips.
+    positionCS.z = lerp(positionCS.z, clamped, IsDirectionalLight() * _ZClip);
+#else
     positionCS.z = lerp(positionCS.z, clamped, IsDirectionalLight());
+#endif
 
     return positionCS;
 }
@@ -968,7 +1221,7 @@ float4 ApplyShadowClamping(float4 positionCS)
 // Deprecated: Use GetMainLightShadowFade or GetAdditionalLightShadowFade instead.
 float GetShadowFade(float3 positionWS)
 {
-    float3 camToPixel = positionWS - GetShadowFadeCameraPositionWS();
+    float3 camToPixel = positionWS - _WorldSpaceCameraPos;
     float distanceCamToPixel2 = dot(camToPixel, camToPixel);
 
     float fade = saturate(distanceCamToPixel2 * float(_MainLightShadowParams.z) + float(_MainLightShadowParams.w));

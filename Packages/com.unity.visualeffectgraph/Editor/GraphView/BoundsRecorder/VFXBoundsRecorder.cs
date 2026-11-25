@@ -338,14 +338,25 @@ namespace UnityEditor.VFX.UI
         public void ToggleRecording()
         {
             m_IsRecording = !m_IsRecording;
-            foreach (var system in systems.Where(NeedsToBeRecorded))
-            {
-                system.SetSettingValue("needsComputeBounds", m_IsRecording);
-            }
+            ApplyRecordingToSystems();
 
             if (m_IsRecording)
             {
                 m_Bounds.Clear();
+            }
+        }
+
+        public void CancelRecording()
+        {
+            m_IsRecording = false;
+            ApplyRecordingToSystems();
+        }
+
+        void ApplyRecordingToSystems()
+        {
+            foreach (var system in systems)
+            {
+                system.SetRecordingBounds(m_IsRecording && NeedsToBeRecorded(system));
             }
         }
 
@@ -360,6 +371,7 @@ namespace UnityEditor.VFX.UI
                     var initializeContext = system.owners.OfType<VFXBasicInitialize>().Single();
                     var boundsSlot = initializeContext.inputSlots.FirstOrDefault(s => s.name == "bounds");
                     var bounds = new Bounds(currentBounds.center, 2 * currentBounds.extents);
+                    Undo.RecordObject(boundsSlot.GetMasterSlot(), "Apply Recorded Bounds");
                     if (boundsSlot.space == VFXSpace.Local)
                         boundsSlot.value = new AABox { center = bounds.center, size = bounds.size };
                     else

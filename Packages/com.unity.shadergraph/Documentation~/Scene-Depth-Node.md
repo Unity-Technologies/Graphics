@@ -4,7 +4,7 @@ The Scene Depth node samples the depth texture of the current camera, using the 
 
 If you use the Universal Render Pipeline (URP), make sure the depth texture is enabled in the [URP asset](https://docs.unity3d.com/Manual/urp/universalrp-asset.html). Otherwise the Scene Depth node returns a value of 0.5 (mid-grey).
 
-The Scene Depth node works only in the fragment [shader stage](Shader-Stage.md), and might not work if you set **Surface Type** to **Opaque** in the **Graph Inspector** window.
+The Scene Depth node works only in the fragment [shader stage](Shader-Stage.md). In URP, the node returns the scene depth only if URP copies the scene depth to the depth texture before it renders the material. To use the Scene Depth node in a shader graph with **Surface Type** set to **Transparent**, set **Depth Texture Mode** to **After Opaques** or **Force Prepass**. If **Surface Type** is **Opaque**, set **Depth Texture Mode** to **Force Prepass**. For more information, refer to [Universal Renderer asset reference for URP](https://docs.unity3d.com/Manual/urp/urp-universal-renderer.html). To find out when the copy happens in a frame, use the [Frame Debugger](https://docs.unity3d.com/Manual/FrameDebugger-landing.html) or the [Render Graph Viewer](https://docs.unity3d.com/Manual/urp/render-graph-view.html).
 
 ## Render pipeline support
 

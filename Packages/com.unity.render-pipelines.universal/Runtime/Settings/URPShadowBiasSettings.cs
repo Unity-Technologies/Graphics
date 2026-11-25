@@ -79,14 +79,9 @@ namespace UnityEngine.Rendering.Universal
         public ShadowNormalBiasMode normalBiasMode
         {
             get => m_NormalBiasMode;
-            set
-            {
 #if UNITY_EDITOR
-                this.SetValueAndNotify(ref m_NormalBiasMode, value, nameof(m_NormalBiasMode));
-#else
-                m_NormalBiasMode = value;
+            set => this.SetValueAndNotify(ref m_NormalBiasMode, value, nameof(m_NormalBiasMode));
 #endif
-            }
         }
     }
 }

@@ -20,7 +20,7 @@ using UnityEngine.Rendering;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(31, Extension, -905, AllowCaching = true)]
+    [ScriptedImporter(32, Extension, -905, AllowCaching = true)]
     [CoreRPHelpURL("Sub-graph", "com.unity.shadergraph")]
     class ShaderSubGraphImporter : ScriptedImporter
     {
@@ -129,7 +129,7 @@ namespace UnityEditor.ShaderGraph
 
             var metadata = ScriptableObject.CreateInstance<ShaderSubGraphMetadata>();
             metadata.hideFlags = HideFlags.HideInHierarchy;
-            metadata.assetDependencies = new List<UnityEngine.Object>();
+            metadata.assetDependencies = new List<LazyLoadReference<UnityEngine.Object>>();
 
             AssetCollection assetCollection = new AssetCollection();
             MinimalGraphData.GatherMinimalDependenciesFromFile(assetPath, assetCollection);
@@ -138,15 +138,17 @@ namespace UnityEditor.ShaderGraph
             {
                 if (asset.Value.HasFlag(AssetCollection.Flags.IncludeInExportPackage))
                 {
-                    // this sucks that we have to fully load these assets just to set the reference,
-                    // which then gets serialized as the GUID that we already have here.  :P
-
                     var dependencyPath = AssetDatabase.GUIDToAssetPath(asset.Key);
-                    if (!string.IsNullOrEmpty(dependencyPath))
+                    if (string.IsNullOrEmpty(dependencyPath))
+                        continue;
+
+                    var entityId = AssetDatabase.GetMainAssetEntityId(dependencyPath);
+                    if (entityId == EntityId.None)
                     {
-                        metadata.assetDependencies.Add(
-                            AssetDatabase.LoadAssetAtPath(dependencyPath, typeof(UnityEngine.Object)));
+                        continue;
                     }
+
+                    metadata.assetDependencies.Add(new LazyLoadReference<UnityEngine.Object> { entityId = entityId });
                 }
             }
             ctx.AddObjectToAsset("Metadata", metadata);

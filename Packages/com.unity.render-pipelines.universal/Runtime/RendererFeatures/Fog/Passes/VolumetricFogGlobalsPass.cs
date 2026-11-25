@@ -125,10 +125,13 @@ namespace UnityEngine.Rendering.Universal
                 if (fogData.volumetricFogEnabled)
                 {
                     var cameraData = frameData.Get<UniversalCameraData>();
-                    fogData.vBufferParams = new VBufferParams(cameraData.camera, cameraData.cameraTargetDescriptor, fogData.screenFraction, fogData.sliceCount, fogData.cutoffDistance, fogData.sliceDistributionUniformity);
+                    fogData.vBufferParams = new VBufferParams(cameraData, fogData.screenFraction, fogData.sliceCount, fogData.cutoffDistance, fogData.sliceDistributionUniformity);
                     fogData.encodingParams = fogData.vBufferParams.encodingParams;
                     fogData.decodingParams = fogData.vBufferParams.decodingParams;
                     fogData.viewportSize = fogData.vBufferParams.viewportSize;
+
+                    var fogVolumeManager = ((UniversalRenderer)cameraData.renderer).fogVolumeManager;
+                    fogVolumeManager.ScheduleCulling(cameraData, fogData.vBufferParams, fogData.cutoffDistance);
                 }
             }
             else

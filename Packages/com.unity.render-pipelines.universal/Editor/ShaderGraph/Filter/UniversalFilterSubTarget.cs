@@ -58,14 +58,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             => FilterFunctionDefinitionGenerator.Generate(graph, material, assetName);
 
         static readonly string kFilterPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/FilterPass.hlsl";
-        static readonly string kFilterUVRect = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/FilterUVRect.hlsl";
+        static readonly string kFilterShim = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/FilterShim.hlsl";
 
         IncludeCollection pregraphIncludes => new IncludeCollection
         {
             { CoreIncludes.CorePregraph },
             { kInstancing, IncludeLocation.Pregraph },
             { CoreIncludes.ShaderGraphPregraph },
-            { kFilterUVRect, IncludeLocation.Pregraph },
+            { kFilterShim, IncludeLocation.Pregraph },
         };
 
         IncludeCollection postgraphIncludes => new IncludeCollection
@@ -98,6 +98,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             base.CollectShaderProperties(collector, generationMode);
 
             CollectRenderStateShaderProperties(collector, generationMode);
+
+            // Previews aren't instanced, and declare every property in UnityPerMaterial
+            if (!generationMode.IsPreview())
+                collector.AddShaderProperty(new FilterInstancedParametersProperty(collector.properties));
         }
 
         public void CollectRenderStateShaderProperties(PropertyCollector collector, GenerationMode generationMode)
@@ -207,18 +211,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         protected virtual DefineCollection GetPassDefines()
             => new DefineCollection();
 
-        // Same gamma-correction multi_compile as the built-in filter shaders.
-        static readonly KeywordDescriptor s_OutputLinear = new KeywordDescriptor()
-        {
-            displayName = "UIE Output Linear",
-            referenceName = "_UIE_OUTPUT_LINEAR",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Local,
-        };
-
+        // No _UIE_OUTPUT_LINEAR keyword: an instanced draw can't switch keywords per element, so FilterPass.hlsl reads
+        // UIEFilterOutputsLinear(), like the built-in filter shaders.
         protected virtual KeywordCollection GetPassKeywords()
-            => new KeywordCollection { s_OutputLinear };
+            => new KeywordCollection();
 
         public virtual PassDescriptor GenerateFilterPassDescriptor(bool isSRP)
         {
@@ -368,8 +364,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             StructFields.Varyings.positionCS,
             StructFields.Varyings.texCoord0,
-            StructFields.Attributes.positionOS,
-            StructFields.Attributes.uv0, // the filter's own MainTex UV
+            FilterStructs.positionOS,
+            FilterStructs.uv0, // the filter's own MainTex UV
             StructFields.Attributes.instanceID,
             StructFields.Attributes.vertexID,
         };
@@ -403,6 +399,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {Pragma.Target(ShaderModel.Target35)},
             {Pragma.Vertex("vert")},
             {Pragma.Fragment("frag")},
+            // UI Toolkit draws the pass of many elements together; the quads carry no object matrix
+            {Pragma.MultiCompileInstancing},
+            {Pragma.InstancingOptions(InstancingOptions.NoMatrices)},
         };
     }
     #endregion

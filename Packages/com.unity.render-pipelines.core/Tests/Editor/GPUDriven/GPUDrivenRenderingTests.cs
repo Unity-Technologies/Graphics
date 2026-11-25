@@ -594,8 +594,10 @@ namespace UnityEngine.Rendering.Tests
 
             var lastLodBias = QualitySettings.lodBias;
             QualitySettings.lodBias = 1.0f;
+#pragma warning disable CS0618 // Type or member is obsolete
             var lastShadowCascades = QualitySettings.shadowCascades;
             QualitySettings.shadowCascades = 4;
+#pragma warning restore CS0618
 
             OnCullingCompleteCallback onCompleteCallback = (JobHandle jobHandle, in BatchCullingContext cc, in BatchCullingOutput cullingOutput) =>
             {
@@ -674,7 +676,9 @@ namespace UnityEngine.Rendering.Tests
             m_MeshRendererProcessor.DestroyInstances(instanceIDs.AsArray());
 
             QualitySettings.lodBias = lastLodBias;
+#pragma warning disable CS0618 // Type or member is obsolete
             QualitySettings.shadowCascades = lastShadowCascades;
+#pragma warning restore CS0618
 
             mainCamera = null;
             GameObject.DestroyImmediate(cameraObject);
@@ -1133,6 +1137,72 @@ namespace UnityEngine.Rendering.Tests
             ShutdownGPUResidentDrawer();
         }
 
+        static LODGroup CreateAnimatedCrossFadeLODGroup(out MeshRenderer renderer)
+        {
+            var lodGroup = new GameObject("LODGroup").AddComponent<LODGroup>();
+            var child = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            child.transform.parent = lodGroup.transform;
+            renderer = child.GetComponent<MeshRenderer>();
+            lodGroup.SetLODs(new[] { new LOD(0.5f, new Renderer[] { renderer }) });
+            lodGroup.fadeMode = LODFadeMode.CrossFade;
+            lodGroup.animateCrossFading = true;
+            return lodGroup;
+        }
+
+        [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
+        public void TestAnimateCrossFadingIsIgnoredWhenFadeModeIsNone()
+        {
+            InitializeGPUResidentDrawer();
+
+            var simpleDotsMat = new Material(Shader.Find("Unlit/SimpleDots"));
+            var lodGroup = CreateAnimatedCrossFadeLODGroup(out var renderer);
+            renderer.sharedMaterial = simpleDotsMat;
+
+            (int validRenderers, int invalidLODGroups) Dispatch()
+            {
+                int validRenderers = -1, invalidLODGroups = -1;
+                var rendererIDs = new NativeArray<EntityId>(1, Allocator.Temp) { [0] = renderer.GetEntityId() };
+                var lodGroupIDs = new NativeArray<EntityId>(1, Allocator.Temp) { [0] = lodGroup.GetEntityId() };
+                m_GPUDrivenProcessor.EnableGPUDrivenRenderingAndDispatchRendererData(rendererIDs, (in GPUDrivenMeshRendererData data) => validRenderers = data.renderer.Length);
+                m_GPUDrivenProcessor.DispatchLODGroupData(lodGroupIDs, false, (in GPUDrivenLODGroupData data) => invalidLODGroups = data.invalidLODGroup.Length);
+                return (validRenderers, invalidLODGroups);
+            }
+
+            Assert.AreEqual((0, 1), Dispatch());
+
+            lodGroup.fadeMode = LODFadeMode.None;
+            Assert.AreEqual((1, 0), Dispatch(), "The animate flag has no effect without a fade mode, so it must not exclude the renderer or the LOD group.");
+
+            Object.DestroyImmediate(simpleDotsMat);
+            Object.DestroyImmediate(lodGroup.gameObject);
+
+            ShutdownGPUResidentDrawer();
+        }
+
+        [Test]
+        public void TestChangingFadeModeOfAnimatedCrossFadeLODGroupReportsRendererChange()
+        {
+            var lodGroup = CreateAnimatedCrossFadeLODGroup(out var renderer);
+
+            using var dispatcher = new ObjectDispatcher();
+            dispatcher.EnableTypeTracking<MeshRenderer>(ObjectDispatcher.TypeTrackingFlags.SceneObjects);
+            dispatcher.ClearTypeChanges<MeshRenderer>();
+
+            bool RendererReported()
+            {
+                using var changes = dispatcher.GetTypeChangesAndClear<MeshRenderer>(Allocator.Temp, noScriptingArray: true);
+                return changes.changedID.Contains(renderer.GetEntityId());
+            }
+
+            lodGroup.fadeMode = LODFadeMode.None;
+            Assert.IsTrue(RendererReported(), "Turning the fade mode off disables animated cross-fade, so GRD must re-evaluate the renderer.");
+
+            lodGroup.fadeMode = LODFadeMode.CrossFade;
+            Assert.IsTrue(RendererReported(), "Turning the fade mode back on re-enables animated cross-fade, so GRD must re-evaluate the renderer.");
+
+            Object.DestroyImmediate(lodGroup.gameObject);
+        }
+
         class OnWillRenderObjectBehaviour : MonoBehaviour { void OnWillRenderObject() { } }
         class OnBecameInvisibleBehaviour : MonoBehaviour { void OnBecameInvisible() { } }
         class OnBecameVisibleBehaviour : MonoBehaviour { void OnBecameVisible() { } }
@@ -1221,6 +1291,56 @@ namespace UnityEngine.Rendering.Tests
             instanceIDs.Dispose();
             ShutdownGPUResidentDrawer();
             dummyWindAsset = null;
+        }
+
+        [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]
+        public void TestRendererReparentedUnderInactiveParentIsRemovedAndRestored()
+        {
+            InitializeGPUResidentDrawer();
+
+            var simpleDotsMat = new Material(Shader.Find("Unlit/SimpleDots"));
+            var activeParent = new GameObject("ActiveParent");
+            var inactiveParent = new GameObject("InactiveParent");
+            inactiveParent.SetActive(false);
+
+            var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var renderer = cube.GetComponent<MeshRenderer>();
+            renderer.material = simpleDotsMat;
+            cube.transform.SetParent(activeParent.transform);
+
+            var instanceIDs = new NativeArray<EntityId>(1, Allocator.TempJob);
+            instanceIDs[0] = renderer.GetEntityId();
+            var instances = new NativeArray<InstanceHandle>(1, Allocator.TempJob);
+            instances[0] = InstanceHandle.Invalid;
+
+            m_GPUResidentDrawer.m_WorldProcessor.Update();
+            m_InstanceDataSystem.QueryRendererInstances(instanceIDs, instances);
+            Assert.IsTrue(instances[0].isValid, "Renderer under an active parent should be registered in GRD.");
+
+            cube.transform.SetParent(inactiveParent.transform);
+            Assert.IsTrue(cube.activeSelf);
+            Assert.IsFalse(cube.activeInHierarchy);
+            instances[0] = InstanceHandle.Invalid;
+
+            m_GPUResidentDrawer.m_WorldProcessor.Update();
+            m_InstanceDataSystem.QueryRendererInstances(instanceIDs, instances);
+            Assert.IsFalse(instances[0].isValid, "Renderer reparented under an inactive parent should be removed from GRD.");
+
+            cube.transform.SetParent(activeParent.transform);
+            instances[0] = InstanceHandle.Invalid;
+
+            m_GPUResidentDrawer.m_WorldProcessor.Update();
+            m_InstanceDataSystem.QueryRendererInstances(instanceIDs, instances);
+
+            Assert.IsTrue(instances[0].isValid, "Renderer reparented back under an active parent should be registered again.");
+
+            instances.Dispose();
+            instanceIDs.Dispose();
+            GameObject.DestroyImmediate(cube);
+            GameObject.DestroyImmediate(activeParent);
+            GameObject.DestroyImmediate(inactiveParent);
+            Object.DestroyImmediate(simpleDotsMat);
+            ShutdownGPUResidentDrawer();
         }
 
         [Test, ConditionalIgnore("IgnoreGfxAPI", "Graphics API Not Supported.")]

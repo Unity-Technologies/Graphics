@@ -14,6 +14,7 @@
 #pragma kernel EstimateCompute Estimate=EstimateCompute UNIFIED_RT_BACKEND_COMPUTE
 #pragma kernel EstimateHardware Estimate=EstimateHardware UNIFIED_RT_BACKEND_HARDWARE
 #pragma require inlineraytracing : UNIFIED_RT_BACKEND_HARDWARE
+#pragma multi_compile_local SURFACE_CACHE_PATH_TRACING_TRANSPARENCY_MODE_OPAQUES_ONLY SURFACE_CACHE_PATH_TRACING_TRANSPARENCY_MODE_CUTOUTS
 
 // Shader variant 'EstimateHardware' fails to compile on Metal with inlineraytracing
 // enabled due to inlineraytracing requiring DXC over FXC compilation path.
@@ -62,27 +63,7 @@ TextureCube<float3> _EnvironmentCubemap;
 SamplerState sampler_EnvironmentCubemap;
 UNIFIED_RT_DECLARE_ACCEL_STRUCT(_RayTracingAccelerationStructure);
 
-uint _PunctualLightCount;
-uint _FrameIdx;
-uint _VolumeSpatialResolution;
-uint _VolumeCascadeCount;
-float _VolumeVoxelMinSize;
-uint _MultiBounce;
-uint _SampleCount;
-uint _WarmUpSampleMultiplier;
-uint _PunctualLightCandidateCount;
-float _ShortHysteresis;
-uint _RingConfigOffset;
-float3 _VolumeTargetPos;
-int _PatchWarping;
-float _MaterialAtlasTexelSize; // The size of 1 texel in the atlases above
-float _AlbedoBoost;
-float _EnvironmentIntensityMultiplier;
-float _EmissiveTriangleIntensityMultiplier;
-uint _PunctualLightSampleCount;
-float3 _DirectionalLightDirection;
-float3 _DirectionalLightIntensity;
-uint _BouncePatchAllocation;
+#include "EstimationConstants.cs.hlsl"
 
 SphericalHarmonics::RGBL1 FilterTemporallyVarianceGuided(
     float shortHysteresis,
@@ -160,14 +141,14 @@ void ProjectAndAccumulate(inout SphericalHarmonics::RGBL1 accumulator, float3 sa
     accumulator.l1s[2] += sampleRadiance * SphericalHarmonics::y1Constant * sampleDirection.x;
 }
 
-float GetAdditionalRayOffset(float volumeVoxelMinSize)
+float GetAdditionalRayOffset(float volumeVoxelMinSize, float rayTracingNormalBias)
 {
     // We currently use the OffsetRayOrigin() heuristic to offset ray origins to avoid self-intersections. While this
     // helps for Surface Cache it is not enough since the ray origins are relatively imprecise because they are derived
     // from output of the rasterizer (as opposed to being reconstructed via barycentrics).
     // We fix this by adding an additional offset. This offset is a percentage of the min voxel size to keep it
     // somewhat proportional to the scene scale.
-    return volumeVoxelMinSize * 0.001;
+    return volumeVoxelMinSize * 0.001 + rayTracingNormalBias;
 }
 
 void SamplePunctualLightBounceRadianceUniform(
@@ -181,12 +162,13 @@ void SamplePunctualLightBounceRadianceUniform(
     StructuredBuffer<PunctualLightSample> lightSamples,
     uint lightSamplesLength,
     float volumeVoxelMinSize,
+    float rayTracingNormalBias,
     PatchUtil::PatchGeometry patchGeo,
     inout SphericalHarmonics::RGBL1 accumulator,
     inout bool gotValidSamples)
 {
     SphericalHarmonics::RGBL1 radianceAccumulator = (SphericalHarmonics::RGBL1)0;
-    const float3 reconnectionRayOrigin = OffsetRayOrigin(patchGeo.position, patchGeo.normal, GetAdditionalRayOffset(volumeVoxelMinSize));
+    const float3 reconnectionRayOrigin = OffsetRayOrigin(patchGeo.position, patchGeo.normal, GetAdditionalRayOffset(volumeVoxelMinSize, rayTracingNormalBias));
 
     uint validSampleCount = 0;
     for(uint sampleIdx = 0; sampleIdx < sampleCount; ++sampleIdx)
@@ -209,7 +191,6 @@ void SamplePunctualLightBounceRadianceUniform(
             lightSample.hitPos,
             lightSample.hitInstanceId,
             lightSample.hitPrimitiveIndex,
-            patchGeo.position,
             reconnectionRayOrigin,
             discardSample))
         {
@@ -223,8 +204,7 @@ void SamplePunctualLightBounceRadianceUniform(
             lights,
             lightSample,
             patchGeo.position,
-            patchGeo.normal,
-            reconnectionRayOrigin);
+            patchGeo.normal);
 
         validSampleCount++;
         ProjectAndAccumulate(radianceAccumulator, radianceSample.radianceOverDensity, radianceSample.direction);
@@ -271,12 +251,13 @@ void SamplePunctualLightBounceRadianceRIS(
     uint lightSamplesLength,
     uint candidateCount,
     float volumeVoxelMinSize,
+    float rayTracingNormalBias,
     PatchUtil::PatchGeometry patchGeo,
     inout SphericalHarmonics::RGBL1 accumulator,
     inout bool gotValidSamples)
 {
     SphericalHarmonics::RGBL1 radianceAccumulator = (SphericalHarmonics::RGBL1)0;
-    const float3 reconnectionRayOrigin = OffsetRayOrigin(patchGeo.position, patchGeo.normal, GetAdditionalRayOffset(volumeVoxelMinSize));
+    const float3 reconnectionRayOrigin = OffsetRayOrigin(patchGeo.position, patchGeo.normal, GetAdditionalRayOffset(volumeVoxelMinSize, rayTracingNormalBias));
 
     uint validSampleCount = 0;
     for(uint sampleIdx = 0; sampleIdx < sampleCount; ++sampleIdx)
@@ -298,8 +279,7 @@ void SamplePunctualLightBounceRadianceRIS(
                     lights,
                     punctualLightSample,
                     patchGeo.position,
-                    patchGeo.normal,
-                    reconnectionRayOrigin);
+                    patchGeo.normal);
 
                 // weight = targetVal / sourceDensity, and targetVal = Luminance(radiance), so
                 // weight = Luminance(radiance / sourceDensity) = Luminance(radiance) / sourceDensity.
@@ -325,7 +305,6 @@ void SamplePunctualLightBounceRadianceRIS(
             reservoir.lightSample.hitPos,
             reservoir.lightSample.hitInstanceId,
             reservoir.lightSample.hitPrimitiveIndex,
-            patchGeo.position,
             reconnectionRayOrigin,
             discardSample))
         {
@@ -366,6 +345,7 @@ void SampleEmissiveTriangleRadiance(
     MaterialPoolParamSet matPoolParams,
     float emissiveTriangleIntensityMultiplier,
     float volumeVoxelMinSize,
+    float rayTracingNormalBias,
     PatchUtil::PatchGeometry patchGeo,
     inout SphericalHarmonics::RGBL1 accumulator,
     inout bool gotValidSamples)
@@ -385,7 +365,7 @@ void SampleEmissiveTriangleRadiance(
             emissiveTriangleIntensityMultiplier,
             patchGeo.position,
             patchGeo.normal,
-            GetAdditionalRayOffset(volumeVoxelMinSize),
+            GetAdditionalRayOffset(volumeVoxelMinSize, rayTracingNormalBias),
             rng.GetSample(0).x,
             rng.GetSample(1));
 
@@ -420,11 +400,12 @@ void SampleEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
     RWStructuredBuffer<PatchUtil::PatchStatisticsSet> patchStatistics,
     CellPatchIndexBufferType cellPatchIndices,
     PatchUtil::VolumeParamSet volumeParams,
+    float rayTracingNormalBias,
     inout SphericalHarmonics::RGBL1 accumulator,
     inout bool gotValidSamples)
 {
     UnifiedRT::Ray ray;
-    ray.origin = OffsetRayOrigin(patchGeo.position, patchGeo.normal, GetAdditionalRayOffset(volumeParams.voxelMinSize));
+    ray.origin = OffsetRayOrigin(patchGeo.position, patchGeo.normal, GetAdditionalRayOffset(volumeParams.voxelMinSize, rayTracingNormalBias));
     ray.tMin = 0;
     ray.tMax = FLT_MAX;
 
@@ -440,8 +421,8 @@ void SampleEnvironmentAndDirectionalBounceAndMultiBounceRadiance(
             accelStruct,
             ray,
             matPoolParams,
-            _DirectionalLightDirection,
-            _DirectionalLightIntensity,
+            _DirectionalLightDirection.xyz,
+            _DirectionalLightIntensity.xyz,
             _MultiBounce,
             _EnvironmentCubemap,
             _EnvironmentIntensityMultiplier,
@@ -502,7 +483,7 @@ void Estimate(uint patchIdx : SV_DispatchThreadID, uint groupThreadIndex : SV_Gr
     PatchUtil::VolumeParamSet volumeParams;
     volumeParams.spatialResolution = _VolumeSpatialResolution;
     volumeParams.voxelMinSize = _VolumeVoxelMinSize;
-    volumeParams.targetPos = _VolumeTargetPos;
+    volumeParams.targetPos = _VolumeTargetPos.xyz;
     volumeParams.cascadeOffsets = _VolumeCascadeOffsets;
     volumeParams.cascadeCount = _VolumeCascadeCount;
     volumeParams.patchWarping = _PatchWarping != 0;
@@ -544,6 +525,7 @@ void Estimate(uint patchIdx : SV_DispatchThreadID, uint groupThreadIndex : SV_Gr
         _PatchStatistics,
         _CellPatchIndices,
         volumeParams,
+        _RayTracingNormalBias,
         radianceEstimate,
         gotValidSamples);
 
@@ -563,6 +545,7 @@ void Estimate(uint patchIdx : SV_DispatchThreadID, uint groupThreadIndex : SV_Gr
             _PunctualLightSampleCount,
             _PunctualLightCandidateCount,
             _VolumeVoxelMinSize,
+            _RayTracingNormalBias,
             patchGeo,
             radianceEstimate,
             gotValidSamples);
@@ -582,6 +565,7 @@ void Estimate(uint patchIdx : SV_DispatchThreadID, uint groupThreadIndex : SV_Gr
             matPoolParams,
             _EmissiveTriangleIntensityMultiplier,
             _VolumeVoxelMinSize,
+            _RayTracingNormalBias,
             patchGeo,
             radianceEstimate,
             gotValidSamples);

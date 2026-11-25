@@ -4,7 +4,7 @@ using System.Linq;
 using System.Collections;
 using System.Text;
 using NUnit.Framework;
-using UnityEngine.Profiling;
+using Unity.Profiling;
 using Unity.Testing.VisualEffectGraph;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
@@ -31,7 +31,6 @@ namespace UnityEngine.VFX.Test
         private static readonly int kForceGarbageID = Shader.PropertyToID("forceGarbage");
         private static readonly WaitForEndOfFrame kWaitForEndOfFrame = new WaitForEndOfFrame();
 
-        Recorder m_gcAllocRecorder;
         AssetBundle m_AssetBundle;
 
         int m_previousCaptureFrameRate;
@@ -45,10 +44,6 @@ namespace UnityEngine.VFX.Test
         [OneTimeSetUp]
         public void SetUp()
         {
-            m_gcAllocRecorder = Recorder.Get("GC.Alloc");
-            m_gcAllocRecorder.FilterToCurrentThread();
-            m_gcAllocRecorder.enabled = false;
-
             m_previousCaptureFrameRate = Time.captureFramerate;
             m_previousFixedTimeStep = UnityEngine.VFX.VFXManager.fixedTimeStep;
             m_previousMaxDeltaTime = UnityEngine.VFX.VFXManager.maxDeltaTime;
@@ -109,16 +104,21 @@ namespace UnityEngine.VFX.Test
             ProfilerDriver.ClearAllFrames();
             ProfilerDriver.enabled = true;
 
-            m_gcAllocRecorder.enabled = true;
             int frameCount = 16;
-            for (int i = 0; i < frameCount; ++i)
+            int allocationCountFromCustomCallback;
+            using (var gcAllocRecorder = new ProfilerRecorder("GC.Alloc", 1,
+                ProfilerRecorderOptions.CollectOnlyOnCurrentThread | ProfilerRecorderOptions.SumAllSamplesInFrame))
+            {
+                gcAllocRecorder.Start();
+                for (int i = 0; i < frameCount; ++i)
+                    yield return kWaitForEndOfFrame;
+                gcAllocRecorder.Stop();
+
+                ProfilerDriver.enabled = false;
                 yield return kWaitForEndOfFrame;
-            m_gcAllocRecorder.enabled = false;
 
-            ProfilerDriver.enabled = false;
-            yield return kWaitForEndOfFrame;
-
-            int allocationCountFromCustomCallback = m_gcAllocRecorder.sampleBlockCount;
+                allocationCountFromCustomCallback = gcAllocRecorder.Count == 1 ? (int)gcAllocRecorder.GetSample(0).Count : 0;
+            }
             Debug.LogFormat("Global GC.Alloc Count: {0}", allocationCountFromCustomCallback);
 
             var currentFrameIndex = ProfilerDriver.GetPreviousFrameIndex(Time.frameCount);

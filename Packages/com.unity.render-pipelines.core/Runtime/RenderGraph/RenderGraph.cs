@@ -945,29 +945,23 @@ namespace UnityEngine.Rendering.RenderGraphModule
             return info;
         }
 
-        // Check if we already know at record time that the source and destination handles will have a different UV origin
-        // If this functions returns false you are guaranteed to always get identical uv origins at *execute* time because:
-        // - Both known and identical -> returns false -> identical at execute
-        // - Both unknown -> return false at record, compile succeeded resolving origins -> execute sees identical
-        // - Both unknown -> return false at record, compile failed resolving origins -> errors before execute returs
-        // Because of all this explanation needed, we keep this function internal it should generally not be relied on except
-        // in niche cases like to improve error messages etc.
-        internal bool UvOriginDifferAtRecordTime(in TextureHandle source, in TextureHandle destination)
+        // Returns true only if both UV origins are already known at record time and differ.
+        // False means no conflict is known at record time. Whether the origins match at *execute* time depends on the case:
+        // - Both known and identical -> identical at execute.
+        // - At least one Unknown (texture created in the graph rather than imported) -> resolved during compilation:
+        //   - PropagateAttachmentOrientation strategy: the Unknown origin inherits the origin of the attachments it is used with.
+        //     If that leads to a conflict, compilation fails before executing (only in builds with validity checks).
+        //   - BottomLeft strategy: the Unknown origin resolves to BottomLeft without any validation,
+        //     so a copy from such a texture to a known TopLeft destination is not rejected here and is not flipped.
+        internal bool UVOriginsKnownToDiffer(in TextureHandle source, in TextureHandle destination)
         {
             CheckNotUsedWhenExecuting();
-            CheckNotUsedWhenIdle();
 
             if (!source.IsValid() || !destination.IsValid())
                 throw new ArgumentException("Attempting to get uv origin of an invalid texture handle.");
 
-            // Reject if both textures have known but incompatible origins.
-            // If either origin is Unknown (i.e. a texture created within the graph rather than imported), the
-            // compiler will resolve and propagate the orientation later, so there is nothing to reject here.
-            // At first it may seem the compiler could decide these two textures get assigned different orientations
-            // and then we have a problem on execute but this will not happen as the compiler will error out and never execute.
-            // So theory we don't need to call this fucntion but it allows us to give slightly nicer errors at record time in some cases instead of at execute
-            // when the pass execute runs and relevant record-time context for debugging is lost.
-            // It also makes sure the blit can use copy in some cases where it is allowed as an optimization.
+            // Checking here gives a clearer error at record time, while the context for debugging is still available,
+            // and lets the blit use a copy as an optimization when the origins are known to match.
             if (SystemInfo.graphicsUVStartsAtTop)
             {
                 var srcOrigin = m_Resources.GetTextureResource(source.handle).textureUVOrigin;
@@ -1235,13 +1229,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
         void CheckNotUsedWhenActive()
         {
             if (enableValidityChecks && (m_RenderGraphState & RenderGraphState.Active) != RenderGraphState.Idle)
-                throw new InvalidOperationException(RenderGraphExceptionMessages.GetExceptionMessage(RenderGraphState.Active));
-        }
-
-        [Conditional("UNITY_ENABLE_CHECKS")]
-        void CheckNotUsedWhenIdle()
-        {
-            if (enableValidityChecks && m_RenderGraphState == RenderGraphState.Idle)
                 throw new InvalidOperationException(RenderGraphExceptionMessages.GetExceptionMessage(RenderGraphState.Active));
         }
 

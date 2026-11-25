@@ -5,7 +5,7 @@ using UnityEditor.Build.Reporting;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
-#if XR_MANAGEMENT_4_0_1_OR_NEWER
+#if XR_MANAGEMENT_4_0_1_OR_NEWER || XR_FOUNDATION_7_0_0_OR_NEWER
 using UnityEditor.XR.Management;
 using UnityEngine.XR.Management;
 #endif
@@ -79,6 +79,8 @@ namespace UnityEditor.Rendering.Universal
         RenderObjectDepthInputAttachment = (1L << 56),
         VolumetricFog = (1L << 57),
         LightFalloffQuadratic = (1L << 58),
+        ShadowsPCSS = (1L << 59),
+        ShadowReceiverNormalBias = (1L << 60),
         All = ~0
     }
 
@@ -199,7 +201,7 @@ namespace UnityEditor.Rendering.Universal
                 isSwitch = buildTargetGroup == BuildTargetGroup.Switch;
                 isSwitch2 = buildTargetGroup == BuildTargetGroup.Switch2;
 
-#if XR_MANAGEMENT_4_0_1_OR_NEWER
+#if XR_MANAGEMENT_4_0_1_OR_NEWER || XR_FOUNDATION_7_0_0_OR_NEWER
                 var buildTargetSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(buildTargetGroup);
                 if (buildTargetSettings != null && buildTargetSettings.Manager != null && buildTargetSettings.Manager.activeLoaders.Count > 0)
                 {
@@ -232,6 +234,7 @@ namespace UnityEditor.Rendering.Universal
             public bool needsAdditionalLightShadows;
             public bool needsSoftShadows;
             public bool needsSoftShadowsQualityLevels;
+            public bool needsShadowsPCSS;
             public bool needsShadowsOff;
             public bool needsAdditionalLightsOff;
             public bool needsGBufferRenderingLayers;
@@ -393,7 +396,7 @@ namespace UnityEditor.Rendering.Universal
                 s_UseSHPerVertexForSHAuto = true;
 
             // XR Stripping
-            #if XR_MANAGEMENT_4_0_1_OR_NEWER
+            #if XR_MANAGEMENT_4_0_1_OR_NEWER || XR_FOUNDATION_7_0_0_OR_NEWER
                 BuildTargetGroup buildTargetGroup = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
                 XRGeneralSettings generalSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(buildTargetGroup);
                 s_StripXRVariants = generalSettings == null || generalSettings.Manager == null || generalSettings.Manager.activeLoaders.Count <= 0;
@@ -451,19 +454,26 @@ namespace UnityEditor.Rendering.Universal
                 if (asset.TryGet<LensDistortion>(out var lensDistortion) && lensDistortion.IsActive())
                     volumeFeatures |= VolumeFeatures.LensDistortion;
 
-                if (asset.TryGet<Bloom>(out var bloom) && bloom.IsActive())
+                bool hasBloom = asset.TryGet<Bloom>(out var bloom);
+
+                // Screen Space Lens Flare runs bloom as a dependency even when bloom is inactive
+                bool lensFlareRequiresBloom = asset.TryGet<ScreenSpaceLensFlare>(out var lensFlare) && lensFlare.IsActive();
+
+                if ((hasBloom && bloom.IsActive()) || lensFlareRequiresBloom)
                 {
+                    bool hasBloomDirt = hasBloom && bloom.dirtIntensity.value > 0f && bloom.dirtTexture.value != null;
+
                     //strip unused bloom variants. #pragma multi_compile_local_fragment _ _BLOOM_LQ _BLOOM_HQ _BLOOM_LQ_DIRT _BLOOM_HQ_DIRT
-                    if (bloom.highQualityFiltering.value)
+                    if (hasBloom && bloom.highQualityFiltering.value)
                     {
-                        if (bloom.dirtIntensity.value > 0f && bloom.dirtTexture.value != null)
+                        if (hasBloomDirt)
                             volumeFeatures |= VolumeFeatures.BloomHQDirt;
                         else
                             volumeFeatures |= VolumeFeatures.BloomHQ;
                     }
                     else
                     {
-                        if (bloom.dirtIntensity.value > 0f && bloom.dirtTexture.value != null)
+                        if (hasBloomDirt)
                             volumeFeatures |= VolumeFeatures.BloomLQDirt;
                         else
                             volumeFeatures |= VolumeFeatures.BloomLQ;
@@ -677,6 +687,9 @@ namespace UnityEditor.Rendering.Universal
             if (UniversalRenderPipeline.IsQuadraticFalloffEnabled())
                 urpAssetShaderFeatures |= ShaderFeatures.LightFalloffQuadratic;
 
+            if (ShadowUtils.IsShadowReceiverNormalBiasEnabled())
+                urpAssetShaderFeatures |= ShaderFeatures.ShadowReceiverNormalBias;
+
             if (urpAsset.supportScreenSpaceLensFlare)
                 urpAssetShaderFeatures |= ShaderFeatures.ScreenSpaceLensFlare;
 
@@ -788,6 +801,8 @@ namespace UnityEditor.Rendering.Universal
             rsd.needsAdditionalLightShadows       = urpAsset.supportsAdditionalLightShadows && (urpAsset.additionalLightsRenderingMode == LightRenderingMode.PerPixel || rsd.renderingMode == RenderingMode.ForwardPlus);
             rsd.needsSoftShadows                  = urpAsset.supportsSoftShadows && (rsd.needsMainLightShadows || rsd.needsAdditionalLightShadows);
             rsd.needsSoftShadowsQualityLevels     = rsd.needsSoftShadows && s_UseSoftShadowQualityLevelKeywords;
+            // PCSS needs the per-light soft shadow quality, which the quality level keywords replace
+            rsd.needsShadowsPCSS                  = rsd.needsSoftShadows && !rsd.needsSoftShadowsQualityLevels && ((urpAsset.mainLightShadowsPCSS && rsd.needsMainLightShadows) || (urpAsset.additionalLightShadowsPCSS && rsd.needsAdditionalLightShadows));
             rsd.needsShadowsOff                   = !rendererData.stripShadowsOffVariants;
             rsd.needsAdditionalLightsOff          = s_KeepOffVariantForAdditionalLights || !rendererData.stripAdditionalLightOffVariants;
             rsd.needsGBufferRenderingLayers       = (rsd.isUniversalRenderer && rsd.needsDeferredLighting && urpAsset.useRenderingLayers);
@@ -868,6 +883,9 @@ namespace UnityEditor.Rendering.Universal
             if (rendererRequirements.needsSoftShadows && !rendererRequirements.needsSoftShadowsQualityLevels)
                 shaderFeatures |= ShaderFeatures.SoftShadows;
 
+            if (rendererRequirements.needsShadowsPCSS)
+                shaderFeatures |= ShaderFeatures.ShadowsPCSS;
+
             if (rendererRequirements.needsSoftShadowsQualityLevels)
             {
                 if (UniversalRenderPipeline.asset?.softShadowQuality == SoftShadowQuality.Low)
@@ -944,7 +962,8 @@ namespace UnityEditor.Rendering.Universal
                 if (sssFeature != null)
                 {
                     // The feature is active (Tested a few lines above)
-                    shaderFeatures |= ShaderFeatures.ScreenSpaceShadows;
+                    if (rendererRequirements.needsMainLightShadows)
+                        shaderFeatures |= ShaderFeatures.ScreenSpaceShadows;
                     continue;
                 }
 
@@ -1129,6 +1148,7 @@ namespace UnityEditor.Rendering.Universal
             spd.stripSoftShadowsQualityLow = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.SoftShadowsLow);
             spd.stripSoftShadowsQualityMedium = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.SoftShadowsMedium);
             spd.stripSoftShadowsQualityHigh = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.SoftShadowsHigh);
+            spd.stripShadowsPCSS = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ShadowsPCSS);
             spd.stripHDRKeywords = stripHDR;
             spd.stripAlphaOutputKeywords = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.AlphaOutput);
             spd.stripDebugDisplay = stripDebug;
@@ -1143,6 +1163,7 @@ namespace UnityEditor.Rendering.Universal
             spd.stripWriteSmoothness = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ScreenSpaceReflection);
             spd.stripVolumetricFog = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.VolumetricFog);
             spd.stripLightFalloffQuadratic = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.LightFalloffQuadratic);
+            spd.stripShadowReceiverNormalBias = !IsFeatureEnabled(shaderFeatures, ShaderFeatures.ShadowReceiverNormalBias);
 
             // Rendering Modes
             // Check if only Deferred is being used

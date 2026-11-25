@@ -14,15 +14,7 @@ RWStructuredBuffer<SphericalHarmonics::RGBL1> _OutputPatchIrradiances;
 StructuredBuffer<uint> _CellPatchIndices;
 StructuredBuffer<int3> _VolumeCascadeOffsets;
 
-uint _FrameIdx;
-float _VolumeVoxelMinSize;
-uint _VolumeCascadeCount;
-uint _VolumeSpatialResolution;
-uint _SampleCount;
-uint _RingConfigOffset;
-float _Radius;
-float3 _VolumeTargetPos;
-int _PatchWarping;
+#include "SpatialFilteringConstants.cs.hlsl"
 
 [numthreads(64, 1, 1)]
 void FilterSpatially(uint patchIdx : SV_DispatchThreadID)
@@ -42,11 +34,11 @@ void FilterSpatially(uint patchIdx : SV_DispatchThreadID)
     float3 right;
     OrthoBasisFromVector(patchGeo.normal, up, right);
 
-    const int cascadeResolution = PatchUtil::ResolveCascadeIndex(_VolumeTargetPos, patchGeo.position, _VolumeSpatialResolution, _VolumeCascadeCount, _VolumeVoxelMinSize);
+    const int cascadeResolution = PatchUtil::ResolveCascadeIndex(_VolumeTargetPos.xyz, patchGeo.position, _VolumeSpatialResolution, _VolumeCascadeCount, _VolumeVoxelMinSize);
     const uint cascadeIdx = cascadeResolution != -1 ? cascadeResolution : _VolumeCascadeCount - 1;
 
     PatchUtil::VolumeParamSet volume;
-    volume.targetPos = _VolumeTargetPos;
+    volume.targetPos = _VolumeTargetPos.xyz;
     volume.spatialResolution = _VolumeSpatialResolution;
     volume.voxelMinSize = _VolumeVoxelMinSize;
     volume.cascadeOffsets = _VolumeCascadeOffsets;

@@ -359,7 +359,8 @@ namespace UnityEngine.Rendering.Universal
                     reasonWarning = "because MSAA is on. Turn MSAA off on the camera or current URP Asset.";
             }
 
-            if(reasonWarning == null && cameraData.camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
+            var additionalCameraData = cameraData.additionalCameraData;
+            if (reasonWarning == null && additionalCameraData != null)
             {
                 if (additionalCameraData.renderType == CameraRenderType.Overlay ||
                     additionalCameraData.cameraStack.Count > 0)

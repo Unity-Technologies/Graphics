@@ -3,10 +3,28 @@
 
 #define MAX_SHADOW_CASCADES 4
 
+// URP fills its constant buffers from C# everywhere but GLES3 outside WebGL, like RenderingUtils.usePersistentConstantBuffer.
+#if !defined(SHADER_API_GLES3) || defined(UNITY_PLATFORM_WEBGL)
+#define URP_PERSISTENT_CONSTANT_BUFFERS_ACTIVE
+#endif
+
+// OpenGL Core alone. Some platforms also define SHADER_API_GLCORE next to their own SHADER_API_* define, so testing
+// SHADER_API_GLCORE alone would catch them.
+#if defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH) && !defined(SHADER_API_SWITCH2)
+#define URP_SHADER_API_GLCORE
+#endif
+
 // This CB layout is directly matching GlobalShaderVariables.cs, make sure to keep the two up to date
-// URP_GLOBAL_CONSTANT_BUFFER is a shader constant define driven by the Project Settings > Graphics > URP > Rendering Capabilities > Use Persistent Constant Buffers
-// Only available in Editor Developer mode for now, still wip
-#if defined(URP_GLOBAL_CONSTANT_BUFFER)
+// Declared on every API but GLES3 outside WebGL, and OpenGL Core, where the constant buffers of DOTS instancing can
+// leave no slot for it; the condition must match UniversalRenderPipeline.IsGlobalConstantBufferSupported().
+// Use Persistent Global Constant Buffer only chooses who fills it.
+#if defined(URP_PERSISTENT_CONSTANT_BUFFERS_ACTIVE) && !defined(URP_SHADER_API_GLCORE)
+#define URP_GLOBAL_CONSTANT_BUFFER_ACTIVE
+#endif
+
+// The members are ordered by access, see guideline 5 in GlobalShaderVariables.cs: the ones lit fragment shaders read
+// sit together, from _GlossyEnvironmentColor to _AdditionalShadowmapSize, followed by the main light shadow matrices.
+#if defined(URP_GLOBAL_CONSTANT_BUFFER_ACTIVE)
 CBUFFER_START(GlobalShaderVariables)
 #endif
     // (t/20, t, t*2, t*3)
@@ -37,73 +55,72 @@ CBUFFER_START(GlobalShaderVariables)
     // z = x/far
     // w = 1/far
     float4 _ZBufferParams;
+    // { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
+    float4 _RTHandleScale;
+    // {w, h, 1/w, 1/h}
+    float4 _ScreenSize;
+    float4 _ScreenSizeOverride;
+    float4 _ScreenCoordScaleBias;
+    // Ambient gradient, filled from RenderSettings, then the environment color.
+#if defined(URP_GLOBAL_CONSTANT_BUFFER_ACTIVE)
+    float4 unity_AmbientSky;
+    float4 unity_AmbientEquator;
+    float4 unity_AmbientGround;
+    float4 _GlossyEnvironmentColor;
+#else
+    half4 unity_AmbientSky;
+    half4 unity_AmbientEquator;
+    half4 unity_AmbientGround;
+    half4 _GlossyEnvironmentColor;
+#endif
     // x = orthographic camera's width
     // y = orthographic camera's height
     // z = unused
     // w = 1.0 if camera is ortho, 0.0 if perspective
     float4 unity_OrthoParams;
-    // { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
-    float4 _RTHandleScale;
     float4 _ScaledScreenParams;
-    // {w, h, 1/w, 1/h}
-    float4 _ScreenSize;
-    float4 _ScreenSizeOverride;
-    float4 _ScreenCoordScaleBias;
-    // Ambient gradient, filled from RenderSettings.
-#if defined(URP_GLOBAL_CONSTANT_BUFFER)
-    float4 unity_AmbientSky;
-    float4 unity_AmbientEquator;
-    float4 unity_AmbientGround;
-#else
-    half4 unity_AmbientSky;
-    half4 unity_AmbientEquator;
-    half4 unity_AmbientGround;
-#endif
     // x = Mip Bias
     // y = 2.0 ^ [Mip Bias]
     float2 _GlobalMipBias;
     float _DitheringTextureInvSize;
     float _URPPadding1;
     // Environment
-#if defined(URP_GLOBAL_CONSTANT_BUFFER)
-    float4 _GlossyEnvironmentColor;
+#if defined(URP_GLOBAL_CONSTANT_BUFFER_ACTIVE)
     float4 _SubtractiveShadowColor;
     float4 _GlossyEnvironmentCubeMap_HDR;
 #else
-    half4 _GlossyEnvironmentColor;
     half4 _SubtractiveShadowColor;
     half4 _GlossyEnvironmentCubeMap_HDR;
 #endif
     // === Variables only present in 3D renderer start here ===
     // Main Light
-    float4x4 _MainLightWorldToLight;
     float4 _MainLightPosition;
     // In Forward+, .a stores whether the main light is using subtractive mixed mode.
-#if defined(URP_GLOBAL_CONSTANT_BUFFER)
+#if defined(URP_GLOBAL_CONSTANT_BUFFER_ACTIVE)
     float4 _MainLightColor;
     float4 _MainLightOcclusionProbes;
 #else
     half4 _MainLightColor;
     half4 _MainLightOcclusionProbes;
 #endif
+    // The scalars lit shaders read. The four of them pack into a single 16 byte row next to the main light, keep them
+    // together.
+    uint _MainLightLayerMask;
+    uint _RenderingLayerMaxInt;
+    uint _EnableProbeVolumes;
+    float _MainLightCookieTextureFormat;
     // Forward+ Parameters. Declared unconditionally, unlike the URP_FP_* accessors in Input.hlsl that stay behind
     // USE_CLUSTER_LIGHT_LOOP: a constant buffer member cannot be conditional or the offsets stop matching C#.
     float4 _FPParams0;
     float4 _FPParams1;
     float4 _FPParams2;
-    // Motion Vectors, non jittered. Declared unconditionally so the offsets stay fixed.
-    float4x4 _NonJitteredViewProjMatrix;
-    float4x4 _PrevViewProjMatrix;
     // Additional Lights. The arrays themselves stay loose uniforms, only the count lives here.
-#if defined(URP_GLOBAL_CONSTANT_BUFFER)
+#if defined(URP_GLOBAL_CONSTANT_BUFFER_ACTIVE)
     float4 _AdditionalLightsCount; // x holds the count
 #else
     half4 _AdditionalLightsCount; // x holds the count
 #endif
-    // Main Light Shadows. Sized MAX_SHADOW_CASCADES + 1, spelled out because that define lives in Shadows.hlsl which is
-    // included later. The last cascade is initialized with a no-op matrix, always transforming the shadow coord to
-    // half3(0, 0, NEAR_PLANE), which avoids branching since ComputeCascadeIndex can return MAX_SHADOW_CASCADES.
-    float4x4 _MainLightWorldToShadow[MAX_SHADOW_CASCADES + 1];
+    // Main Light Shadows
     float4 _CascadeShadowSplitSpheres0;
     float4 _CascadeShadowSplitSpheres1;
     float4 _CascadeShadowSplitSpheres2;
@@ -112,24 +129,34 @@ CBUFFER_START(GlobalShaderVariables)
     float4 _MainLightShadowOffset0; // xy: offset0, zw: offset1
     float4 _MainLightShadowOffset1; // xy: offset2, zw: offset3
     float4 _MainLightShadowmapSize; // xy: 1/width and 1/height, zw: width and height
+    // Main Light Shadows, PCSS. The slots of a cascade that was not rendered are zeroed, which reads as no shadow.
+    float4 _MainLightPCSSParams0[MAX_SHADOW_CASCADES + 1]; // (x: depth2RadialScale, y: radial2DepthScale, z: maxSampleZDistance, w: maxPCSSOffset)
+    float4 _MainLightPCSSParams1[MAX_SHADOW_CASCADES + 1]; // (x: minFilterSizeTexels, y: minFilterRadial2DepthScale, z: blockerRadial2DepthScale, w: blockerClumpSampleExponent)
+    float4 _MainLightPCSSAtlas[MAX_SHADOW_CASCADES + 1];   // (xy: atlas tile offset in UV, zw: atlas tile scale in UV)
+    float4 _MainLightPCSSScalars;                          // (x: tile texel size = 1/tileResolution, y: blockerSampleCount, z: filterSampleCount, w: temporal frame index)
     // Additional Lights Shadows
     float4 _AdditionalShadowOffset0; // xy: offset0, zw: offset1
     float4 _AdditionalShadowOffset1; // xy: offset2, zw: offset3
     float4 _AdditionalShadowmapSize; // xy: 1/width and 1/height, zw: width and height
-    // Misc. The four scalars below pack into a single 16 byte row, keep them together.
-    float _MainLightCookieTextureFormat;
-    float _AdditionalLightsCookieAtlasTextureFormat;
-    uint _RenderingLayerMaxInt;
-    uint _EnableProbeVolumes;
-    // Kept last on purpose: these scalars share a single 16 byte row, so the next 3D fields we add can consume the
+    // Main Light Shadows matrices. Sized MAX_SHADOW_CASCADES + 1, spelled out because that define lives in Shadows.hlsl
+    // which is included later. The last cascade is initialized with a no-op matrix, always transforming the shadow coord
+    // to half3(0, 0, NEAR_PLANE), which avoids branching since ComputeCascadeIndex can return MAX_SHADOW_CASCADES.
+    // The rows above add up to a multiple of 64 bytes, so each cascade matrix fills one cache line.
+    float4x4 _MainLightWorldToShadow[MAX_SHADOW_CASCADES + 1];
+    // Main Light cookie
+    float4x4 _MainLightWorldToLight;
+    // Motion Vectors, non jittered. Declared unconditionally so the offsets stay fixed.
+    float4x4 _NonJitteredViewProjMatrix;
+    float4x4 _PrevViewProjMatrix;
+    // Kept last on purpose: these scalars share a single 16 byte row, so the next 3D scalars we add can consume the
     // remaining padding slots instead of needing padding of their own.
-    uint _MainLightLayerMask;
+    float _AdditionalLightsCookieAtlasTextureFormat;
     uint _URPPadding2;
     uint _URPPadding3;
     uint _URPPadding4;
     // === Variables only present in 2D renderer start here ===
     // float4 _URPDummy2D;
-#if defined(URP_GLOBAL_CONSTANT_BUFFER)
+#if defined(URP_GLOBAL_CONSTANT_BUFFER_ACTIVE)
 CBUFFER_END
 #endif
 

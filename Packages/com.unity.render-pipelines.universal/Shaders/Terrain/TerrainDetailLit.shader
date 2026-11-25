@@ -21,6 +21,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             // -------------------------------------
             // Universal Pipeline keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile _ _SHADOW_RECEIVER_NORMAL_BIAS
             #pragma multi_compile_vertex _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _LIGHT_FALLOFF_QUADRATIC
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
@@ -70,6 +71,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             // -------------------------------------
             // Universal Pipeline keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile _ _SHADOW_RECEIVER_NORMAL_BIAS
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX //_ADDITIONAL_LIGHTS
             //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT _SHADOWS_SOFT_LOW _SHADOWS_SOFT_MEDIUM _SHADOWS_SOFT_HIGH
@@ -84,10 +86,12 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ProbeVolumeVariants.hlsl"
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
             #pragma multi_compile_fragment _ _RENDER_PASS_ENABLED
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RenderingLayers.hlsl"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutput.hlsl"
+            #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GBufferOutputFormat.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/SurfaceType.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/ReceiveShadows.hlsl"
 
@@ -166,14 +170,14 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/Vertexlit"
             #endif
 
                 Light mainLight = GetMainLight();
-                half3 attenuatedLightColor = mainLight.color * mainLight.distanceAttenuation;
+                URP_LIGHT_ACCUM3 attenuatedLightColor = mainLight.color * mainLight.distanceAttenuation;
                 URP_LIGHT_ACCUM3 diffuseColor = LightingLambert(attenuatedLightColor, mainLight.direction, output.NormalWS);
             #ifdef _ADDITIONAL_LIGHTS
                 int pixelLightCount = GetAdditionalLightsCount();
                 for (int i = 0; i < pixelLightCount; ++i)
                 {
                     Light light = GetAdditionalLight(i, vertexInput.positionWS);
-                    half3 attenuatedLightColor = light.color * light.distanceAttenuation;
+                    URP_LIGHT_ACCUM3 attenuatedLightColor = light.color * light.distanceAttenuation;
                     diffuseColor += LightingLambert(attenuatedLightColor, light.direction, output.NormalWS);
                 }
             #endif

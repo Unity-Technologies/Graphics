@@ -2601,7 +2601,7 @@ namespace UnityEditor.VFX.UI
         {
             var categoriesToCopy = elements.OfType<VFXBlackboardCategory>().Where(x => x.item.canRename).Select(x => x.title).ToArray();
             var parameters = new List<VFXParameter>();
-            foreach (var parameter in m_Controller.parameterControllers.Where(x => categoriesToCopy.Contains(x.model.category)))
+            foreach (var parameter in m_Controller.parameterControllers.Where(x => categoriesToCopy.Contains(x.model.category)).OrderBy(x => Array.IndexOf(categoriesToCopy, x.model.category)).ThenBy(x => x.order))
             {
                 parameters.Add(parameter.model);
             }
@@ -3481,15 +3481,6 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void DuplicateBlackboardFieldSelection()
-        {
-            var selectedBlackFields = selection
-                .OfType<VFXBlackboardField>()
-                .ToList();
-            string lastDuplicateParameter = null;
-            selectedBlackFields.ForEach(x => lastDuplicateParameter = blackboard.DuplicateParameter(x));
-        }
-
         public string DuplicateBlackBoardCategory(string category, string newCategoryName = null, string[] parametersToDuplicate = null)
         {
             if (IsLocked())
@@ -3504,20 +3495,16 @@ namespace UnityEditor.VFX.UI
             controller.graph.UIInfos.categories.Add(new VFXUI.CategoryInfo { name = newCategoryName });
 
             var newParametersControllers = parametersToDuplicate == null || parametersToDuplicate.Length == 0
-                ? controller.parameterControllers.Where(x => x.model.category == category).ToArray()
-                : controller.parameterControllers.Where(x => parametersToDuplicate.Contains(x.exposedName)).ToArray();
+                ? controller.parameterControllers.Where(x => x.model.category == category).OrderBy(x => x.order).ToArray()
+                : controller.parameterControllers.Where(x => parametersToDuplicate.Contains(x.exposedName)).OrderBy(x => x.order).ToArray();
 
             for (var i = 0; i < newParametersControllers.Length; i++)
             {
                 var parameterController = newParametersControllers[i];
-                var newParameterName = VFXParameterController.MakeNameUnique(m_Controller, parameterController.exposedName);
+                var newParameterName = VFXParameterController.MakeNameUnique(m_Controller, parameterController.exposedName, VFXParameterController.kMaxExposedNameLength);
                 var newVfxParameter = VFXParameter.Duplicate(newParameterName, parameterController.model);
                 controller.AddVFXModel(Vector2.zero, newVfxParameter);
-
-                bool groupChanged = false;
-                controller.SyncControllerFromModel(ref groupChanged);
-
-                var newParameterController = blackboard.controller.parameterControllers.Single(x => x.model == newVfxParameter);
+                VFXParameterController newParameterController = controller.GetNewParameterController(newVfxParameter);
                 newVfxParameter.category = newCategoryName;
 
                 if (parameterController.spaceableAndMasterOfSpace)
@@ -3532,30 +3519,6 @@ namespace UnityEditor.VFX.UI
             m_Controller.graph.SetExpressionValueDirty();
 
             return newCategoryName;
-        }
-
-        public VFXParameterController DuplicateBlackboardField(VFXBlackboardField blackboardField)
-        {
-            if (IsLocked())
-                return null;
-
-            var copyName = VFXParameterController.MakeNameUnique(m_Controller, blackboardField.controller.exposedName, VFXParameterController.kMaxExposedNameLength);
-            var newVfxParameter = VFXParameter.Duplicate(copyName, blackboardField.controller.model);
-            controller.AddVFXModel(Vector2.zero, newVfxParameter);
-
-            bool groupChanged = false;
-            controller.SyncControllerFromModel(ref groupChanged);
-
-            var newParameterController = blackboard.controller.parameterControllers.Single(x => x.model == newVfxParameter);
-
-            if (blackboardField.controller.spaceableAndMasterOfSpace)
-            {
-                newParameterController.space = blackboardField.controller.space;
-            }
-
-            m_Controller.graph.SetExpressionValueDirty();
-
-            return newParameterController;
         }
 
         public void DuplicateBlackBoardCategorySelection()

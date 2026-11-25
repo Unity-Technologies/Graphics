@@ -10,7 +10,7 @@
 TYPED_TEXTURE2D_X(float, _ScreenDepths);
 RW_TEXTURE2D_X(float3, _ScreenFlatNormals);
 
-float4x4 _ClipToWorldTransforms[2];
+#include "Packages/com.unity.render-pipelines.universal/Runtime/RendererFeatures/SurfaceCacheGIRendererFeature/FlatNormalResolutionConstants.cs.hlsl"
 
 struct PixelInfo
 {

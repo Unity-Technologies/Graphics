@@ -256,32 +256,12 @@ namespace UnityEngine.Rendering.Universal
                 scaledCameraTargetHeight *= ScalableBufferManager.heightScaleFactor;
             }
 
-            float far = camera.farClipPlane;
-            float invNear = Mathf.Approximately(camera.nearClipPlane, 0.0f) ? 0.0f : 1.0f / camera.nearClipPlane;
-            float invFar = Mathf.Approximately(far, 0.0f) ? 0.0f : 1.0f / far;
             float isOrthographic = camera.orthographic ? 1.0f : 0.0f;
-
-            // From http://www.humus.name/temp/Linearize%20depth.txt
-            // But as depth component textures on OpenGL always return in 0..1 range (as in D3D), we have to use
-            // the same constants for both D3D and OpenGL here.
-            // D3D is this:
-            float zc0 = 1.0f - far * invNear;
-            float zc1 = far * invNear;
-
-            Vector4 zBufferParams = new Vector4(zc0, zc1, zc0 * invFar, zc1 * invFar);
-
-            if (SystemInfo.usesReversedZBuffer)
-            {
-                zBufferParams.y += zBufferParams.x;
-                zBufferParams.x = -zBufferParams.x;
-                zBufferParams.w += zBufferParams.z;
-                zBufferParams.z = -zBufferParams.z;
-            }
 
             // Camera and Screen variables as described in https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
             vars._ScreenParams = new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight);
             vars._ScaledScreenParams = new Vector4(scaledCameraTargetWidth, scaledCameraTargetHeight, 1.0f + 1.0f / scaledCameraTargetWidth, 1.0f + 1.0f / scaledCameraTargetHeight);
-            vars._ZBufferParams = zBufferParams;
+            vars._ZBufferParams = RenderingUtils.ComputeZBufferParams(camera);
             vars.unity_OrthoParams = new Vector4(camera.orthographicSize * cameraData.aspectRatio, camera.orthographicSize, 0.0f, isOrthographic);
             vars._ScreenSize = new Vector4(scaledCameraTargetWidth, scaledCameraTargetHeight, 1.0f / scaledCameraTargetWidth, 1.0f / scaledCameraTargetHeight);
             vars._ScreenSizeOverride = cameraData.screenSizeOverride;
@@ -639,7 +619,7 @@ namespace UnityEngine.Rendering.Universal
 
                     InitDefaultGlobalKeywords(cmd, data.cameraData);
 
-                    data.shaderData.Get().PushDefaultToGlobal(cmd);
+                    data.shaderData.GetGlobal().PushDefault(cmd);
                 });
             }
         }
@@ -662,6 +642,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsLow, false);
             cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsMedium, false);
             cmd.SetKeyword(ShaderGlobalKeywords.SoftShadowsHigh, false);
+            cmd.SetKeyword(ShaderGlobalKeywords.ShadowsPCSS, false);
             cmd.SetKeyword(ShaderGlobalKeywords.LinearToSRGBConversion, false);
             cmd.SetKeyword(ShaderGlobalKeywords.LightLayers, false);
 
@@ -679,6 +660,7 @@ namespace UnityEngine.Rendering.Universal
 
             // A custom renderer only gets the base vars, the URP 3D and 2D renderers add their own group.
             m_GlobalShaderVariablesUploader ??= new GlobalShaderVariablesUploader(GlobalShaderVariablesGroup.Base);
+            m_GlobalShaderVariablesUploader.useConstantBuffer = UniversalRenderPipeline.useGlobalConstantBuffer;
             m_GlobalShaderVariablesUploader.BeginFill();
             BuildGlobalShaderVariablesBase(cameraData, m_GlobalShaderVariablesUploader);
 
@@ -707,8 +689,7 @@ namespace UnityEngine.Rendering.Universal
 
                     SetupCameraProperties(context, data.cameraData, isTargetFlipped);
 
-                    // Push the vars again, some were re-written by cmd.SetupCameraProperties() call above.
-                    data.shaderData.Get().PushDefaultToGlobal(context.cmd);
+                    data.shaderData.GetGlobal().PushAfterCameraSetup(context.cmd);
                 });
             }
         }
@@ -1047,6 +1028,7 @@ namespace UnityEngine.Rendering.Universal
         {
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             OnFinishRenderGraphRendering(cmd);
+            m_GlobalShaderVariablesUploader?.EndRenderGraph(cmd);
             InternalFinishRenderingCommon(cmd, cameraData.resolveFinalTarget);
         }
 
@@ -1249,36 +1231,42 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        // Tells the pipeline this camera needs the real back buffer (the OS surface, not
-        // resourceData.backBuffer) multisampled. The pipeline keeps it single-sampled on frames where no
-        // camera needs MSAA, to save bandwidth.
+        // Tells the pipeline this camera needs its display target multisampled: the real back buffer (the OS
+        // surface, not resourceData.backBuffer), or the XR eye textures for XR cameras. The pipeline keeps it
+        // single-sampled on frames where no camera needs MSAA, to save bandwidth.
         //
-        // Contract: any renderer that renders multisampled content directly into the real back buffer must
+        // Contract: any renderer that renders multisampled content directly into the display target must
         // call this while rendering, or the pipeline may request a single-sampled surface and that content
         // is silently rendered without MSAA.
-        private protected void ReportRealBackbufferMSAA(UniversalCameraData cameraData, bool requiresIntermediateAttachments)
+        private protected void ReportDisplayTargetMSAA(UniversalCameraData cameraData, bool requiresIntermediateAttachments)
         {
-            if (NeedsRealBackbufferMSAA(cameraData, this, requiresIntermediateAttachments))
-                (RenderPipelineManager.currentPipeline as UniversalRenderPipeline)?.RequireRealBackbufferMSAA();
+            if (NeedsDisplayTargetMSAA(cameraData, this, requiresIntermediateAttachments))
+            {
+                var pipeline = RenderPipelineManager.currentPipeline as UniversalRenderPipeline;
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (cameraData.xr.enabled)
+                {
+                    pipeline?.RequireXRDisplayMSAA();
+                    return;
+                }
+#endif
+                pipeline?.RequireRealBackbufferMSAA();
+            }
         }
 
-        // True when this camera renders multisampled content into the real back buffer, so the surface must
-        // be multisampled. The tile-only case is the subtle one: there the back buffer shares a native render
-        // pass with the MSAA intermediate attachments, so it must match their sample count even though it
-        // isn't rendered to directly.
-        static bool NeedsRealBackbufferMSAA(UniversalCameraData cameraData, ScriptableRenderer renderer, bool requiresIntermediateAttachments)
+        // True when this camera renders multisampled content into its display target, so the surface must
+        // be multisampled. The tile-only case is subtle: there the back buffer shares a native render pass with the
+        // MSAA intermediate attachments, so it must match their sample count even though it isn't rendered to directly.
+        // Tile-only can still request MSAA when Deferred doesn't support it so that the fallback to Forward triggers correctly.
+        static bool NeedsDisplayTargetMSAA(UniversalCameraData cameraData, ScriptableRenderer renderer, bool requiresIntermediateAttachments)
         {
-#if ENABLE_VR && ENABLE_XR_MODULE
-            if (cameraData.xr.enabled)
-                return false;
-#endif
-            if (cameraData.targetTexture != null)
-                return false;
-            if (!(renderer.supportedRenderingFeatures.msaa && cameraData.camera.allowMSAA))
+            if (cameraData.targetTexture != null || !cameraData.camera.allowMSAA)
                 return false;
 
-            bool tileOnlyMode = renderer is UniversalRenderer { useTileOnlyMode: true };
-            return tileOnlyMode || !requiresIntermediateAttachments;
+            if (renderer is UniversalRenderer { useTileOnlyMode: true })
+                return true;
+
+            return renderer.supportedRenderingFeatures.msaa && !requiresIntermediateAttachments;
         }
 
         internal static void SortStable(List<ScriptableRenderPass> list)

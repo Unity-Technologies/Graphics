@@ -15,6 +15,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareExposureTexture.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Runtime/Debug/ShadowCachingDebugState.cs.hlsl"
 
 #define TERRAIN_STREAM_INFO float4(0.0f, 0.0f, float(6 | (4 << 4)), 0.0f) // 0-15 are reserved for per-texture codes (use "6" to indicate terrain); per-material code "4" signifies "warnings/issues"
 #define SETUP_DEBUG_TEXTURE_DATA(inputData, uv)                   SetupDebugDataTexture(inputData, TRANSFORM_TEX(uv.xy, unity_MipmapStreaming_DebugTex), unity_MipmapStreaming_DebugTex_TexelSize, unity_MipmapStreaming_DebugTex_MipInfo, unity_MipmapStreaming_DebugTex_StreamInfo, unity_MipmapStreaming_DebugTex)
@@ -251,6 +252,32 @@ half3 CalculateDebugShadowCascadeColor(in InputData inputData)
     }
 }
 
+static const half3 kDebugColorOkabeItoOrange     = half3(0.791, 0.347, 0.000);
+static const half3 kDebugColorOkabeItoSkyBlue    = half3(0.093, 0.456, 0.815);
+static const half3 kDebugColorOkabeItoBlue       = half3(0.000, 0.168, 0.445);
+static const half3 kDebugColorOkabeItoVermillion = half3(0.665, 0.112, 0.000);
+
+half3 GetDebugShadowCachingStateColor(int state)
+{
+    switch (state)
+    {
+        case SHADOWCACHINGDEBUGSTATE_CACHED: return kDebugColorOkabeItoOrange;
+        case SHADOWCACHINGDEBUGSTATE_RECENTLY_REFRESHED: return kDebugColorOkabeItoSkyBlue;
+        case SHADOWCACHINGDEBUGSTATE_LIVE: return kDebugColorOkabeItoBlue;
+        case SHADOWCACHINGDEBUGSTATE_STALE: return kDebugColorOkabeItoVermillion;
+        default: return kDebugColorBlack.rgb;
+    }
+}
+
+void ApplyDebugShadowCachingForceState(int forceState, in InputData inputData, inout SurfaceData surfaceData)
+{
+    if (forceState == SHADOWCACHINGDEBUGSTATE_NONE || !MainLightShadowsAvailable())
+        return;
+
+    if (GetMainLightShadowFade(inputData.positionWS) < 1.0)
+        surfaceData.albedo = GetDebugShadowCachingStateColor(forceState);
+}
+
 half4 CalculateDebugLightingComplexityColor(in InputData inputData, in SurfaceData surfaceData)
 {
 #if USE_CLUSTER_LIGHT_LOOP
@@ -337,6 +364,8 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
             }
         }
 
+        ApplyDebugShadowCachingForceState(_DebugShadowCachingForceState, inputData, surfaceData);
+
         // Update the BRDF data following any changes to the input/surface above...
         InitializeBRDFData(surfaceData, brdfData);
 
@@ -387,6 +416,8 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
                 #endif
             }
         }
+
+        ApplyDebugShadowCachingForceState(_DebugShadowCachingForceState, inputData, surfaceData);
 
         half4 overrideColor = half4(0, 0, 0, 1);
         bool overridden = CalculateColorForDebug(inputData, surfaceData, overrideColor);

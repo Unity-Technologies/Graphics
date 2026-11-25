@@ -197,6 +197,9 @@ namespace UnityEngine.Rendering.Universal
         bool m_ShadowmapStencil;
         StencilState m_DefaultStencilState;
         LightCookieManager m_LightCookieManager;
+#if VOLUMETRIC_FOG
+        FogVolumeManager m_FogVolumeManager;
+#endif
         IntermediateTextureMode m_IntermediateTextureMode;
 
         // Materials used in URP Scriptable Render Passes
@@ -219,8 +222,9 @@ namespace UnityEngine.Rendering.Universal
         internal bool postProcessEnabled { get; set; }
 
         internal DeferredLights deferredLights { get => m_DeferredLights; }
-#if VOLUMETRIC_FOG
         internal ForwardLights forwardLights { get => m_ForwardLights; }
+#if VOLUMETRIC_FOG
+        internal FogVolumeManager fogVolumeManager { get => m_FogVolumeManager; }
 #endif
         internal LayerMask prepassLayerMask { get; set; }
         internal LayerMask opaqueLayerMask { get; set; }
@@ -326,6 +330,10 @@ namespace UnityEngine.Rendering.Universal
                 m_LightCookieManager = new LightCookieManager(ref settings);
             }
 
+#if VOLUMETRIC_FOG
+            m_FogVolumeManager = new FogVolumeManager();
+#endif
+
             this.stripShadowsOffVariants = data.stripShadowsOffVariants;
             this.stripAdditionalLightOffVariants = data.stripAdditionalLightOffVariants;
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -337,7 +345,7 @@ namespace UnityEngine.Rendering.Universal
 
             ForwardLights.InitParams forwardInitParams;
             forwardInitParams.lightCookieManager = m_LightCookieManager;
-            forwardInitParams.forwardPlus = data.renderingMode == RenderingMode.DeferredPlus || data.renderingMode == RenderingMode.ForwardPlus;
+            forwardInitParams.clustering = data.renderingMode == RenderingMode.DeferredPlus || data.renderingMode == RenderingMode.ForwardPlus;
             m_ForwardLights = new ForwardLights(forwardInitParams);
             //m_DeferredLights.LightCulling = data.lightCulling;
             this.m_RenderingMode = data.renderingMode;
@@ -511,6 +519,9 @@ namespace UnityEngine.Rendering.Universal
         protected override void Dispose(bool disposing)
         {
             m_ForwardLights.Cleanup();
+#if VOLUMETRIC_FOG
+            m_FogVolumeManager.Dispose();
+#endif
             m_GlobalShaderVariablesUploader?.Release();
 
             m_FinalBlitPass?.Dispose();
@@ -727,7 +738,7 @@ namespace UnityEngine.Rendering.Universal
         // Over time, more settings should be folded into these structs so that the recording methods are fully
         // decoupled from scattered state.
 
-        // Aggregates decisions regarding which rendering stages will actually execute this frame. Derived from
+        // Aggregates decisions regarding which rendering stages will actually execute this frame, and their targets. Derived from
         // camera settings, culling masks, shadow distance, and technique requirements (e.g. depth priming).
         struct RenderStages
         {
@@ -736,6 +747,8 @@ namespace UnityEngine.Rendering.Universal
             internal bool drawOpaquePass;
             internal bool drawTransparentPass;
             internal bool drawDeferredLightingPass;
+
+            internal bool depthTextureProducedByPrepass;
         }
 
         // Aggregates texture and resource requirements declared by ScriptableRenderPasses and internal features.
@@ -918,7 +931,7 @@ namespace UnityEngine.Rendering.Universal
             bool requiresBlitForOffscreenCamera = applyPostProcessing || renderPassInputs.requiresColorTexture || requiresExplicitMsaaResolve || !cameraData.isDefaultViewport || requestedColorHistory;
 
             if (isOffscreenRender)
-                return requiresBlitForOffscreenCamera;
+                return requiresBlitForOffscreenCamera || isScaledRender;
 
             return requiresBlitForOffscreenCamera || isScaledRender || isScalableBufferManagerUsed || cameraData.isHdrEnabled ||
                 !isCompatibleBackbufferTextureDimension || isCapturing || cameraData.requireSrgbConversion;

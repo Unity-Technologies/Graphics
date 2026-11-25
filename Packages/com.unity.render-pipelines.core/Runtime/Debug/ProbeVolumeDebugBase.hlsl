@@ -14,7 +14,7 @@ float4x4 unity_MatrixVP;        // Sent by builtin
 float4x4 unity_MatrixInvV;      // Sent by builtin
 float4x4 unity_ObjectToWorld;   // Sent by builtin
 float4x4 unity_MatrixV;         // Sent by builtin
-float4 _ScreenSize;
+float4 _ProbeVolumeDebugScreenSize;
 float3 _WorldSpaceCameraPos;    // Sent by builtin
 CBUFFER_END
 
@@ -112,7 +112,7 @@ void FindSamplingData(float3 posWS, float3 normalWS, uint renderingLayer, out fl
     if (_DebugSamplingNoise)
     {
         float2 posNDC = ComputeNormalizedDeviceCoordinates(posWS, UNITY_MATRIX_VP);
-        float2 posSS = floor(posNDC.xy * _ScreenSize.xy);
+        float2 posSS = floor(posNDC.xy * _ProbeVolumeDebugScreenSize.xy);
         posWS = AddNoiseToSamplingPosition(posWS, posSS, viewDir_WS);
     }
 

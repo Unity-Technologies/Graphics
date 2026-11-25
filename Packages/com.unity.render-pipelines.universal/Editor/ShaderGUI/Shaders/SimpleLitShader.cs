@@ -19,6 +19,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         public override void ValidateMaterial(Material material)
         {
             SetMaterialKeywords(material, SimpleLitGUI.SetMaterialKeywords);
+            UpdateEmissionColor(material);
         }
 
         // material main surface options

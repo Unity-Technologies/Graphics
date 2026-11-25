@@ -192,7 +192,11 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
 
     // Compute the pixel coordinate for the history tapping
     float2 historyUVUnscaled = ((currentCoord + 0.5)/(_ScreenSize.xy * _DenoiserResolutionMultiplierVals.xx)) - velocity;
-    float2 historyUV = historyUVUnscaled * _DenoiserResolutionMultiplierVals.zz *_HistorySizeAndScale.zw;
+    // Under dynamic resolution only the previous viewport is valid; clamp half a texel inside it so bilinear taps
+    // never read stale texels
+    float2 historyScale = _DenoiserResolutionMultiplierVals.zz * _HistorySizeAndScale.zw;
+    float2 historyTexelSize = rcp(max(_HistorySizeAndScale.xy * _DenoiserResolutionMultiplierVals.zz, 1.0));
+    float2 historyUV = ClampAndScaleUV(historyUVUnscaled, historyTexelSize, 0.5f, historyScale);
 
     // Fetch the current value, history value and current sample count
 #if HISTORY_IS_ARRAY

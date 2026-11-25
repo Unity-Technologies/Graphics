@@ -251,5 +251,12 @@ FragmentOutput frag(PackedVaryings packedInput)
         lightColor *= _L2D_VOLUME_OPACITY;
 #endif
 
-    return ToFragmentOutput(lightColor * _InverseHDREmulationScale);
+    // Mirror Hidden/Light2D: shape and provider lights scale RGB only
+    // (vert_shape_shared), while Point lights scale RGBA (frag_point).
+    // Scaling alpha for shape lights darkens them under Alpha Blend overlap.
+    if (_L2D_LIGHT_TYPE == 3)
+        lightColor *= _InverseHDREmulationScale;
+    else
+        lightColor.rgb *= _InverseHDREmulationScale;
+    return ToFragmentOutput(lightColor);
 }

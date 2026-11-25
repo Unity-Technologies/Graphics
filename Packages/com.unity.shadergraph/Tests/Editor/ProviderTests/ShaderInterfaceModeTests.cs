@@ -13,7 +13,33 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
     [TestFixture]
     class ShaderInterfaceModeTests
     {
-        static readonly GUID k_InterfaceAsset = new("0123456789abcdef0123456789abcdef");
+        const string kInterfacePath = "Assets/ShaderInterfaceModeTests.shader";
+        const string kInterfaceName = "Hidden/Tests/ShaderInterfaceModeTests";
+
+        const string kInterfaceSource = @"
+ShaderInterface ""Hidden/Tests/ShaderInterfaceModeTests""
+{
+    SubShader
+    {
+        Pass
+        {
+            Name ""Forward""
+            Public
+            {
+                UNITY_VIRTUAL half3 GetColor() { return 1; }
+            }
+            Private
+            {
+                #pragma vertex Vert
+                #pragma fragment Frag
+                float4 Vert(float4 positionOS : POSITION0) : SV_POSITION0 { return positionOS; }
+                float4 Frag() : SV_TARGET0 { return float4(GetColor(), 1); }
+            }
+        }
+    }
+}";
+
+        static GUID InterfaceAsset => AssetDatabase.GUIDFromAssetPath(kInterfacePath);
 
         System.Func<bool> m_PreviousInternalMode;
 
@@ -28,13 +54,17 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
         public void RestoreInternalMode()
         {
             GraphData.isInternalMode = m_PreviousInternalMode;
+            AssetDatabase.DeleteAsset(kInterfacePath);
         }
 
         static GraphData InterfaceGraph()
         {
             var graph = new GraphData { isShaderInterfaceMode = true };
-            var definition = new ShaderInterface("Lit", default, null, null, null, null);
-            graph.SetShaderInterface(new ShaderInterfaceProvider(k_InterfaceAsset, definition));
+            File.WriteAllText(kInterfacePath, kInterfaceSource);
+            AssetDatabase.ImportAsset(kInterfacePath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+            IProvider<IShaderInterface> provider = new ShaderInterfaceProvider(InterfaceAsset, kInterfaceName);
+            Assume.That(provider.IsValid);
+            graph.SetShaderInterface(provider);
             return graph;
         }
 
@@ -56,8 +86,23 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
             MultiJson.Deserialize(loaded, json);
 
             Assert.IsTrue(loaded.isShaderInterfaceMode);
-            Assert.AreEqual("Lit", loaded.shaderInterface.ProviderKey);
-            Assert.AreEqual(k_InterfaceAsset, loaded.shaderInterface.AssetID);
+            Assert.AreEqual(kInterfaceName, loaded.shaderInterface.Info.ProviderKey);
+            Assert.AreEqual(InterfaceAsset, loaded.shaderInterface.AssetID);
+        }
+
+        [Test]
+        public void LocalProviderState_SurvivesSerialization()
+        {
+            var graph = InterfaceGraph();
+            var function = (VirtualFunctionProvider)((ShaderInterfaceProvider)graph.shaderInterface).VirtualFunctionProviders.Single(p => p.Definition.Name == "GetColor");
+            function.EnsureBaseCall = false;
+
+            var loaded = new GraphData();
+            MultiJson.Deserialize(loaded, MultiJson.Serialize(graph));
+
+            var restored = ((ShaderInterfaceProvider)loaded.shaderInterface).VirtualFunctionProviders.Single(p => p.Definition.Name == "GetColor");
+            Assert.AreNotSame(function, restored);
+            Assert.IsFalse(restored.Definition.EnsureBaseCall);
         }
 
         [Test]
@@ -70,7 +115,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
                 var dependencies = new AssetCollection();
                 Assert.IsTrue(MinimalGraphData.GatherMinimalDependenciesFromFile(path, dependencies));
 
-                Assert.IsTrue(dependencies.assets.TryGetValue(k_InterfaceAsset, out var flags));
+                Assert.IsTrue(dependencies.assets.TryGetValue(InterfaceAsset, out var flags));
                 Assert.IsTrue(flags.HasFlag(AssetCollection.Flags.SourceDependency));
             }
             finally
@@ -134,7 +179,7 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
             live.ReplaceWith(source);
 
             Assert.IsTrue(live.isShaderInterfaceMode);
-            Assert.AreEqual(k_InterfaceAsset, live.shaderInterface.AssetID);
+            Assert.AreEqual(InterfaceAsset, live.shaderInterface.AssetID);
         }
 
         [Test]
@@ -166,10 +211,12 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
         {
             // Loaded from disk, the interface has to be found again; this one's source doesn't exist.
             var loaded = new GraphData();
-            MultiJson.Deserialize(loaded, MultiJson.Serialize(InterfaceGraph()));
+            var json = MultiJson.Serialize(InterfaceGraph());
+            AssetDatabase.DeleteAsset(kInterfacePath);
+            MultiJson.Deserialize(loaded, json);
             var settings = new ShaderInterfaceSettings(loaded);
 
-            Assert.AreEqual("Lit", PickerText(settings));
+            Assert.AreEqual(kInterfaceName, PickerText(settings), "Without its source, the interface is shown by its saved name.");
             Assert.IsNotNull(settings.Q<HelpBoxRow>());
             Assert.AreEqual(1, settings.Query<Button>().ToList().Count);
         }
@@ -209,8 +256,10 @@ namespace UnityEditor.ShaderGraph.ProviderSystem.Tests
             Assert.IsFalse(graph.ReloadDataExtensions(new System.Collections.Generic.HashSet<string> { "ffffffffffffffffffffffffffffffff" }));
             Assert.IsTrue(graph.shaderInterface.IsValid);
 
-            Assert.IsTrue(graph.ReloadDataExtensions(new System.Collections.Generic.HashSet<string> { k_InterfaceAsset.ToString() }));
-            Assert.IsFalse(graph.shaderInterface.IsValid, "The test interface has no source asset, so reloading it finds nothing.");
+            var assetId = graph.shaderInterface.AssetID;
+            AssetDatabase.DeleteAsset(kInterfacePath);
+            Assert.IsTrue(graph.ReloadDataExtensions(new System.Collections.Generic.HashSet<string> { assetId.ToString() }));
+            Assert.IsFalse(graph.shaderInterface.IsValid, "The interface was removed, so reloading it finds nothing.");
         }
     }
 }

@@ -97,14 +97,21 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Persistent CBUFFERs exist on C# side as Graphics/ComputeBuffer and are filled with SetData(), unlike transient CBUFFERs that have no real existence on C# side
+        // Must be kept in sync with URP_PERSISTENT_CONSTANT_BUFFERS_ACTIVE in GlobalShaderVariables.hlsl
         internal static bool usePersistentConstantBuffer
         {
             get
             {
-                // - On GLES3 non-WebGL, CBs are disabled (not even transient, see LIGHT_SHADOWS_NO_CBUFFER) due to Adreno perf issues with large CBs
-                // - On WebGL, CBs remains temporarily transient due to a graphics buffer bug
+                // - On GLES3 non-WebGL, CBs are disabled (not even transient, see URP_PERSISTENT_CONSTANT_BUFFERS_ACTIVE) due to Adreno perf issues with large CBs
+                // - WebGL reports as GLES3 but keeps its light data in CBs, so it uses the persistent CB path too
                 // - Everywhere else we use the persistent CB path for optimal performance at shader setup on native engine side.
-                return SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3;
+                // The shaders get UNITY_PLATFORM_WEBGL from the build target, so in the Editor this follows the active build target.
+#if UNITY_EDITOR
+                bool isWebGL = UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.WebGL;
+#else
+                bool isWebGL = Application.platform == RuntimePlatform.WebGLPlayer;
+#endif
+                return SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES3 || isWebGL;
             }
         }
 
@@ -243,6 +250,33 @@ namespace UnityEngine.Rendering.Universal
             return new Vector2Int(Screen.width, Screen.height);
         }
 
+        // The camera's _ZBufferParams, with the reversed-Z flip.
+        internal static Vector4 ComputeZBufferParams(Camera camera)
+        {
+            float far = camera.farClipPlane;
+            float invNear = Mathf.Approximately(camera.nearClipPlane, 0.0f) ? 0.0f : 1.0f / camera.nearClipPlane;
+            float invFar = Mathf.Approximately(far, 0.0f) ? 0.0f : 1.0f / far;
+
+            // From http://www.humus.name/temp/Linearize%20depth.txt
+            // But as depth component textures on OpenGL always return in 0..1 range (as in D3D), we have to use
+            // the same constants for both D3D and OpenGL here.
+            // D3D is this:
+            float zc0 = 1.0f - far * invNear;
+            float zc1 = far * invNear;
+
+            Vector4 zBufferParams = new Vector4(zc0, zc1, zc0 * invFar, zc1 * invFar);
+
+            if (SystemInfo.usesReversedZBuffer)
+            {
+                zBufferParams.y += zBufferParams.x;
+                zBufferParams.x = -zBufferParams.x;
+                zBufferParams.w += zBufferParams.z;
+                zBufferParams.z = -zBufferParams.z;
+            }
+
+            return zBufferParams;
+        }
+
         internal static void SetupOffscreenUIViewportParams(UniversalCameraData cameraData, Material material, ref Rect pixelRect, bool isRenderToBackBufferTarget)
         {
             Vector4 offscreenUIViewportParams = new Vector4(0f, 0f, 1f, 1f);
@@ -297,6 +331,12 @@ namespace UnityEngine.Rendering.Universal
             cmd.DrawRendererList(rl);
         }
 
+        // Material alpha clipping relies on _AlphaToMaskAvailable to know whether AlphaToMask may be active.
+        internal static void SetAlphaToMaskAvailable(RasterCommandBuffer cmd, bool enabled)
+        {
+            cmd.SetGlobalFloat(ShaderPropertyId.alphaToMaskAvailable, enabled ? 1.0f : 0.0f);
+        }
+
         static readonly ShaderTagId[] s_ShaderTagValues = new ShaderTagId[1];
         static readonly RenderStateBlock[] s_RenderStateBlocks = new RenderStateBlock[1];
         // Create a RendererList using a RenderStateBlock override is quite common so we have this optimized utility function for it
@@ -313,6 +353,27 @@ namespace UnityEngine.Rendering.Universal
                 isPassTagName = false
             };
             rl = renderGraph.CreateRendererList(param);
+        }
+
+        internal static ulong GetSceneCullingMaskFromCamera(Camera camera)
+        {
+#if UNITY_EDITOR
+            if (camera.overrideSceneCullingMask != 0)
+                return camera.overrideSceneCullingMask;
+
+            if (camera.scene.IsValid())
+                return UnityEditor.SceneManagement.EditorSceneManager.GetSceneCullingMask(camera.scene);
+
+            switch (camera.cameraType)
+            {
+                case CameraType.SceneView:
+                    return UnityEditor.SceneManagement.SceneCullingMasks.MainStageSceneViewObjects;
+                default:
+                    return UnityEditor.SceneManagement.SceneCullingMasks.GameViewObjects;
+            }
+#else
+            return 0;
+#endif
         }
 
         // Caches render texture format support. SystemInfo.SupportsRenderTextureFormat allocates memory due to boxing.
@@ -757,7 +818,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         internal static void AddStaleResourceToPoolOrRelease(TextureDesc desc, RTHandle handle)
         {
-            if (!UniversalRenderPipeline.s_RTHandlePool.AddResourceToPool(desc, handle, Time.frameCount))
+            if (!UniversalRenderPipeline.s_RTHandlePool.AddResourceToPool(desc, handle, UniversalRenderPipeline.resourcePoolFrameIndex))
                 RTHandles.Release(handle);
         }
 

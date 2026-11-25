@@ -87,10 +87,11 @@ namespace UnityEditor.Rendering.Universal.Tests
         static readonly Regex k_Include = new Regex(
             @"^\s*#\s*include(?:_with_pragmas)?\s+""([^""]+\.deprecated\.hlsl)""",
             RegexOptions.Compiled);
-        // Return type = builtin scalar/vector/matrix, or a struct name (PascalCase with at least
-        // one lowercase letter, so all-caps macros like UNITY_BRANCH never parse as a type).
+        // Return type = builtin scalar/vector/matrix, a struct name (PascalCase with at least
+        // one lowercase letter, so all-caps macros like UNITY_BRANCH never parse as a type), or
+        // the URP_LIGHT_ACCUM aliases, which are all-caps macros that stand in for a type.
         static readonly Regex k_FunctionDefinition = new Regex(
-            @"^\s*(?:inline\s+)?(?:(?:half|float|real|void|bool|int|uint|min16float)(?:[1-4](?:x[1-4])?)?|[A-Z]\w*[a-z]\w*)\s+(\w+)\s*\(",
+            @"^\s*(?:inline\s+)?(?:(?:half|float|real|void|bool|int|uint|min16float)(?:[1-4](?:x[1-4])?)?|URP_LIGHT_ACCUM[34]|[A-Z]\w*[a-z]\w*)\s+(\w+)\s*\(",
             RegexOptions.Compiled | RegexOptions.Multiline);
         static readonly Regex k_MacroDefinition = new Regex(
             @"^\s*#\s*define\s+(\w+)", RegexOptions.Compiled | RegexOptions.Multiline);

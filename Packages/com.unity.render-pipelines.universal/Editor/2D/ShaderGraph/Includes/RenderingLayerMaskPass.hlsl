@@ -2,8 +2,6 @@
 #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/SurfaceData2D.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/Debugging2D.hlsl"
 
-half4 _RendererColor;
-
 PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
@@ -15,7 +13,7 @@ PackedVaryings vert(Attributes input)
 #endif
     output = BuildVaryings(input);
 #if !_ENABLE_SORT_3D_AS_2D_COMPATIBLE
-    output.color *= _RendererColor * unity_SpriteColor; // vertex color has to applied here
+    output.color *= unity_SpriteColor; // vertex color has to applied here
 #endif
 #if defined(DEBUG_DISPLAY)
     output.normalWS = TransformObjectToWorldNormal(input.normalOS);

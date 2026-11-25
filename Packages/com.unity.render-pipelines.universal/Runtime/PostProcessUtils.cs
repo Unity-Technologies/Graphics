@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
 using System.Runtime.CompilerServices;  // AggressiveInlining
@@ -9,29 +10,6 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public static class PostProcessUtils
     {
-        /// <summary>
-        /// Creates a post-processing pass material from a shader. Shader is error checked for device support.
-        /// </summary>
-        /// <param name="shader">Shader used for the material</param>
-        /// <param name="passName">Pass name for error messages.</param>
-        /// <param name="logLevel">LogType for the message if the shader is not supported.</param>
-        /// <returns>A new Material instance using the provided shader. Null if the shader is not supported or it's missing.</returns>
-        internal static Material LoadShader(Shader shader, string passName = "", LogType logLevel = LogType.Warning)
-        {
-            if (shader == null)
-            {
-                Debug.LogError($"Missing shader (in '{passName}'). PostProcessing render passes will not execute. Check for missing reference in the Renderer and/or PostProcessData resources.");
-                return null;
-            }
-            else if (!shader.isSupported)
-            {
-                Debug.unityLogger.Log(logLevel, $"Shader '{shader.name}' is not supported or has been stripped from the build (in '{passName}'). PostProcessing render passes will not execute.");
-                return null;
-            }
-
-            return CoreUtils.CreateEngineMaterial(shader);
-        }
-
         /// <summary>
         /// Creates a texture compatible with post-processing effects.
         /// </summary>
@@ -398,6 +376,57 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _Quad_View_Uv_Remap_offsetsXR = Shader.PropertyToID("_Quad_View_Uv_Remap_offsetsXR");
 
             public static readonly int _SourceSize = Shader.PropertyToID("_SourceSize");
+        }
+    }
+
+    /// <summary>
+    /// Helper material class for a post-processing materials.
+    /// Handles checks and logging in case the shader is missing, unsupported or stripped from the build.
+    /// </summary>
+    internal sealed class PostProcessMaterial : IDisposable
+    {
+        readonly Shader m_Shader;
+        readonly string m_PassName;
+        Material m_Material;
+        bool m_LoggedFailure;
+
+        public Shader shader => m_Shader;
+        public Material material => m_Material;
+        public bool isValid => m_Material != null;
+
+        public PostProcessMaterial(Shader shader, string passName)
+        {
+            m_Shader = shader;
+            m_PassName = passName;
+
+            // Note: isSupported is also false when all variants of the shader were stripped from the build.
+            if (shader != null && shader.isSupported)
+                m_Material = CoreUtils.CreateEngineMaterial(shader);
+        }
+
+        /// <summary>
+        /// Returns whether the material can be used, and logs the reason once if it can't.
+        /// </summary>
+        public bool Validate()
+        {
+            if (isValid)
+                return true;
+
+            if (!m_LoggedFailure)
+            {
+                m_LoggedFailure = true;
+                if (m_Shader == null)
+                    Debug.LogError($"Missing shader (in '{m_PassName}'). This post-processing pass will not execute. Check for missing reference in the Renderer and/or PostProcessData resources.");
+                else if (!m_Shader.isSupported)
+                    Debug.LogWarning($"Shader '{m_Shader.name}' is not supported or has been stripped from the build (in '{m_PassName}'). This post-processing pass will not execute.");
+            }
+            return false;
+        }
+
+        public void Dispose()
+        {
+            CoreUtils.Destroy(m_Material);
+            m_Material = null;
         }
     }
 }

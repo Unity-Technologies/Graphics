@@ -90,6 +90,52 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
     {
         public Mesh mesh;
         public GeometryPoolSubmeshData[] submeshData;
+        public int meshLod;
+    }
+
+    // Identifies the geometry an entry stores. Caches compare the whole key, not just its hash.
+    internal struct GeometryPoolKey : IEquatable<GeometryPoolKey>
+    {
+        public EntityId mesh;
+        public int meshLod;
+
+        public GeometryPoolKey(in GeometryPoolEntryDesc entryDesc)
+        {
+            mesh = entryDesc.mesh.GetEntityId();
+            meshLod = entryDesc.meshLod;
+        }
+
+        public bool Equals(GeometryPoolKey other) => mesh.Equals(other.mesh) && meshLod == other.meshLod;
+
+        public override bool Equals(object obj) => obj is GeometryPoolKey other && Equals(other);
+
+        public override int GetHashCode()
+        {
+            var hash = HashFNV1A32.Create();
+            hash.Append(mesh.GetHashCode());
+            hash.Append(meshLod);
+            return hash.value;
+        }
+    }
+
+    internal struct GeometryPoolEntryKey : IEquatable<GeometryPoolEntryKey>
+    {
+        public GeometryPoolKey geometry;
+
+        // Only the materials are hashed: entries that differ only by materials store the same geometry.
+        public uint submeshDataHash;
+
+        public bool Equals(GeometryPoolEntryKey other) => geometry.Equals(other.geometry) && submeshDataHash == other.submeshDataHash;
+
+        public override bool Equals(object obj) => obj is GeometryPoolEntryKey other && Equals(other);
+
+        public override int GetHashCode()
+        {
+            var hash = HashFNV1A32.Create();
+            hash.Append(geometry.GetHashCode());
+            hash.Append(submeshDataHash);
+            return hash.value;
+        }
     }
 
     // Geometry pool container. Contains a global set of geometry accessible from the GPU.
@@ -166,7 +212,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         public struct GeometrySlot
         {
             public uint refCount;
-            public uint hash;
+            public GeometryPoolKey key;
             public BlockAllocator.Allocation meshChunkTableAlloc;
             public NativeArray<MeshChunk> meshChunks;
             public bool hasGPUData;
@@ -183,12 +229,11 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         private struct GeoPoolEntrySlot
         {
             public uint refCount;
-            public uint hash;
+            public GeometryPoolEntryKey key;
             public int geoSlotHandle;
             public static readonly GeoPoolEntrySlot Invalid = new GeoPoolEntrySlot()
             {
                 refCount = 0u,
-                hash = 0u,
                 geoSlotHandle = InvalidHandle,
             };
 
@@ -256,11 +301,11 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
         BlockAllocator m_IndexAllocator;
         BlockAllocator m_MeshChunkTableAllocator;
 
-        NativeParallelHashMap<uint, int> m_MeshHashToGeoSlot;
+        NativeParallelHashMap<GeometryPoolKey, int> m_GeometryKeyToGeoSlot;
         List<GeometrySlot> m_GeoSlots;
         NativeList<int> m_FreeGeoSlots;
 
-        NativeParallelHashMap<uint, GeometryPoolHandle> m_GeoPoolEntryHashToSlot;
+        NativeParallelHashMap<GeometryPoolEntryKey, GeometryPoolHandle> m_GeoPoolEntryKeyToSlot;
         NativeList<GeoPoolEntrySlot> m_GeoPoolEntrySlots;
         NativeList<GeometryPoolHandle> m_FreeGeoPoolEntrySlots;
 
@@ -297,11 +342,11 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             m_DummyBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 16, 4);
 
             var initialCapacity = 4096;
-            m_MeshHashToGeoSlot = new NativeParallelHashMap<uint, int>(initialCapacity, Allocator.Persistent);
+            m_GeometryKeyToGeoSlot = new NativeParallelHashMap<GeometryPoolKey, int>(initialCapacity, Allocator.Persistent);
             m_GeoSlots = new List<GeometrySlot>();
             m_FreeGeoSlots = new NativeList<int>(Allocator.Persistent);
 
-            m_GeoPoolEntryHashToSlot = new NativeParallelHashMap<uint, GeometryPoolHandle>(initialCapacity, Allocator.Persistent);
+            m_GeoPoolEntryKeyToSlot = new NativeParallelHashMap<GeometryPoolEntryKey, GeometryPoolHandle>(initialCapacity, Allocator.Persistent);
             m_GeoPoolEntrySlots = new NativeList<GeoPoolEntrySlot>(Allocator.Persistent);
             m_FreeGeoPoolEntrySlots = new NativeList<GeometryPoolHandle>(Allocator.Persistent);
 
@@ -332,7 +377,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             m_MeshChunkTableAllocator.Dispose();
             m_DummyBuffer.Dispose();
 
-            m_MeshHashToGeoSlot.Dispose();
+            m_GeometryKeyToGeoSlot.Dispose();
             foreach (var geoSlot in m_GeoSlots)
             {
                 if (geoSlot.valid)
@@ -342,7 +387,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
 
             m_FreeGeoSlots.Dispose();
 
-            m_GeoPoolEntryHashToSlot.Dispose();
+            m_GeoPoolEntryKeyToSlot.Dispose();
             m_GeoPoolEntrySlots.Dispose();
             m_FreeGeoPoolEntrySlots.Dispose();
 
@@ -398,7 +443,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             --geoSlot.refCount;
             if (geoSlot.refCount == 0)
             {
-                m_MeshHashToGeoSlot.Remove(geoSlot.hash);
+                m_GeometryKeyToGeoSlot.Remove(geoSlot.key);
                 DeallocateGeometrySlot(ref geoSlot);
                 m_FreeGeoSlots.Add(geoSlotHandle);
             }
@@ -429,9 +474,10 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             m_MaxMeshChunkTableEntriesCount = newCapacity;
         }
 
-        private bool AllocateGeo(Mesh mesh, out int allocationHandle)
+        private bool AllocateGeo(in GeometryPoolEntryDesc entryDesc, out int allocationHandle)
         {
-            uint meshHash = (uint)mesh.GetHashCode();
+            Mesh mesh = entryDesc.mesh;
+            var geometryKey = new GeometryPoolKey(entryDesc);
 
             int indexCount = 0;
             for (int submeshIndex = 0; submeshIndex < mesh.subMeshCount; ++submeshIndex)
@@ -439,10 +485,10 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                 indexCount += (int)mesh.GetIndexCount(submeshIndex);
             }
 
-            if (m_MeshHashToGeoSlot.TryGetValue(meshHash, out allocationHandle))
+            if (m_GeometryKeyToGeoSlot.TryGetValue(geometryKey, out allocationHandle))
             {
                 var geoSlot = m_GeoSlots[allocationHandle];
-                Assertions.Assert.IsTrue(geoSlot.hash == meshHash);
+                Assertions.Assert.IsTrue(geoSlot.key.Equals(geometryKey));
                 Assertions.Assert.IsTrue(geoSlot.meshChunkTableAlloc.block.count == mesh.subMeshCount);
 
                 ++geoSlot.refCount;
@@ -453,7 +499,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             allocationHandle = InvalidHandle;
             var newSlot = GeometrySlot.Invalid;
             newSlot.refCount = 1;
-            newSlot.hash = meshHash;
+            newSlot.key = geometryKey;
 
             bool allocationSuccess = true;
 
@@ -472,13 +518,14 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                 newSlot.meshChunks = new NativeArray<MeshChunk>(mesh.subMeshCount, Allocator.Persistent);
                 for (int submeshIndex = 0; submeshIndex < mesh.subMeshCount; ++submeshIndex)
                 {
-                    SubMeshDescriptor submeshDescriptor = mesh.GetSubMesh(submeshIndex);
+                    int submeshVertexCount = mesh.GetSubMesh(submeshIndex).vertexCount;
+                    int submeshIndexCount = (int)mesh.GetIndexCount(submeshIndex, entryDesc.meshLod);
                     var newMeshChunk = MeshChunk.Invalid;
 
-                    newMeshChunk.vertexAlloc = m_VertexAllocator.Allocate(submeshDescriptor.vertexCount);
+                    newMeshChunk.vertexAlloc = m_VertexAllocator.Allocate(submeshVertexCount);
                     if (!newMeshChunk.vertexAlloc.valid)
                     {
-                        newMeshChunk.vertexAlloc = m_VertexAllocator.GrowAndAllocate(submeshDescriptor.vertexCount, GraphicsHelpers.MaxElementCount(GetVertexByteSize()), out int oldCapacity, out int newCapacity);
+                        newMeshChunk.vertexAlloc = m_VertexAllocator.GrowAndAllocate(submeshVertexCount, GraphicsHelpers.MaxElementCount(GetVertexByteSize()), out int oldCapacity, out int newCapacity);
                         if (!newMeshChunk.vertexAlloc.valid)
                             throw new UnifiedRayTracingException($"Can't allocate a GraphicsBuffer bigger than {GraphicsHelpers.MaxGraphicsBufferSizeInGigaBytes:F1}GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
 
@@ -487,10 +534,10 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                         m_MaxVertCounts = newCapacity;
                     }
 
-                    newMeshChunk.indexAlloc = m_IndexAllocator.Allocate(submeshDescriptor.indexCount);
+                    newMeshChunk.indexAlloc = m_IndexAllocator.Allocate(submeshIndexCount);
                     if (!newMeshChunk.indexAlloc.valid)
                     {
-                        newMeshChunk.indexAlloc = m_IndexAllocator.GrowAndAllocate(submeshDescriptor.indexCount, GraphicsHelpers.MaxElementCount(sizeof(int)), out int oldCapacity, out int newCapacity);
+                        newMeshChunk.indexAlloc = m_IndexAllocator.GrowAndAllocate(submeshIndexCount, GraphicsHelpers.MaxElementCount(sizeof(int)), out int oldCapacity, out int newCapacity);
                         if (!newMeshChunk.indexAlloc.valid)
                             throw new UnifiedRayTracingException($"Can't allocate a GraphicsBuffer bigger than {GraphicsHelpers.MaxGraphicsBufferSizeInGigaBytes:F1}GB", UnifiedRayTracingError.GraphicsBufferAllocationFailed);
 
@@ -522,7 +569,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                 m_GeoSlots[allocationHandle] = newSlot;
             }
 
-            m_MeshHashToGeoSlot.Add(newSlot.hash, allocationHandle);
+            m_GeometryKeyToGeoSlot.Add(newSlot.key, allocationHandle);
 
             return true;
         }
@@ -533,7 +580,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             --slot.refCount;
             if (slot.refCount == 0)
             {
-                m_GeoPoolEntryHashToSlot.Remove(slot.hash);
+                m_GeoPoolEntryKeyToSlot.Remove(slot.key);
                 DeallocateGeoPoolEntrySlot(ref slot);
                 m_FreeGeoPoolEntrySlots.Add(handle);
             }
@@ -581,8 +628,9 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             return GetEntryGeomAllocation(GetHandle(mesh)).meshChunkTableAlloc.block.offset;
         }
 
-        private void UpdateGeoGpuState(Mesh mesh, GeometryPoolHandle handle)
+        private void UpdateGeoGpuState(in GeometryPoolEntryDesc entryDesc, GeometryPoolHandle handle)
         {
+            Mesh mesh = entryDesc.mesh;
             var entrySlot = m_GeoPoolEntrySlots[handle.index];
             var geoSlot = m_GeoSlots[entrySlot.geoSlotHandle];
 
@@ -623,7 +671,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                     AddIndexUpdateCommand(
                         cmdBuffer,
                         mesh.indexFormat, buffer, targetMeshChunk.indexAlloc, submeshDescriptor.firstVertex,
-                        submeshDescriptor.indexStart, submeshDescriptor.indexCount, 0,
+                        (int)mesh.GetIndexStart(submeshIndex, entryDesc.meshLod), (int)mesh.GetIndexCount(submeshIndex, entryDesc.meshLod), 0,
                         m_GlobalIndexBuffer);
 
                     meshChunkAllocationTable[submeshIndex] = targetMeshChunk.EncodeGPUEntry();
@@ -637,38 +685,30 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             }
         }
 
-        private uint FNVHash(uint prevHash, uint dword)
+        private static GeometryPoolEntryKey CreateEntryKey(in GeometryPoolEntryDesc entryDesc)
         {
-            //https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
-            const uint fnvPrime = 0x811C9DC5;
-            for (int i = 0; i < 4; ++i)
+            var submeshDataHash = HashFNV1A32.Create();
+            if (entryDesc.submeshData != null)
             {
-                prevHash ^= ((dword >> (i * 8)) & 0xFF);
-                prevHash *= fnvPrime;
-            }
-            return prevHash;
-        }
-
-        private uint CalculateClusterHash(Mesh mesh, GeometryPoolSubmeshData[] submeshData)
-        {
-            uint meshHash = (uint)mesh.GetHashCode();
-            uint clusterHash = meshHash;
-            if (submeshData != null)
-            {
-                foreach (var data in submeshData)
+                foreach (var data in entryDesc.submeshData)
                 {
-                    clusterHash = FNVHash(clusterHash, (uint)data.submeshIndex);
-                    clusterHash = FNVHash(clusterHash, (uint)(data.material == null ? 0 : data.material.GetHashCode()));
+                    submeshDataHash.Append(data.submeshIndex);
+                    submeshDataHash.Append(data.material == null ? 0 : data.material.GetHashCode());
                 }
             }
-            return clusterHash;
+
+            return new GeometryPoolEntryKey()
+            {
+                geometry = new GeometryPoolKey(entryDesc),
+                submeshDataHash = (uint)submeshDataHash.value
+            };
         }
 
         public GeometryPoolHandle GetHandle(Mesh mesh)
         {
-            uint geoPoolEntryHash = CalculateClusterHash(mesh, null);
+            var entryKey = CreateEntryKey(new GeometryPoolEntryDesc() { mesh = mesh });
 
-            if (m_GeoPoolEntryHashToSlot.TryGetValue(geoPoolEntryHash, out GeometryPoolHandle outHandle))
+            if (m_GeoPoolEntryKeyToSlot.TryGetValue(entryKey, out GeometryPoolHandle outHandle))
                 return outHandle;
             else
                 return GeometryPoolHandle.Invalid;
@@ -697,6 +737,16 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             }, out outHandle);
         }
 
+        public bool Register(Mesh mesh, int meshLod, out GeometryPoolHandle outHandle)
+        {
+            return Register(new GeometryPoolEntryDesc()
+            {
+                mesh = mesh,
+                submeshData = null,
+                meshLod = meshLod
+            }, out outHandle);
+        }
+
         public bool Register(in GeometryPoolEntryDesc entryDesc, out GeometryPoolHandle outHandle)
         {
             outHandle = GeometryPoolHandle.Invalid;
@@ -706,15 +756,15 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
             }
 
             Mesh mesh = entryDesc.mesh;
-            uint geoPoolEntryHash = CalculateClusterHash(entryDesc.mesh, entryDesc.submeshData);
+            var entryKey = CreateEntryKey(entryDesc);
 
-            if (m_GeoPoolEntryHashToSlot.TryGetValue(geoPoolEntryHash, out outHandle))
+            if (m_GeoPoolEntryKeyToSlot.TryGetValue(entryKey, out outHandle))
             {
                 GeoPoolEntrySlot geoPoolEntrySlot = m_GeoPoolEntrySlots[outHandle.index];
-                Assertions.Assert.IsTrue(geoPoolEntrySlot.hash == geoPoolEntryHash);
+                Assertions.Assert.IsTrue(geoPoolEntrySlot.key.Equals(entryKey));
 
                 GeometrySlot geoSlot = m_GeoSlots[geoPoolEntrySlot.geoSlotHandle];
-                Assertions.Assert.IsTrue(geoSlot.hash == (uint)mesh.GetHashCode());
+                Assertions.Assert.IsTrue(geoSlot.key.Equals(entryKey.geometry));
 
                 ++geoPoolEntrySlot.refCount;
                 m_GeoPoolEntrySlots[outHandle.index] = geoPoolEntrySlot;
@@ -723,7 +773,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
 
             var newSlot = GeoPoolEntrySlot.Invalid;
             newSlot.refCount = 1;
-            newSlot.hash = geoPoolEntryHash;
+            newSlot.key = entryKey;
 
             // Validate submesh information
             var validSubmeshData = new List<GeometryPoolSubmeshData>(mesh.subMeshCount);
@@ -741,7 +791,7 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                 }
             }
 
-            if (!AllocateGeo(mesh, out newSlot.geoSlotHandle))
+            if (!AllocateGeo(entryDesc, out newSlot.geoSlotHandle))
             {
                 DeallocateGeoPoolEntrySlot(ref newSlot);
                 return false;
@@ -761,8 +811,8 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
                 m_GeoPoolEntrySlots[outHandle.index] = newSlot;
             }
 
-            m_GeoPoolEntryHashToSlot.Add(newSlot.hash, outHandle);
-            UpdateGeoGpuState(mesh, outHandle);
+            m_GeoPoolEntryKeyToSlot.Add(newSlot.key, outHandle);
+            UpdateGeoGpuState(entryDesc, outHandle);
 
             return true;
         }

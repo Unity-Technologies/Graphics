@@ -1,4 +1,4 @@
-#if ENABLE_VR && ENABLE_XR_MANAGEMENT
+#if ENABLE_VR && (ENABLE_XR_MANAGEMENT || XR_FOUNDATION_7_0_0_OR_NEWER)
 using UnityEditor.XR;
 #endif
 
@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static readonly ExpandedState<Expandable, Camera> k_ExpandedState = new ExpandedState<Expandable, Camera>(Expandable.Projection, "HDRP");
 
-#if ENABLE_VR && ENABLE_XR_MANAGEMENT
+#if ENABLE_VR && (ENABLE_XR_MANAGEMENT || XR_FOUNDATION_7_0_0_OR_NEWER)
         private static readonly CED.IDrawer OrthographicXRError = CED.Conditional(
             (serialized, owner) => serialized.xrRendering.boolValue && serialized.baseCameraSettings.orthographic.boolValue, (serialized, owner) =>
             {
@@ -50,7 +50,7 @@ namespace UnityEditor.Rendering.HighDefinition
             Expandable.Projection,
             k_ExpandedState,
             FoldoutOption.Indent,
-#if ENABLE_VR && ENABLE_XR_MANAGEMENT
+#if ENABLE_VR && (ENABLE_XR_MANAGEMENT || XR_FOUNDATION_7_0_0_OR_NEWER)
             OrthographicXRError,
 #endif
             CED.Group(

@@ -239,6 +239,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     port.AddToClassList(portDisabledString);
                 }
+                foreach (var portInputView in inputContainer.Query<PortInputView>().ToList())
+                {
+                    portInputView.AddToClassList(disabledString);
+                }
             }
             else
             {
@@ -254,6 +258,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach (var port in outputPorts)
                 {
                     port.RemoveFromClassList(portDisabledString);
+                }
+                foreach (var portInputView in inputContainer.Query<PortInputView>().ToList())
+                {
+                    portInputView.RemoveFromClassList(disabledString);
                 }
             }
         }
@@ -346,10 +354,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (evt.clickCount == 2 && evt.button == 0)
             {
-                var providerNode = node as ProviderSystem.ProviderNode;
-                if (providerNode.Provider.IsValid && providerNode.Provider.AssetID != default)
+                if (node is ProviderSystem.ProviderNode { Provider: { } provider } && provider.AssetID != default
+                    && AssetDatabase.GUIDToAssetPath(provider.AssetID) is { Length: > 0 } path)
                 {
-                    var path = AssetDatabase.GUIDToAssetPath(providerNode.Provider.AssetID);
                     GraphUtil.OpenFile(path);
                 }
                 // Stop the double click event from starting a drag action on the node

@@ -60,7 +60,7 @@ struct Varyings
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData, out half3 geometricNormalWS)
+void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData)
 {
     inputData = (InputData)0;
     inputData.preExposureMultiplier = GetPreExposureMultiplier();
@@ -71,7 +71,7 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData, o
     inputData.normalWS = IN.normal.xyz;
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(IN.positionWS);
     half3 SH = 0;
-    geometricNormalWS = IN.normal.xyz;
+    half3 geometricNormalWS = IN.normal.xyz;
 
     #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
         if (UseNormalMap())
@@ -99,6 +99,7 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData inputData, o
     #endif
 
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS, UseNormalMap());
+    inputData.geometricNormalWS = geometricNormalWS;
     inputData.viewDirectionWS = viewDirWS;
 
     #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
@@ -468,8 +469,7 @@ void SplatmapFragment(
 #endif
 
     InputData inputData;
-    half3 geometricNormalWS;
-    InitializeInputData(IN, normalTS, inputData, geometricNormalWS);
+    InitializeInputData(IN, normalTS, inputData);
     SetupTerrainDebugTextureData(inputData, IN.uvMainAndLM.xy);
 
 #if defined(_DBUFFER)
@@ -510,7 +510,7 @@ void SplatmapFragment(
     return PackGBuffersBRDFData(brdfData, inputData, smoothness, ClampExposed(inputData.preExposureMultiplier * color.rgb), occlusion, ReceiveShadows(), IsSpecularSetup(), UseSpecularHighlights());
 #else
 
-    URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, occlusion, /* emission */ half3(0, 0, 0), alpha, geometricNormalWS);
+    URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, occlusion, /* emission */ half3(0, 0, 0), alpha);
 
     SplatmapFinalColor(color, IN.clipPos);
 
@@ -561,12 +561,7 @@ VaryingsLean ShadowPassVertex(AttributesLean v)
 #endif
 
     float4 clipPos = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, lightDirectionWS));
-
-#if UNITY_REVERSED_Z
-    clipPos.z = min(clipPos.z, UNITY_NEAR_CLIP_VALUE);
-#else
-    clipPos.z = max(clipPos.z, UNITY_NEAR_CLIP_VALUE);
-#endif
+    clipPos = ApplyShadowClamping(clipPos);
 
     o.clipPos = clipPos;
 

@@ -192,7 +192,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var selected in GetGraphView().selection)
                 if (selected is IShaderNodeView nodeView && nodeView.node.documentationURL != null)
                 {
-                    System.Diagnostics.Process.Start(nodeView.node.documentationURL);
+                    Application.OpenURL(nodeView.node.documentationURL);
                     break;
                 }
         }

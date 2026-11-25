@@ -476,9 +476,6 @@ namespace UnityEngine.Rendering.Universal
         /// <returns>True if TAA is enabled</returns>
         internal bool IsTemporalAAEnabled()
         {
-            UniversalAdditionalCameraData additionalCameraData;
-            camera.TryGetComponent(out additionalCameraData);
-
             return IsTemporalAARequested()                                                                                            // Requested
                    && postProcessEnabled                                                                                              // Postprocessing Enabled
                    && (taaHistory != null)                                                                                            // Initialized
@@ -644,6 +641,11 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public Camera baseCamera;
 
+        // The UniversalAdditionalCameraData of the camera field above, or null if that camera has none.
+        // UniversalRenderPipeline.InitializeAdditionalCameraData sets it, so the code that runs for this camera
+        // reads it here instead of calling camera.TryGetComponent each time.
+        internal UniversalAdditionalCameraData additionalCameraData;
+
         /// <summary>
         /// Returns true if the baseCamera field is the last base camera being rendered to the frame.
         /// While the last camera in a camera stack implies a last overlay camera, this indicates the last of all input base cameras.
@@ -712,6 +714,7 @@ namespace UnityEngine.Rendering.Universal
             taaSettings = default;
             subpixelJitter = default;
             baseCamera = null;
+            additionalCameraData = null;
             isLastBaseCamera = false;
             stackAnyPostProcessingEnabled = false;
             stackLastCameraOutputToHDR = false;

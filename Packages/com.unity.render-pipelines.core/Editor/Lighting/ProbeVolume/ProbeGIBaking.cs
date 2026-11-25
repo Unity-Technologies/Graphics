@@ -903,6 +903,7 @@ namespace UnityEngine.Rendering
                 Lightmapping.lightingDataCleared += OnLightingDataCleared;
                 Lightmapping.bakeStarted += OnBakeStarted;
                 Lightmapping.bakeCancelled += OnBakeCancelled;
+                Lightmapping.bakeCompleted += OnBakeCompleted;
                 Lightmapping.inputExtraction += OnInputExtraction;
                 AssemblyReloadEvents.beforeAssemblyReload += CleanUp;
                 // Without a domain reload on entering play mode the context can outlive every reload, so also release it before the graphics device shuts down.
@@ -1118,7 +1119,17 @@ namespace UnityEngine.Rendering
             {
                 ProbeReferenceVolume.instance.checksDuringBakeAction = CheckPVChanges;
                 Lightmapping.AddBakeDelegate(BakeDelegate);
+                s_FullBakeDelegateRegistered = true;
             }
+        }
+
+        static bool s_FullBakeDelegateRegistered;
+
+        // A bake that fails before its bake delegates run never calls BakeDelegate, so release the APV bake data here.
+        static void OnBakeCompleted()
+        {
+            if (s_FullBakeDelegateRegistered)
+                OnBakeCancelled();
         }
 
         static readonly string k_APVLightBakerFolder = "APVBake";
@@ -1206,17 +1217,22 @@ namespace UnityEngine.Rendering
             s_BakeData.Init(m_BakingSet, positions, requests, bakeType);
             positions.Dispose();
 
-            // Set delegates used for virtual offsets baking
+            SetVirtualOffsetBakeDelegates(true);
+
+            return true;
+        }
+
+        // Native code only clears these delegates once it has called them, which does not happen when a bake fails before probe preprocessing.
+        static void SetVirtualOffsetBakeDelegates(bool enabled)
+        {
             Type lightmappingType = typeof(Lightmapping);
             FieldInfo initField = lightmappingType.GetField("s_VirtualOffsetBakeInitializeDataDelegate", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
             Debug.Assert(initField != null, "Unexpected, could not find s_VirtualOffsetBakeInitializeDataDelegate");
             FieldInfo updateField = lightmappingType.GetField("s_VirtualOffsetBakeUpdateDelegate", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
             Debug.Assert(updateField != null, "Unexpected, could not find s_VirtualOffsetBakeUpdateDelegate");
 
-            initField.SetValue(null, Delegate.CreateDelegate(initField.FieldType, typeof(BakeData), nameof(BakeData.InitVirtualOffsetJob)));
-            updateField.SetValue(null, Delegate.CreateDelegate(updateField.FieldType, typeof(BakeData), nameof(BakeData.UpdateVirtualOffsetJob)));
-
-            return true;
+            initField.SetValue(null, enabled ? Delegate.CreateDelegate(initField.FieldType, typeof(BakeData), nameof(BakeData.InitVirtualOffsetJob)) : null);
+            updateField.SetValue(null, enabled ? Delegate.CreateDelegate(updateField.FieldType, typeof(BakeData), nameof(BakeData.UpdateVirtualOffsetJob)) : null);
         }
 
         static bool PrepareAdditionalProbesBaking(BakeType bakeType, GetProbesFunc getProbes, GetAdditionalRequestsFunc getAdditionalRequests)
@@ -1543,6 +1559,7 @@ namespace UnityEngine.Rendering
 
         static void CleanBakeData()
         {
+            SetVirtualOffsetBakeDelegates(false);
             s_BakeData.CleanUp();
             s_BakingBatch?.Dispose();
             s_BakingBatch = null;
@@ -1553,6 +1570,7 @@ namespace UnityEngine.Rendering
                 CleanUp();
 
             Lightmapping.RemoveBakeDelegate(BakeDelegate);
+            s_FullBakeDelegateRegistered = false;
 
             s_PartialBakeSceneList = null;
             ProbeReferenceVolume.instance.checksDuringBakeAction = null;

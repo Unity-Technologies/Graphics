@@ -193,6 +193,9 @@ namespace UnityEditor.Rendering.Tests
             // Cleaning all Render Graph resources and data structures
             // Nothing remains, Render Graph in next test will start from scratch
             m_RenderGraph.CleanupResourcesAndGraph();
+
+            // Disposing a builder outside of recording leaves the graph in RecordingGraph, which would leak into the next test
+            m_RenderGraph.RenderGraphState = RenderGraphState.Idle;
         }
     }
 }

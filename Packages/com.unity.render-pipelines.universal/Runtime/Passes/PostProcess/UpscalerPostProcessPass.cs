@@ -11,10 +11,11 @@ namespace UnityEngine.Rendering.Universal
 
         public const string k_UpscaledColorTargetName = "CameraColorUpscaled";
         Texture2D[] m_BlueNoise16LTex;
-        Material m_UpscalerReactiveMaskMaterial;
+        PostProcessMaterial m_UpscalerReactiveMaskMaterial;
         bool m_IsValid;
 
         bool m_WarnedHardwareDrsTemporalUnsupported;
+        bool m_WarnedMsaaAndTemporalUpscalerNotCompatible;
         bool m_WarnedMissingMotionData;
         bool m_WarnedMissingOpaqueTexture;
         bool m_WarnedOpaqueDownsamplingNotCompatible;
@@ -25,24 +26,20 @@ namespace UnityEngine.Rendering.Universal
             this.profilingSampler = null;   // Use default name
             m_BlueNoise16LTex = blueNoise16LTex;
 
-            m_UpscalerReactiveMaskMaterial = PostProcessUtils.LoadShader(reactiveMaskShader, passName, logLevel: LogType.Log);
+            m_UpscalerReactiveMaskMaterial = new PostProcessMaterial(reactiveMaskShader, passName);
 
-            m_IsValid = m_BlueNoise16LTex != null && m_BlueNoise16LTex.Length > 0
-                && m_UpscalerReactiveMaskMaterial != null;
+            m_IsValid = m_BlueNoise16LTex != null && m_BlueNoise16LTex.Length > 0;
         }
 
         public override void Dispose()
         {
-            CoreUtils.Destroy(m_UpscalerReactiveMaskMaterial);
+            m_UpscalerReactiveMaskMaterial.Dispose();
 
             m_IsValid = false;
         }
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            if (!m_IsValid)
-                return;
-
             UniversalPostProcessingData postProcessingData = frameData.Get<UniversalPostProcessingData>();
             if (postProcessingData.activeUpscaler == null)
                 return;
@@ -75,9 +72,25 @@ namespace UnityEngine.Rendering.Universal
             if (Debug.isDebugBuild)
                 m_WarnedHardwareDrsTemporalUnsupported = false;
 
+            if (!m_IsValid || !m_UpscalerReactiveMaskMaterial.Validate())
+                return;
+
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
             var sourceTexture = resourceData.cameraColor;
             var srcDesc = sourceTexture.GetDescriptor(renderGraph);
+
+            // E.g., MSAA and DLSS are incompatible.
+            if ((srcDesc.msaaSamples != MSAASamples.None || resourceData.cameraDepth.GetDescriptor(renderGraph).msaaSamples != MSAASamples.None) && postProcessingData.activeUpscaler.isTemporal)
+            {
+                if (Debug.isDebugBuild && !m_WarnedMsaaAndTemporalUpscalerNotCompatible)
+                {
+                    m_WarnedMsaaAndTemporalUpscalerNotCompatible = true;
+                    Debug.LogWarning($"MSAA is not compatible with temporal upscaler '{postProcessingData.activeUpscaler.name}'. Turn off MSAA in the current RP asset.");
+                }
+                return;
+            }
+            if (Debug.isDebugBuild)
+                m_WarnedMsaaAndTemporalUpscalerNotCompatible = false;
 
             // Create a context item containing upscaling inputs
             UpscalingIO io = frameData.Create<UpscalingIO>();
@@ -112,7 +125,7 @@ namespace UnityEngine.Rendering.Universal
             // (preUpscaleResolution) is a sub-rect of it; without DRS they're equal. Upscalers allocate history at this.
             io.maxPreUpscaleResolution = new Vector2Int(cameraData.cameraTargetDescriptor.width, cameraData.cameraTargetDescriptor.height);
 
-            cameraData.camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData);
+            var additionalCameraData = cameraData.additionalCameraData;
             MotionVectorsPersistentData motionData = additionalCameraData != null ? additionalCameraData.motionVectorsPersistentData : null;
             if (motionData == null) // Per-camera motion data is required for upscaling (camera matrices, positions, previous-frame sizes).
             {
@@ -216,7 +229,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (resourceData.cameraOpaqueTexture.IsValid())
                 {
-                    io.reactiveMask = UpscalerReactiveMaskPass(renderGraph, frameData, m_UpscalerReactiveMaskMaterial, upscaler.reactiveMaskSource, upscalerOptions, io.enableTexArray);
+                    io.reactiveMask = UpscalerReactiveMaskPass(renderGraph, frameData, m_UpscalerReactiveMaskMaterial.material, upscaler.reactiveMaskSource, upscalerOptions, io.enableTexArray);
                     m_WarnedMissingOpaqueTexture = false;
                 }
                 else if (Debug.isDebugBuild && !m_WarnedMissingOpaqueTexture)
@@ -286,9 +299,9 @@ namespace UnityEngine.Rendering.Universal
                     // _ScreenSize lives in the centralized global shader variables, potentially stored in a global constant buffer.
                     IGlobalShaderVariablesCommonUploader vars;
                     if (data.shaderData != null)
-                        vars = data.shaderData.Get();
+                        vars = data.shaderData.GetGlobal();
                     else
-                        vars = data.shaderData2D.Get();
+                        vars = data.shaderData2D.GetGlobal();
 
                     vars._ScreenSize = new Vector4(
                         data.newCameraTargetSize.x,
@@ -296,7 +309,7 @@ namespace UnityEngine.Rendering.Universal
                         1.0f / data.newCameraTargetSize.x,
                         1.0f / data.newCameraTargetSize.y
                     );
-                    vars.PushGlobal(ctx.cmd);
+                    vars.Push(ctx.cmd);
                 });
             }
         }

@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.Universal
         //   - Non-volumetric draws enable exactly one USE_SHAPE_LIGHT_TYPE_<N>, where N is the
         //     light's rank among the blend styles in use in its layer batch.
         //   - Volumetric draws enable none (the USE_DEFAULT_LIGHT_TYPE shader fallback handles it).
-        //   - On GLES3 (Renderer2D.supportsMRT == false) the index is forced to 0 regardless.
+        //   - On OpenGLES3 and OpenGLCore (Renderer2D.supportsMRT == false) the index is forced to 0 regardless.
         // The 11 multi-keyword combinations multi_compile generates are unreachable for this shader.
         static readonly string[] kShapeLightTypeKeywords =
         {
@@ -45,12 +45,44 @@ namespace UnityEditor.Rendering.Universal
         internal const string kEmptyComboSentinel = "<none>";
 
         /// <summary>
-        /// Walks every enabled build scene and returns the set of comma-joined keyword combos
+        /// Walks every scene a build can include and returns the set of comma-joined keyword combos
         /// that <see cref="RendererLighting.CreateLightMaterial"/> could legitimately request at
         /// runtime. Scenes opened by this method are closed before returning so we don't disturb
         /// the user's editor workspace.
         /// </summary>
         internal static string[] AnalyzeBuildScenes()
+        {
+            return AnalyzeScenes(GetCandidateScenePaths());
+        }
+
+        // The scenes a player build can include. BuildPipeline.BuildPlayer can build scenes that
+        // are not in the Build Profiles list (UUM-160655). Only BuildPlayerProcessor.PrepareForBuild
+        // sees its scene list, and this analysis also runs for AssetBundle builds and from
+        // IPreprocessShaders, where no player scene list exists. So scan the enabled Build Profiles
+        // scenes (any path, including Packages/) plus every scene under Assets/.
+        internal static IEnumerable<string> GetCandidateScenePaths()
+        {
+            foreach (var sceneSettings in EditorBuildSettings.scenes)
+            {
+                // Use the same path the build uses (EditorBuildSettingsScene.GetActiveSceneList).
+                // The engine already updates this path from the GUID when a scene is moved.
+                if (sceneSettings.enabled)
+                    yield return sceneSettings.path;
+            }
+
+            foreach (var guid in AssetDatabase.FindAssets("t:SceneAsset", new[] { "Assets" }))
+                yield return AssetDatabase.GUIDToAssetPath(guid);
+        }
+
+        /// <summary>
+        /// Analyzes the given scenes, as <see cref="AnalyzeBuildScenes()"/> does for the build's
+        /// candidate scenes. Paths that are not scene assets are skipped, a scene listed twice is
+        /// analyzed once, and a scene that doesn't depend on <see cref="Light2D"/> is not opened.
+        /// </summary>
+        /// <param name="scenePaths">Scene asset paths to analyze.</param>
+        /// <param name="openedScenePaths">If not null, receives the path of each scene opened for analysis.</param>
+        /// <returns>The kept keyword combos.</returns>
+        internal static string[] AnalyzeScenes(IEnumerable<string> scenePaths, ICollection<string> openedScenePaths = null)
         {
             HashSet<string> combos = new HashSet<string>();
 
@@ -60,31 +92,38 @@ namespace UnityEditor.Rendering.Universal
             // DontDestroyOnLoad. So the slots are added once all build scenes have been scanned.
             var shapeLightDraws = new HashSet<string>[kShapeLightTypeKeywords.Length];
 
-            EditorBuildSettingsScene[] scenes = EditorBuildSettings.scenes;
-            foreach (var sceneSettings in scenes)
+            // Dedupe by GUID, so case or slash differences in a path don't scan a scene twice.
+            var visitedGuids = new HashSet<string>();
+            string light2DScriptPath = GetLight2DScriptPath();
+
+            foreach (var scenePath in scenePaths)
             {
-                if (!sceneSettings.enabled)
-                    continue;
-
-                // Use the same path the build uses (EditorBuildSettingsScene.GetActiveSceneList), so
-                // we analyze exactly the scenes that get built. The engine already updates this path
-                // from the GUID when a scene is moved.
-                string scenePath = sceneSettings.path;
-
                 // Skip entries that don't point at a scene asset (deleted, never existed, or not a
                 // scene); OpenScene would throw. Use the AssetDatabase rather than File.Exists so
                 // scenes in immutable packages (virtual Packages/... paths) are still found.
                 if (string.IsNullOrEmpty(scenePath) || AssetDatabase.GetMainAssetTypeAtPath(scenePath) != typeof(SceneAsset))
                     continue;
 
+                if (!visitedGuids.Add(AssetDatabase.AssetPathToGUID(scenePath)))
+                    continue;
+
                 Scene scene = EditorSceneManager.GetSceneByPath(scenePath);
                 bool weOpenedIt = !scene.isLoaded;
+
+                // The dependency check reads the saved file, so only use it to skip opening a scene.
+                // A loaded scene can hold a Light2D added since its last save, which the build will
+                // include once the user saves at the build prompt, so always scan the loaded scene.
+                if (weOpenedIt && !SceneMayContainLight2D(scenePath, light2DScriptPath))
+                    continue;
 
                 // Open as a preview scene rather than additively: Light2DManager registers preview
                 // scene lights in a per scene list, so a global light in a build scene can't be
                 // mistaken for a duplicate of one in a scene the user already has open.
                 if (weOpenedIt)
+                {
                     scene = EditorSceneManager.OpenPreviewScene(scenePath);
+                    openedScenePaths?.Add(scenePath);
+                }
 
                 try
                 {
@@ -107,6 +146,41 @@ namespace UnityEditor.Rendering.Universal
             return result;
         }
 
+        // The asset path of the script that defines Light2D, or null if it can't be found.
+        static string GetLight2DScriptPath()
+        {
+            foreach (var guid in AssetDatabase.FindAssets("t:MonoScript " + nameof(Light2D)))
+            {
+                // The search matches every script whose name contains "Light2D". A MonoScript's
+                // class must match its file name, so skip the others without loading them.
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (System.IO.Path.GetFileNameWithoutExtension(path) != nameof(Light2D))
+                    continue;
+
+                var script = AssetDatabase.LoadAssetAtPath<MonoScript>(path);
+                if (script != null && script.GetClass() == typeof(Light2D))
+                    return path;
+            }
+            return null;
+        }
+
+        // Opening a scene is costly, so first check whether it references the Light2D script.
+        // The recursive lookup also finds Light2Ds in nested prefabs and prefab variants, and it
+        // reads the asset database, so it works the same for text and binary scenes. If the script
+        // can't be found, open the scene anyway rather than miss its lights.
+        static bool SceneMayContainLight2D(string scenePath, string light2DScriptPath)
+        {
+            if (light2DScriptPath == null)
+                return true;
+
+            foreach (var dependency in AssetDatabase.GetDependencies(scenePath, true))
+            {
+                if (string.Equals(dependency, light2DScriptPath, System.StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
+        }
+
         static void AnalyzeSceneForLights(Scene scene, HashSet<string> combos, HashSet<string>[] shapeLightDraws)
         {
             foreach (var rootObject in scene.GetRootGameObjects())
@@ -124,8 +198,8 @@ namespace UnityEditor.Rendering.Universal
         // slot from 0 up to its rank across all build scenes, but never higher. Keep all of them.
         // This bound assumes every light lives in a build scene. A light spawned at runtime from a
         // prefab or asset bundle isn't scanned, so it can raise other lights' slots past the bound.
-        // Slot 0 also covers GLES3, where Renderer2D.supportsMRT is false and indicesIndex is
-        // forced to 0.
+        // Slot 0 also covers OpenGLES3 and OpenGLCore, where Renderer2D.supportsMRT is false and
+        // indicesIndex is forced to 0.
         static void AddShapeLightCombos(HashSet<string>[] shapeLightDraws, HashSet<string> combos)
         {
             int blendStyleRank = 0;

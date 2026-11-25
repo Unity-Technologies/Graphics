@@ -2,9 +2,8 @@
 #define SG_TERRAIN_PBRGBUFFERPASS_INC
 
 #include "TerrainVert.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/SurfaceType.hlsl"
 
-void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData)
+void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData, bool isSurfaceTypeTransparent)
 {
     inputData = (InputData)0;
 
@@ -13,13 +12,12 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
 
     inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
-    half3 geometricNormalWS;
-    CalculateTerrainNormalWS(input, surfaceDescription, inputData, geometricNormalWS);
+    CalculateTerrainNormalWS(input, surfaceDescription, inputData);
 
     #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
-        inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), geometricNormalWS);
+        inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, isSurfaceTypeTransparent, inputData.geometricNormalWS);
     #else
-        inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), geometricNormalWS) : float4(0, 0, 0, 0);
+        inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, isSurfaceTypeTransparent, inputData.geometricNormalWS) : float4(0, 0, 0, 0);
     #endif
 
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
@@ -94,8 +92,14 @@ GBufferFragOutput frag(PackedVaryings packedInput)
     half alpha = splatWeight;
 #endif
 
+#if defined(_SURFACE_TYPE_TRANSPARENT)
+    bool isSurfaceTypeTransparent = true;
+#else
+    bool isSurfaceTypeTransparent = false;
+#endif
+
     InputData inputData;
-    InitializeInputData(unpacked, surfaceDescription, inputData);
+    InitializeInputData(unpacked, surfaceDescription, inputData, isSurfaceTypeTransparent);
     SETUP_DEBUG_TEXTURE_DATA(inputData, unpacked.texCoord0);
 
     float3 specular = 0;

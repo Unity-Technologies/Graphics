@@ -5,17 +5,22 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     // Fullscreen-quad vertex/varying contract for a filter pass: no per-element mesh fields (clip
     // rect, tint, normal/tangent, packed IDs) like UISubTarget, and no rectIndex like
     // UnityUIEFilter.cginc's FilterVertexInput -- the atlas rect is always read via
-    // unity_uie_UVRect[0] (FilterUVRect.hlsl), never per-vertex.
+    // GetFilterUVRect(0) (UnityUIEFilter.cginc, through FilterShim.hlsl), never per-vertex.
     internal static class FilterStructs
     {
+        // The instanced draw has no vertex buffer: UIEGetFilterVertex builds each quad from SV_VertexID
+        const string kWithoutInstancing = "!defined(UNITY_INSTANCING_ENABLED)";
+        public static FieldDescriptor positionOS = new FieldDescriptor(StructFields.Attributes.name, "positionOS", "", ShaderValueType.Float3, "POSITION", kWithoutInstancing);
+        public static FieldDescriptor uv0 = new FieldDescriptor(StructFields.Attributes.name, "uv0", "", ShaderValueType.Float4, "TEXCOORD0", kWithoutInstancing);
+
         public static StructDescriptor Attributes = new StructDescriptor()
         {
             name = "Attributes",
             packFields = false,
             fields = new FieldDescriptor[]
             {
-                StructFields.Attributes.positionOS,
-                StructFields.Attributes.uv0,
+                positionOS,
+                uv0,
                 StructFields.Attributes.instanceID,
                 StructFields.Attributes.vertexID,
             }

@@ -33,8 +33,8 @@
 
     float2 RemapFoveatedRenderingDensity(float2 uv, bool yFlip = false)
     {
-        // TODO: Implement density look up
-        return uv;
+        // TODO: Implement density look up, default value is not the uv passed through but 1,1 for density is normal.
+        return float2(1.0f, 1.0f);
     }
 
     float2 RemapFoveatedRenderingPrevFrameDensity(float2 uv, bool yFlip = false)

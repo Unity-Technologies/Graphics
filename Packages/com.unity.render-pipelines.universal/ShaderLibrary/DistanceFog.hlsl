@@ -171,7 +171,14 @@ float3 BlendDistanceFogFromEyeDepth(float3 color, float linearEyeDepth)
     return BlendDistanceFogColorFromEyeDepth(color, linearEyeDepth, unity_FogColor.rgb);
 }
 
-URP_LIGHT_ACCUM3 BlendDistanceFogExposed(half3 color, float4 positionCS, float preExposureMultiplier)
+// Blends 'color' with URP's active fog color, scaled by 'preExposureMultiplier'.
+// Blending parameters are derived from fragment coordinates (SV_Position).
+half3 BlendDistanceFogExposed(half3 color, float4 positionCS, float preExposureMultiplier)
+{
+    return BlendDistanceFogColor(color, positionCS, half3(unity_FogColor.rgb * preExposureMultiplier));
+}
+
+float3 BlendDistanceFogExposed(float3 color, float4 positionCS, float preExposureMultiplier)
 {
     return BlendDistanceFogColor(color, positionCS, unity_FogColor.rgb * preExposureMultiplier);
 }

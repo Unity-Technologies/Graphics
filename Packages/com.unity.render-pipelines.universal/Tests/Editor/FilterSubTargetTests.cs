@@ -260,5 +260,66 @@ namespace UnityEngine.Rendering.Universal.Tests
             Assert.IsNotNull(shader, "No Shader asset was produced for a Filter Input node with UV Space = Local.");
             Assert.IsFalse(ShaderUtil.ShaderHasError(shader), "The generated filter shader has compile errors:\n" + string.Join("\n", ShaderUtil.GetShaderMessages(shader).Select(m => m.message)));
         }
+
+#if ENABLE_CORECLR
+        [Explicit("MultiJson-serialized ShaderGraph written to disk fails to reimport on CoreCLR (JSON parse error: The document root must not follow by other values), so no Shader sub-assets are produced, see https://jira.unity3d.com/browse/UUM-150436")]
+#endif
+        [Test]
+        public void UniversalFilterSubTarget_GeneratesCompilingInstancedVariant_ForGraphReadingItsParameters()
+        {
+            // The instancing variant reads the parameters and the rect per instance, and builds the quad without vertex buffer
+            var graph = NewGraphWithActiveSubTarget(typeof(UniversalFilterSubTarget));
+
+            var amount = new Vector1ShaderProperty { displayName = "Amount", generatePropertyBlock = true };
+            graph.AddGraphInput(amount);
+            var tint = new ColorShaderProperty { displayName = "Tint", generatePropertyBlock = true };
+            graph.AddGraphInput(tint);
+            var offset = new Vector2ShaderProperty { displayName = "Offset", generatePropertyBlock = true };
+            graph.AddGraphInput(offset);
+
+            var amountNode = new PropertyNode { property = amount };
+            graph.AddNode(amountNode);
+            var tintNode = new PropertyNode { property = tint };
+            graph.AddNode(tintNode);
+            var offsetNode = new PropertyNode { property = offset };
+            graph.AddNode(offsetNode);
+            var filterInput = new FilterInputNode { uvSpace = FilterUVSpace.Local };
+            graph.AddNode(filterInput);
+            var multiply = new MultiplyNode();
+            graph.AddNode(multiply);
+            var scaledOffset = new MultiplyNode();
+            graph.AddNode(scaledOffset);
+
+            var baseColorBlock = new BlockNode();
+            baseColorBlock.Init(BlockFields.SurfaceDescription.BaseColor);
+            graph.AddBlock(baseColorBlock, graph.fragmentContext, graph.fragmentContext.blocks.Count);
+            var alphaBlock = new BlockNode();
+            alphaBlock.Init(BlockFields.SurfaceDescription.Alpha);
+            graph.AddBlock(alphaBlock, graph.fragmentContext, graph.fragmentContext.blocks.Count);
+
+            graph.Connect(filterInput.GetSlotReference(1), multiply.GetSlotReference(0));
+            graph.Connect(tintNode.GetSlotReference(PropertyNode.OutputSlotId), multiply.GetSlotReference(1));
+            graph.Connect(multiply.GetSlotReference(2), baseColorBlock.GetSlotReference(0));
+            graph.Connect(amountNode.GetSlotReference(PropertyNode.OutputSlotId), scaledOffset.GetSlotReference(0));
+            graph.Connect(offsetNode.GetSlotReference(PropertyNode.OutputSlotId), scaledOffset.GetSlotReference(1));
+            graph.Connect(scaledOffset.GetSlotReference(2), alphaBlock.GetSlotReference(0));
+            graph.ValidateGraph();
+
+            var path = AssetDatabase.GenerateUniqueAssetPath(kTestAssetPath);
+            m_GeneratedAssetPath = path;
+            FileUtilities.WriteShaderGraphToDisk(path, graph);
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate | ImportAssetOptions.DontDownloadFromCacheServer);
+
+            var shader = AssetDatabase.LoadAllAssetsAtPath(path).OfType<Shader>().FirstOrDefault();
+            Assert.IsNotNull(shader, "No Shader asset was produced for a filter graph reading its parameters.");
+            Assert.IsFalse(ShaderUtil.ShaderHasError(shader), "The generated filter shader has compile errors:\n" + string.Join("\n", ShaderUtil.GetShaderMessages(shader).Select(m => m.message)));
+
+            var pass = ShaderUtil.GetShaderData(shader).GetSubshader(0).GetPass(0);
+            foreach (var stage in new[] { UnityEditor.Rendering.ShaderType.Vertex, UnityEditor.Rendering.ShaderType.Fragment })
+            {
+                var result = pass.CompileVariant(stage, new[] { "INSTANCING_ON" }, UnityEditor.Rendering.ShaderCompilerPlatform.D3D, BuildTarget.StandaloneWindows64);
+                Assert.IsTrue(result.Success, $"The {stage} stage of the instancing variant has compile errors:\n" + string.Join("\n", result.Messages.Select(m => m.message)));
+            }
+        }
     }
 }

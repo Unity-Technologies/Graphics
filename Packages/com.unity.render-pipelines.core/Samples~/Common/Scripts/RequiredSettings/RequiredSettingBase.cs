@@ -79,10 +79,10 @@ namespace UnityEngine.Rendering
                 if (!string.IsNullOrEmpty(globalSettingsType))
 				{
                     var type = Type.GetType(globalSettingsType);
-                    var field = type.GetField(propertyPath, BindingFlags.NonPublic | BindingFlags.Instance);
+                    var fieldInfo = type.GetField(propertyPath, BindingFlags.NonPublic | BindingFlags.Instance);
                     var getSettings = typeof(GraphicsSettings).GetMethod("GetRenderPipelineSettings").MakeGenericMethod(type);
                     object settings = getSettings.Invoke(null, null);
-                    return (bool)field.GetValue(settings);
+                    return (bool)fieldInfo.GetValue(settings);
 				}
 
                 if (property == null)

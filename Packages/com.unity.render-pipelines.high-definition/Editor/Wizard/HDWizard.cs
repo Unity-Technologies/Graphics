@@ -110,11 +110,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 label: L10n.Tr("Legacy VR System", null),
                 error: L10n.Tr("Legacy VR System need to be disabled in Player Settings!", null));
             public static readonly ConfigStyle vrXRManagementPackage = new ConfigStyle(
-                label: L10n.Tr("XR Management Package", null),
-                error: L10n.Tr("XR Management Package is required to run in VR!", null));
+                label: L10n.Tr("XR Foundation Package", null),
+                error: L10n.Tr("XR Foundation Package is required to run in VR!", null));
             public static readonly ConfigStyle vrXRManagementPackageInstalled = new ConfigStyle(
                 label: L10n.Tr("Package Installed", null),
-                error: L10n.Tr("Last version of XR Management Package must be added in your project!", null));
+                error: L10n.Tr("Last version of XR Foundation Package must be added in your project!", null));
             public static readonly ConfigStyle vrOculusPlugin = new ConfigStyle(
                 label: L10n.Tr("Oculus Plugin", null),
                 error: L10n.Tr("Oculus Plugin must installed manually.\nGo in Edit > Project Settings > XR Plugin Manager and add Oculus XR Plugin.\n(This can't be verified by the Wizard)", null),

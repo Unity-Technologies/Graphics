@@ -58,6 +58,8 @@ namespace UnityEngine.Rendering
                 CoreUtils.Destroy(component.Value);
 
             components.Clear();
+            m_OverridingVolumes.Clear();
+            m_Contributions.Clear();
 
             parameters = null;
         }
@@ -121,6 +123,16 @@ namespace UnityEngine.Rendering
         internal void SetOverridingVolume(Type type, Volume volume) => m_OverridingVolumes[type] = volume;
 
         internal void ClearOverridingVolumes() => m_OverridingVolumes.Clear();
+
+        // Volumes blended into this stack by the last Update, in blend order, with their interpolation factor.
+        // Only filled when VolumeManager.recordVolumeContributions is enabled.
+        readonly List<(Volume volume, float weight)> m_Contributions = new();
+
+        internal IReadOnlyList<(Volume volume, float weight)> contributions => m_Contributions;
+
+        internal void AddContribution(Volume volume, float weight) => m_Contributions.Add((volume, weight));
+
+        internal void ClearContributions() => m_Contributions.Clear();
 
         /// <summary>
         /// Cleans up the content of this stack. Once a <c>VolumeStack</c> is disposed, it shouldn't

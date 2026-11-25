@@ -34,7 +34,7 @@ The Visual Effect Graph package comes with the following built-in property binde
 * Utility:
   * **Light**: Binds Light Properties (Color, Brightness, Radius) to exposed properties.
   * **Plane**: Binds Plane Properties (Position, Normal) to exposed properties.
-  * **Terrain**: Binds Terrain Properties (Size, Height Map) to exposed properties.
+  * **Terrain**: Binds Terrain Properties (Position, Size, Height Map) to exposed properties.
 * Transform:
   * **Position**: Binds game object position to vector exposed property. In the binder, you need to add "*_position*" at the end of your property name for it to work as espected.
   * **Position (previous)**: Binds previous game object position to vector exposed property.

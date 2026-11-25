@@ -6,6 +6,22 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.PathTracing.Core
 {
+    internal readonly struct AtlasUsage
+    {
+        public readonly int UsedSliceCount;
+        public readonly int CapacitySliceCount;
+        public readonly int MaxSliceCount;
+        public readonly long AllocatedBytes;
+
+        public AtlasUsage(int usedSliceCount, int capacitySliceCount, int maxSliceCount, long allocatedBytes)
+        {
+            UsedSliceCount = usedSliceCount;
+            CapacitySliceCount = capacitySliceCount;
+            MaxSliceCount = maxSliceCount;
+            AllocatedBytes = allocatedBytes;
+        }
+    }
+
     // Container type that stores a set of arbitrarily sized textures in a 2D texture array,
     // where each slice is a quadtree. Supports add/update/remove operations.
     internal class TextureSlotAllocator : IDisposable
@@ -28,6 +44,8 @@ namespace UnityEngine.PathTracing.Core
         private readonly int _size;
         private readonly GraphicsFormat _format;
         private readonly FilterMode _filterMode;
+        private readonly int _maxSliceCount;
+        private readonly long _bytesPerPixel;
         private readonly CommandBuffer _cmd;
         private RenderTexture _atlases;
 
@@ -42,17 +60,21 @@ namespace UnityEngine.PathTracing.Core
 
         public RenderTexture Texture => _atlases;
 
-        public TextureSlotAllocator(int size, GraphicsFormat format, FilterMode filterMode)
+        public TextureSlotAllocator(int size, GraphicsFormat format, FilterMode filterMode, int maxSliceCount)
         {
+            Debug.Assert(maxSliceCount > 0, "The atlas must allow at least one slice.");
             _size = size;
             _format = format;
             _filterMode = filterMode;
+            _maxSliceCount = maxSliceCount;
+            _bytesPerPixel = GraphicsFormatUtility.GetBlockSize(format);
             _cmd = new CommandBuffer();
             _cmd.name = $"Texture Slot Allocator ({size}, {format})";
 
             // Initial allocation, in order to have a texture atlas in place even if we don't add anything to it.
             // Note: This is required when binding the textures to ray tracing shaders (compute shaders seem to be OK with null textures)
-            ResizeAtlas(1);
+            bool created = TryResizeAtlas(1);
+            Debug.Assert(created, "Failed to create the initial texture atlas slice.");
         }
 
         public TextureLocation AddTexture(Texture texture, Vector2 scale, Vector2 offset)
@@ -65,7 +87,7 @@ namespace UnityEngine.PathTracing.Core
             TextureQuadTree atlas = null;
             foreach (int freeIndex in _freeAtlases)
             {
-                if (_textureQuadTrees[freeIndex].HasSpaceForTexture(size))
+                if (_textureQuadTrees[freeIndex].HasSpaceForTexture(GetNodeSize(size)))
                 {
                     atlasIndex = freeIndex;
                     atlas = _textureQuadTrees[atlasIndex];
@@ -76,12 +98,18 @@ namespace UnityEngine.PathTracing.Core
             // If we couldn't find one, create a new atlas
             if (atlasIndex == -1 || atlas == null)
             {
+                int used = _textureQuadTrees.Length;
+                if (used >= _maxSliceCount)
+                    return TextureLocation.Invalid;
+
+                if (used == _atlases.volumeDepth && !TryGrowAtlas(used))
+                    return TextureLocation.Invalid;
+
                 // Create a new atlas
-                atlasIndex = _textureQuadTrees.Length;
+                atlasIndex = used;
                 Array.Resize(ref _textureQuadTrees, atlasIndex + 1);
                 atlas = new TextureQuadTree(_size);
                 _textureQuadTrees[atlasIndex] = atlas;
-                ResizeAtlas(atlasIndex + 1);
 
                 // Add it to the free list
                 _freeAtlases.Add(atlasIndex);
@@ -158,7 +186,27 @@ namespace UnityEngine.PathTracing.Core
             offset = new Vector2(location.TextureNode.PosX / (float)_size, location.TextureNode.PosY / (float)_size);
         }
 
-        private void ResizeAtlas(int sliceCount)
+        internal int GetNodeSize(int textureSize) => Mathf.Min(Mathf.NextPowerOfTwo(textureSize), _size);
+
+        internal AtlasUsage GetUsage()
+        {
+            int capacity = _atlases != null ? _atlases.volumeDepth : 0;
+            int used = 0;
+            foreach (var quadTree in _textureQuadTrees)
+            {
+                if (!quadTree.IsEmpty)
+                    used++;
+            }
+            return new AtlasUsage(used, capacity, _maxSliceCount, capacity * (long)_size * _size * _bytesPerPixel);
+        }
+
+        private bool TryGrowAtlas(int usedSliceCount)
+        {
+            int doubled = Mathf.Min(usedSliceCount * 2, _maxSliceCount);
+            return TryResizeAtlas(doubled) || (doubled > usedSliceCount + 1 && TryResizeAtlas(usedSliceCount + 1));
+        }
+
+        private bool TryResizeAtlas(int sliceCount)
         {
             // Create new atlas array
             var texture = new RenderTexture(new RenderTextureDescriptor(_size, _size)
@@ -179,23 +227,26 @@ namespace UnityEngine.PathTracing.Core
                 wrapModeV = TextureWrapMode.Clamp,
                 filterMode = _filterMode,
             };
-            texture.Create();
+            if (!texture.Create())
+            {
+                CoreUtils.Destroy(texture);
+                return false;
+            }
 
             if (_atlases != null)
             {
-                var previousRT = RenderTexture.active;
-                // Blit old atlases into new one
-                for (int i = 0; i < Mathf.Min(sliceCount, _atlases.volumeDepth); i++)
-                {
-                    Graphics.Blit(_atlases, texture, i, i);
-                }
-                RenderTexture.active = previousRT;
-                // Release old atlases
+                int copyCount = Mathf.Min(sliceCount, _textureQuadTrees.Length);
+                for (int i = 0; i < copyCount; i++)
+                    _cmd.CopyTexture(_atlases, i, texture, i);
+                Graphics.ExecuteCommandBuffer(_cmd);
+                _cmd.Clear();
+
                 _atlases.Release();
                 CoreUtils.Destroy(_atlases);
             }
 
             _atlases = texture;
+            return true;
         }
 
         public void Dispose()

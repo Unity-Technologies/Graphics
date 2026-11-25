@@ -42,7 +42,11 @@ The Additional Lights sub graphs compute the lighting contributions of the addit
 | :--- | :--- |
 | **LightBasic** | Computes very simple lighting and leaves out most lighting features in order to render as fast as possible. It calculates simple diffuse lighting and a simple form of ambient lighting. It does not support fog, reflections, specular, light cookies, or any other lighting features. But it does render fast and is ideal for low-end mobile devices and XR headsets. |
 | **LightColorize** | Example of the type of custom behavior you can create when you can control the lighting model. The main directional light renders the scene in grayscale with no color. Color is introduced with point lights so you can control where the scene has color based on where you place the point lights in the scene. |
-| **LightSimple** | Same as the URP lighting model, except it uses the Blinn formula for the specular highlights. This makes it slightly cheaper to render than standard URP while looking fairly similar. If you still need all of the lighting features (specular, fog, screen space ambient occlusion, reflections, etc), but you want to make the lighting cheaper, this may be a good choice. |
+| **LightCookTorrance** | Combines Lambert diffuse lighting and Cook-Torrance specular highlights with URP ambient lighting, reflections, and fog. It calculates lighting from the main light only. |
+| **LightNoir** | Computes simple diffuse lighting from the main and additional lights, plus basic ambient lighting. It then removes all color, increases the contrast, and remaps the result through a gradient to create a high-contrast black-and-white look, similar to film noir. |
+| **LightOrenNayar** | Combines Oren-Nayar diffuse lighting with URP ambient lighting, reflections, and fog. It doesn't calculate specular highlights. It calculates lighting from the main light only. |
+| **LightSimple** | Same as the URP lighting model, except it uses the Blinn formula for the specular highlights. The Blinn formula makes it slightly cheaper to render than standard URP while looking fairly similar. If you need the full set of lighting features, including specular, fog, screen space ambient occlusion, and reflections, but want cheaper lighting, use this lighting model. |
+| **LightStylized** | Combines custom-gradient diffuse lighting, stylized specular highlights, and stylized ambient lighting with fog, for an illustrative look. Use the **Specular** and **Exponent** inputs to control the highlights. It calculates lighting from the main light only. |
 | **LightToon** | Uses a Posterize operation to break the smooth lighting gradient into distinct bands of shading. It simulates the look of cartoons where lighting is rendered with distinct colors of paint rather than smooth gradients. |
 | **LightURP** | Closely matches the lighting that the Universal Render Pipeline does by default. If you want to start with the URP lighting and then alter it, this is the node to use. |
 
@@ -60,7 +64,7 @@ The Additional Lights sub graphs compute the lighting contributions of the addit
 | **DiffuseCustomGradient** | Uses an input texture gradient instead of a dot product calculation to generate the lighting gradient. This allows you to paint the lighting as you see fit. |
 | **DiffuseHalfLambert** | Uses a Half Lambert formula that creates a lighting gradient that goes from 0 to 1 from the dark side to the bright side of the model. Because the gradient wraps all the way around the model instead of just halfway (as realistic lighting does), it has a softer, more stylized look. |
 | **DiffuseLambert** | Creates standard diffuse lighting using the dot product between the surface normal and the light vector. If the two vectors are pointing in the same direction, the surface has a diffuse value of 1. If the two vectors are perpendicular, the surface has a value of 0. The dark side of the model (facing away from the light) is clamped so that the result is also 0. |
-| **DiffuseOrenNayar** | Uses the Oren Nayar lighting formula which simulates the lighting response of a rough surface like clay or plaster. The math used by this formula is quite expensive when you compare it with the subtle results that it provides, so you may find it sufficient to just use DiffuseLambert instead. |
+| **DiffuseOrenNayar** | Uses the Oren-Nayar lighting formula which simulates the lighting response of a rough surface like clay or plaster. The math used by this formula is quite expensive when you compare it with the subtle results that it provides, so you may find it sufficient to just use DiffuseLambert instead. |
 
 ## Reflectance
 
@@ -74,10 +78,20 @@ The Additional Lights sub graphs compute the lighting contributions of the addit
 | **Sub graph** | **Description** |
 | :--- | :--- |
 | **SpecularBlinn** | Calculates specular highlights using the Blinn formula. It’s cheaper than a more modern/realistic formula. |
-| **SpecularCookTorrance** | Calculates specular highlights using the Cook Torrance formula. This method creates specular highlights that work well for brushed metal surfaces. |
+| **SpecularCookTorrence** | Calculates specular highlights using the Cook-Torrance formula. This method creates specular highlights that work well for brushed metal surfaces. |
 | **SpecularPBR** | Calculates specular highlights using the GGX formula, which is popular in modern PBR lighting models. |
 | **SpecularStylized** | Calculates specular highlights in a less realistic, more stylized way. This specular works better for an illustrative style. |
 | **SpecularURP** | Calculates specular highlights using the same formula as the lighting that the Universal Render Pipeline uses. |
+
+## Specular terms
+
+These sub graphs calculate the individual terms of the specular model that the **SpecularPBR** sub graph uses. They're available in the **Create Node** menu under **Lighting** > **Components** > **Specular** > **PBR**.
+
+| **Sub graph** | **Description** |
+| :--- | :--- |
+| **NormalDistributionTrowReitz** | Calculates the normal distribution term using the Trowbridge-Reitz (GGX) formula. The normal distribution term is the proportion of the surface's microfacets (the tiny details that make up a surface) that face the right way to reflect light toward the viewer. It takes the **roughSqr** (roughness squared) and **NdotH** (dot product of the normal and the half angle) inputs. |
+| **SchlickFresnelReflectance** | Calculates the Fresnel term using Schlick's approximation. The Fresnel term is the percentage of incoming light that the surface reflects, which increases when you view the surface at a shallow angle. It takes the **viewDir**, **halfAngle**, and **Reflectance** inputs. The default **Reflectance** value is 0.04. |
+| **SmithGGXGeometryTerm** | Calculates the geometry term using the Smith GGX formula. The geometry term measures how much the surface's microfacets shadow and mask each other. It takes the **roughSqr** (roughness squared), **nDotL** (dot product of the normal and the light direction), and **nDotV** (dot product of the normal and the view direction) inputs. |
 
 ## Additional resources
 

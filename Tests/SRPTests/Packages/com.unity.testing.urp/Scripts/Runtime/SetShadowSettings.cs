@@ -10,6 +10,11 @@ public class SetShadowSettings : SetQualityCallbackObject
     public ShadowSettings shadowSettings;
     private ShadowSettings prevShadowSettings;
 
+    private UniversalRenderPipelineAsset m_ChangedAsset;
+    private VolumeProfile m_CreatedProfile;
+    private ShadowsVolumeOverride m_AddedOverride;
+    private ShadowsVolumeOverride m_PrevOverride;
+
     [Serializable]
     public struct ShadowSettings
     {
@@ -29,7 +34,7 @@ public class SetShadowSettings : SetQualityCallbackObject
         if (!getActiveSettings)
             return;
 
-        GetShadowSettingsFromAsset(QualitySettings.GetQualityLevel(), ref shadowSettings);
+        GetShadowSettingsFromAsset(GetURPAsset(QualitySettings.GetQualityLevel()), ref shadowSettings);
         getActiveSettings = false;
     }
 
@@ -39,17 +44,21 @@ public class SetShadowSettings : SetQualityCallbackObject
             return;
 
         // Store the settings in the URP Asset that will be used, which will be used to revert once the test finishes
-        GetShadowSettingsFromAsset(newQualityLevelIndex, ref prevShadowSettings);
-        UpdateShadowSettingsInURPAsset(newQualityLevelIndex, ref shadowSettings);
+        m_ChangedAsset = GetURPAsset(newQualityLevelIndex);
+        GetShadowSettingsFromAsset(m_ChangedAsset, ref prevShadowSettings);
+        UpdateShadowmapResolutions(m_ChangedAsset, ref shadowSettings);
+        OverrideShadowSettingsInQualityProfile(m_ChangedAsset, ref shadowSettings);
     }
 
     public override void BeforeRevertingQualityLevel(int prevQualityLevelIndex, int newQualityLevelIndex)
     {
-        if (!CheckIfNextQualityLevelIsValid(newQualityLevelIndex))
+        if (m_ChangedAsset == null)
             return;
 
         // Revert the shadow changes made previously...
-        UpdateShadowSettingsInURPAsset(newQualityLevelIndex, ref prevShadowSettings);
+        UpdateShadowmapResolutions(m_ChangedAsset, ref prevShadowSettings);
+        RevertQualityProfile(m_ChangedAsset);
+        m_ChangedAsset = null;
     }
 
     private bool CheckIfNextQualityLevelIsValid(int newQualityLevelIndex)
@@ -64,35 +73,129 @@ public class SetShadowSettings : SetQualityCallbackObject
         return true;
     }
 
-    private void GetShadowSettingsFromAsset(int qualityLevel, ref ShadowSettings settings)
+    private static UniversalRenderPipelineAsset GetURPAsset(int qualityLevel)
     {
-        RenderPipelineAsset asset = QualitySettings.GetRenderPipelineAssetAt(qualityLevel);
-        UniversalRenderPipelineAsset urpAsset = (UniversalRenderPipelineAsset)asset;
+        return (UniversalRenderPipelineAsset)QualitySettings.GetRenderPipelineAssetAt(qualityLevel);
+    }
 
+    private static void GetShadowSettingsFromAsset(UniversalRenderPipelineAsset urpAsset, ref ShadowSettings settings)
+    {
         Enum.TryParse($"{urpAsset.mainLightShadowmapResolution}", true, out ShadowResolution mainLightResolution);
         Enum.TryParse($"{urpAsset.additionalLightsShadowmapResolution}", true, out ShadowResolution additionalLightShadowmapResolution);
         settings.mainLightShadowmapResolution = mainLightResolution;
         settings.additionalLightShadowmapResolution = additionalLightShadowmapResolution;
-        settings.shadowCascadeCount = urpAsset.shadowCascadeCount;
-        settings.cascade2Split = urpAsset.cascade2Split;
-        settings.cascade3Split = urpAsset.cascade3Split;
-        settings.cascade4Split = urpAsset.cascade4Split;
-        settings.cascadeBorder = urpAsset.cascadeBorder;
-        settings.shadowDistance = urpAsset.shadowDistance;
+
+        ShadowsVolumeOverride profileOverride = null;
+        bool hasOverride = urpAsset.volumeProfile != null && urpAsset.volumeProfile.TryGet(out profileOverride);
+        var shadows = hasOverride ? profileOverride : ScriptableObject.CreateInstance<ShadowsVolumeOverride>();
+
+        float split0 = shadows.cascadeSplit0.value;
+        float split1 = shadows.cascadeSplit1.value;
+        settings.shadowCascadeCount = shadows.cascadeCount.value;
+        settings.cascade2Split = split0;
+        settings.cascade3Split = new Vector2(split0, split1);
+        settings.cascade4Split = new Vector3(split0, split1, shadows.cascadeSplit2.value);
+        settings.cascadeBorder = shadows.lastCascadeBorder.value;
+        settings.shadowDistance = shadows.maxShadowDistance.value;
+
+        if (!hasOverride)
+            CoreUtils.Destroy(shadows);
     }
 
-    private void UpdateShadowSettingsInURPAsset(int qualityLevel, ref ShadowSettings settings)
+    private static void UpdateShadowmapResolutions(UniversalRenderPipelineAsset urpAsset, ref ShadowSettings settings)
     {
-        RenderPipelineAsset asset = QualitySettings.GetRenderPipelineAssetAt(qualityLevel);
-        UniversalRenderPipelineAsset urpAsset = (UniversalRenderPipelineAsset)asset;
-
         urpAsset.mainLightShadowmapResolution = (int) settings.mainLightShadowmapResolution;
         urpAsset.additionalLightsShadowmapResolution = (int) settings.additionalLightShadowmapResolution;
-        urpAsset.shadowCascadeCount = settings.shadowCascadeCount;
-        urpAsset.cascade2Split = settings.cascade2Split;
-        urpAsset.cascade3Split = settings.cascade3Split;
-        urpAsset.cascade4Split = settings.cascade4Split;
-        urpAsset.cascadeBorder = settings.cascadeBorder;
-        urpAsset.shadowDistance = settings.shadowDistance;
+    }
+
+    private void OverrideShadowSettingsInQualityProfile(UniversalRenderPipelineAsset urpAsset, ref ShadowSettings settings)
+    {
+        var profile = urpAsset.volumeProfile;
+        bool notify = IsUsedByVolumeManager(urpAsset, profile);
+        if (profile == null)
+        {
+            m_CreatedProfile = ScriptableObject.CreateInstance<VolumeProfile>();
+            urpAsset.volumeProfile = m_CreatedProfile;
+            profile = m_CreatedProfile;
+        }
+
+        if (profile.TryGet(out ShadowsVolumeOverride shadows))
+        {
+            m_PrevOverride = Instantiate(shadows);
+        }
+        else
+        {
+            shadows = profile.Add<ShadowsVolumeOverride>();
+            m_AddedOverride = shadows;
+        }
+
+        int cascadeCount = settings.shadowCascadeCount;
+        Vector3 splits = settings.cascade4Split;
+        if (cascadeCount == 2)
+            splits.x = settings.cascade2Split;
+        else if (cascadeCount == 3)
+            splits = new Vector3(settings.cascade3Split.x, settings.cascade3Split.y, splits.z);
+
+        shadows.SetAllOverridesTo(true);
+        shadows.maxShadowDistance.value = settings.shadowDistance;
+        shadows.cascadeCount.value = cascadeCount;
+        shadows.cascadeSplit0.value = splits.x;
+        shadows.cascadeSplit1.value = splits.y;
+        shadows.cascadeSplit2.value = splits.z;
+        shadows.lastCascadeBorder.value = settings.cascadeBorder;
+
+        if (notify)
+            VolumeManager.instance.SetQualityDefaultProfile(profile);
+    }
+
+    private void RevertQualityProfile(UniversalRenderPipelineAsset urpAsset)
+    {
+        var profile = urpAsset.volumeProfile;
+        bool notify = IsUsedByVolumeManager(urpAsset, profile);
+
+        if (m_PrevOverride != null)
+        {
+            if (profile.TryGet(out ShadowsVolumeOverride shadows))
+            {
+                for (int i = 0; i < shadows.parameters.Count; i++)
+                {
+                    shadows.parameters[i].SetValue(m_PrevOverride.parameters[i]);
+                    shadows.parameters[i].overrideState = m_PrevOverride.parameters[i].overrideState;
+                }
+            }
+
+            CoreUtils.Destroy(m_PrevOverride);
+            m_PrevOverride = null;
+        }
+
+        if (m_AddedOverride != null)
+            profile.Remove<ShadowsVolumeOverride>();
+
+        if (m_CreatedProfile != null)
+            urpAsset.volumeProfile = null;
+
+        if (notify)
+            VolumeManager.instance.SetQualityDefaultProfile(urpAsset.volumeProfile);
+
+        if (m_AddedOverride != null)
+        {
+            CoreUtils.Destroy(m_AddedOverride);
+            m_AddedOverride = null;
+        }
+
+        if (m_CreatedProfile != null)
+        {
+            CoreUtils.Destroy(m_CreatedProfile);
+            m_CreatedProfile = null;
+        }
+    }
+
+    private static bool IsUsedByVolumeManager(UniversalRenderPipelineAsset urpAsset, VolumeProfile profile)
+    {
+        if (!VolumeManager.instance.isInitialized)
+            return false;
+
+        return GraphicsSettings.currentRenderPipeline == urpAsset
+            || (profile != null && VolumeManager.instance.qualityDefaultProfile == profile);
     }
 }

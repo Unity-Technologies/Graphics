@@ -161,7 +161,7 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
 {
     // Abstraction over Light input constants
     float4 lightPositionWS = _AdditionalLightsPosition[perObjectLightIndex];
-    half3 color = _AdditionalLightsColor[perObjectLightIndex].rgb;
+    URP_LIGHT_ACCUM3 color = _AdditionalLightsColor[perObjectLightIndex].rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsAttenuation[perObjectLightIndex];
     half4 spotDirection = _AdditionalLightsSpotDir[perObjectLightIndex];
     uint lightLayerMask = asuint(_AdditionalLightsLayerMasks[perObjectLightIndex]);
@@ -255,9 +255,14 @@ Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask, bool recei
     return GetAdditionalLight(i, positionWS, shadowMask, receiveShadows, normalWS, INVALID_SHADOW_SCREEN_POS, false);
 }
 
-Light GetAdditionalLight(uint i, InputData inputData, half4 shadowMask, AmbientOcclusionFactor aoFactor, bool receiveShadows, bool isSurfaceTypeTransparent, float3 geometricNormalWS)
+Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask, bool receiveShadows)
 {
-    Light light = GetAdditionalLight(i, inputData.positionWS, shadowMask, receiveShadows, geometricNormalWS, inputData.positionCS.xy, true);
+    return GetAdditionalLight(i, positionWS, shadowMask, receiveShadows, float3(0.0, 0.0, 0.0));
+}
+
+Light GetAdditionalLight(uint i, InputData inputData, half4 shadowMask, AmbientOcclusionFactor aoFactor, bool receiveShadows, bool isSurfaceTypeTransparent)
+{
+    Light light = GetAdditionalLight(i, inputData.positionWS, shadowMask, receiveShadows, inputData.geometricNormalWS, inputData.positionCS.xy, true);
 
     if (!isSurfaceTypeTransparent && ScreenSpaceOcclusionAvailable() && IsLightingFeatureEnabled(DEBUGLIGHTINGFEATUREFLAGS_AMBIENT_OCCLUSION))
     {

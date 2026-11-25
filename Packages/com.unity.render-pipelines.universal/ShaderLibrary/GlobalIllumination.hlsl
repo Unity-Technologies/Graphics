@@ -379,15 +379,23 @@ float CalculateProbeWeight(float3 positionWS, float4 probeBoxMin, float4 probeBo
     return saturate(min(weightDir.x, min(weightDir.y, weightDir.z)));
 }
 
+// Per-object probes carry their capture exposure (EV) in the decode bias (z).
+// 2^EV leaves fp16 range past 15 EV, so it is evaluated and applied in float.
+URP_LIGHT_ACCUM3 DecodeExposedProbe(half4 encodedIrradiance, real4 decodeInstructions)
+{
+    float exposureMultiplier = SelectProbeExposureMultiplier(exp2((float)decodeInstructions.z));
+    return exposureMultiplier * DecodeHDREnvironment(encodedIrradiance, decodeInstructions);
+}
+
 half CalculateProbeVolumeSqrMagnitude(float4 probeBoxMin, float4 probeBoxMax)
 {
     half3 maxToMin = half3(probeBoxMax.xyz - probeBoxMin.xyz);
     return dot(maxToMin, maxToMin);
 }
 
-half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, float3 positionWS, half perceptualRoughness, float2 normalizedScreenSpaceUV)
+URP_LIGHT_ACCUM3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, float3 positionWS, half perceptualRoughness, float2 normalizedScreenSpaceUV)
 {
-    half3 irradiance = half3(0.0h, 0.0h, 0.0h);
+    URP_LIGHT_ACCUM3 irradiance = URP_LIGHT_ACCUM3(0.0h, 0.0h, 0.0h);
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
 
 #if USE_CLUSTER_LIGHT_LOOP && CLUSTER_HAS_REFLECTION_PROBES
@@ -435,7 +443,7 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, float3 positi
         float4 scaleOffset0 = urp_ReflProbes_MipScaleOffset[probeIndex * 7 + (uint)mip0];
         float4 scaleOffset1 = urp_ReflProbes_MipScaleOffset[probeIndex * 7 + (uint)mip1];
 
-        float preExposure = urp_ReflProbes_ExposureMultipliers[probeIndex].x;
+        float preExposure = SelectProbeExposureMultiplier(urp_ReflProbes_ExposureMultipliers[probeIndex].x);
         half3 irradiance0 = half4(SAMPLE_TEXTURE2D_LOD(urp_ReflProbes_Atlas, sampler_LinearClamp, uv * scaleOffset0.xy + scaleOffset0.zw, 0.0)).rgb;
         half3 irradiance1 = half4(SAMPLE_TEXTURE2D_LOD(urp_ReflProbes_Atlas, sampler_LinearClamp, uv * scaleOffset1.xy + scaleOffset1.zw, 0.0)).rgb;
         irradiance += preExposure * weight * lerp(irradiance0, irradiance1, mipBlend);
@@ -501,7 +509,7 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, float3 positi
 
         half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector0, mip));
 
-        irradiance += weightProbe0 * SelectProbeExposureMultiplier(unity_SpecCube0_Exposure.x) * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
+        irradiance += weightProbe0 * DecodeExposedProbe(encodedIrradiance, unity_SpecCube0_HDR);
     }
 
     // Sample the second reflection probe
@@ -517,7 +525,7 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, float3 positi
         }
         half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube1, samplerunity_SpecCube1, reflectVector1, mip));
 
-        irradiance += weightProbe1 * SelectProbeExposureMultiplier(unity_SpecCube1_Exposure.x) * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube1_HDR);
+        irradiance += weightProbe1 * DecodeExposedProbe(encodedIrradiance, unity_SpecCube1_HDR);
     }
 #endif
 
@@ -532,14 +540,14 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, float3 positi
     return irradiance;
 }
 
-half3 GlossyEnvironmentReflection(half3 reflectVector, float3 positionWS, half perceptualRoughness, half occlusion, float2 normalizedScreenSpaceUV, bool useEnvironmentReflections)
+URP_LIGHT_ACCUM3 GlossyEnvironmentReflection(half3 reflectVector, float3 positionWS, half perceptualRoughness, half occlusion, float2 normalizedScreenSpaceUV, bool useEnvironmentReflections)
 {
-    half3 irradiance = half3(0, 0, 0);
+    URP_LIGHT_ACCUM3 irradiance = 0;
 
     #if defined(_SCREENSPACEREFLECTIONS_OFF)
-    half4 ssrColor = 0;
+    URP_LIGHT_ACCUM4 ssrColor = 0;
     #else
-    half4 ssrColor = GetScreenSpaceReflection(normalizedScreenSpaceUV, positionWS, perceptualRoughness);
+    URP_LIGHT_ACCUM4 ssrColor = GetScreenSpaceReflection(normalizedScreenSpaceUV, positionWS, perceptualRoughness);
     // The SSR texture is resolved from the pre-exposed camera color; undo that, as lighting inputs are un-exposed.
     ssrColor.rgb *= GetInvPreExposureMultiplier();
     #endif
@@ -580,7 +588,7 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, float3 positionWS, half p
             half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
             half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip));
 
-            irradiance = SelectProbeExposureMultiplier(unity_SpecCube0_Exposure.x) * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
+            irradiance = DecodeExposedProbe(encodedIrradiance, unity_SpecCube0_HDR);
         }
     }
 
@@ -590,22 +598,22 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, float3 positionWS, half p
 }
 
 #if !USE_CLUSTER_LIGHT_LOOP
-half3 GlossyEnvironmentReflection(half3 reflectVector, float3 positionWS, half perceptualRoughness, half occlusion, bool useEnvironmentReflections)
+URP_LIGHT_ACCUM3 GlossyEnvironmentReflection(half3 reflectVector, float3 positionWS, half perceptualRoughness, half occlusion, bool useEnvironmentReflections)
 {
     return GlossyEnvironmentReflection(reflectVector, positionWS, perceptualRoughness, occlusion, float2(0.0f, 0.0f), useEnvironmentReflections);
 }
 #endif
 
-half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness, half occlusion, bool useEnvironmentReflections)
+URP_LIGHT_ACCUM3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness, half occlusion, bool useEnvironmentReflections)
 {
-    half3 irradiance = _GlossyEnvironmentColor.rgb;
+    URP_LIGHT_ACCUM3 irradiance = _GlossyEnvironmentColor.rgb;
 
     if (useEnvironmentReflections)
     {
         half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
         half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip));
 
-        irradiance = SelectProbeExposureMultiplier(unity_SpecCube0_Exposure.x) * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
+        irradiance = DecodeExposedProbe(encodedIrradiance, unity_SpecCube0_HDR);
     }
 
     return irradiance * occlusion;
@@ -627,8 +635,8 @@ URP_LIGHT_ACCUM3 SubtractDirectMainLightFromLightmap(Light mainLight, half3 norm
     // We only subtract the main direction light. This is accounted in the contribution term below.
     half shadowStrength = GetMainLightShadowStrength();
     half contributionTerm = saturate(dot(mainLight.direction, normalWS));
-    half3 lambert = mainLight.color * contributionTerm;
-    half3 estimatedLightContributionMaskedByInverseOfShadow = lambert * (1.0 - mainLight.shadowAttenuation);
+    URP_LIGHT_ACCUM3 lambert = mainLight.color * contributionTerm;
+    URP_LIGHT_ACCUM3 estimatedLightContributionMaskedByInverseOfShadow = lambert * (1.0 - mainLight.shadowAttenuation);
     URP_LIGHT_ACCUM3 subtractedLightmap = bakedGI - estimatedLightContributionMaskedByInverseOfShadow;
 
     // 2) Allows user to define overall ambient of the scene and control situation when realtime shadow becomes too dark.
@@ -659,7 +667,7 @@ URP_LIGHT_ACCUM3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoa
     half fresnelTerm = Pow4(1.0 - NoV);
 
     URP_LIGHT_ACCUM3 indirectDiffuse = bakedGI;
-    half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, positionWS, brdfData.perceptualRoughness, 1.0h, normalizedScreenSpaceUV, useEnvironmentReflections);
+    URP_LIGHT_ACCUM3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, positionWS, brdfData.perceptualRoughness, 1.0h, normalizedScreenSpaceUV, useEnvironmentReflections);
 
     URP_LIGHT_ACCUM3 color = EnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, fresnelTerm);
 
@@ -670,9 +678,9 @@ URP_LIGHT_ACCUM3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoa
 
     if (useClearCoat)
     {
-        half3 coatIndirectSpecular = GlossyEnvironmentReflection(reflectVector, positionWS, brdfDataClearCoat.perceptualRoughness, 1.0h, normalizedScreenSpaceUV, useEnvironmentReflections);
+        URP_LIGHT_ACCUM3 coatIndirectSpecular = GlossyEnvironmentReflection(reflectVector, positionWS, brdfDataClearCoat.perceptualRoughness, 1.0h, normalizedScreenSpaceUV, useEnvironmentReflections);
         // TODO: "grazing term" causes problems on full roughness
-        half3 coatColor = EnvironmentBRDFClearCoat(brdfDataClearCoat, clearCoatMask, coatIndirectSpecular, fresnelTerm);
+        URP_LIGHT_ACCUM3 coatColor = EnvironmentBRDFClearCoat(brdfDataClearCoat, clearCoatMask, coatIndirectSpecular, fresnelTerm);
 
         // Blend with base layer using khronos glTF recommended way using NoV
         // Smooth surface & "ambiguous" lighting
@@ -703,15 +711,15 @@ URP_LIGHT_ACCUM3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoa
     half fresnelTerm = Pow4(1.0 - NoV);
 
     URP_LIGHT_ACCUM3 indirectDiffuse = bakedGI;
-    half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfData.perceptualRoughness, half(1.0), useEnvironmentReflections);
+    URP_LIGHT_ACCUM3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfData.perceptualRoughness, half(1.0), useEnvironmentReflections);
 
     URP_LIGHT_ACCUM3 color = EnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, fresnelTerm);
 
     if (useClearCoat)
     {
-        half3 coatIndirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfDataClearCoat.perceptualRoughness, half(1.0), useEnvironmentReflections);
+        URP_LIGHT_ACCUM3 coatIndirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfDataClearCoat.perceptualRoughness, half(1.0), useEnvironmentReflections);
         // TODO: "grazing term" causes problems on full roughness
-        half3 coatColor = EnvironmentBRDFClearCoat(brdfDataClearCoat, clearCoatMask, coatIndirectSpecular, fresnelTerm);
+        URP_LIGHT_ACCUM3 coatColor = EnvironmentBRDFClearCoat(brdfDataClearCoat, clearCoatMask, coatIndirectSpecular, fresnelTerm);
 
         // Blend with base layer using khronos glTF recommended way using NoV
         // Smooth surface & "ambiguous" lighting

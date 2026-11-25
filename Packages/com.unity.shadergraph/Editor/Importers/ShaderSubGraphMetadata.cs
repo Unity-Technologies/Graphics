@@ -5,6 +5,6 @@ namespace UnityEditor.ShaderGraph
 {
     class ShaderSubGraphMetadata : ScriptableObject
     {
-        public List<Object> assetDependencies;
+        public List<LazyLoadReference<Object>> assetDependencies;
     }
 }

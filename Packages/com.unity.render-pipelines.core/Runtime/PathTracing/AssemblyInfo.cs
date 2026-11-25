@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Unity.PathTracing.Editor.Tests")]
 [assembly: InternalsVisibleTo("Unity.PathTracing.Runtime.Tests")]
 [assembly: InternalsVisibleTo("Unity.Modules.GI.PathTracing.Tests.Editor")]
+[assembly: InternalsVisibleTo("Unity.Modules.GI.LightBaker.Tests.Editor")]
 [assembly: InternalsVisibleTo("Assembly-CSharp-Editor-testable")]
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.HighDefinition.Runtime")]
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.Universal.Editor")]

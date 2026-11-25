@@ -4,7 +4,14 @@ All notable changes to this project template will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [16.4.0] - 2026-11-11
+
+## Changed
+- UUM-158364: fixed product name and bundle identifiers (Standalone, Android, iOS)
+- Upgraded project to Unity 7000.0.0a9
+
 ## [16.3.0] - 2026-09-16
+
 
 - Upgraded version to Unity 6000.7.0b1
 - Disabled Static Batching

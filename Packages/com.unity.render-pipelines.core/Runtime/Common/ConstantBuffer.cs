@@ -41,6 +41,8 @@ namespace UnityEngine.Rendering
         /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
         /// <param name="data">Input data of the constant buffer.</param>
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
+        /// <exception cref="System.InvalidOperationException">Thrown when the executing render graph pass does not allow
+        /// global state modification, like the SetGlobal* methods of the render graph command buffers.</exception>
         public static void PushGlobal<CBType>(BaseCommandBuffer cmd, in CBType data, int shaderId) where CBType : unmanaged
         {
             var cb = ConstantBufferSingleton<CBType>.instance;
@@ -214,6 +216,8 @@ namespace UnityEngine.Rendering
         /// <typeparam name="CBType">The type of structure representing the constant buffer data.</typeparam>
         /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
+        /// <exception cref="System.InvalidOperationException">Thrown when the executing render graph pass does not allow
+        /// global state modification, like the SetGlobal* methods of the render graph command buffers.</exception>
         public static void SetGlobal<CBType>(BaseCommandBuffer cmd, int shaderId) where CBType : unmanaged
         {
             var cb = ConstantBufferSingleton<CBType>.instance;
@@ -413,8 +417,11 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
+        /// <exception cref="System.InvalidOperationException">Thrown when the executing render graph pass does not allow
+        /// global state modification, like the SetGlobal* methods of the render graph command buffers.</exception>
         public void SetGlobal(BaseCommandBuffer cmd, int shaderId)
         {
+            cmd.ThrowIfGlobalStateNotAllowed();
             SetGlobal(cmd.m_WrappedCommandBuffer, shaderId);
         }
 
@@ -501,6 +508,8 @@ namespace UnityEngine.Rendering
         /// <param name="cmd">Command Buffer used to execute the graphic commands.</param>
         /// <param name="data">Input data of the constant buffer.</param>
         /// <param name="shaderId">Shader porperty id to bind the constant buffer to.</param>
+        /// <exception cref="System.InvalidOperationException">Thrown when the executing render graph pass does not allow
+        /// global state modification, like the SetGlobal* methods of the render graph command buffers.</exception>
         public void PushGlobal(BaseCommandBuffer cmd, in CBType data, int shaderId)
         {
             UpdateData(cmd, data);

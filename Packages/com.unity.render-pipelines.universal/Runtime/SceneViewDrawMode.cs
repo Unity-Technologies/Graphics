@@ -8,6 +8,7 @@ namespace UnityEditor.Rendering.Universal
     {
         static HashSet<SceneView> sceneViewHaveValidateFunction = new HashSet<SceneView>();
 
+#pragma warning disable CS0618 // Type or member is obsolete
         static bool RejectDrawMode(SceneView.CameraMode cameraMode)
         {
             if (cameraMode.drawMode == DrawCameraMode.ShadowCascades ||
@@ -28,6 +29,7 @@ namespace UnityEditor.Rendering.Universal
 
             return true;
         }
+#pragma warning restore CS0618
 
         static void UpdateSceneViewStates()
         {

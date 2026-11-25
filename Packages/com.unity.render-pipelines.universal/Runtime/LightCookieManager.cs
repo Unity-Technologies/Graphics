@@ -571,7 +571,7 @@ namespace UnityEngine.Rendering.Universal
                     continue;
                 }
 
-                ref var visLight = ref lightData.visibleLights.UnsafeElementAtMutable(i);
+                ref var visLight = ref lightData.visibleLights.UnsafeElementAt(i);
                 Light light = visLight.light;
 
                 // Skip lights without a cookie texture
@@ -870,7 +870,7 @@ namespace UnityEngine.Rendering.Universal
                 // Update the mapping
                 m_VisibleLightIndexToShaderDataIndex[visIndex] = bufIndex;
 
-                ref var visLight = ref lightData.visibleLights.UnsafeElementAtMutable(visIndex);
+                ref var visLight = ref lightData.visibleLights.UnsafeElementAt(visIndex);
 
                 // Update the (cpu) data
                 lightTypes[bufIndex] = (int)visLight.lightType;

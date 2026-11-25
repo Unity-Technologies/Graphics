@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using NUnit.Framework;
 using UnityEngine.TestTools;
@@ -73,6 +74,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         }
 
         [UnityTest]
+        [ConditionalIgnore("IgnoreForCoverage", "Allocates every frame under code coverage instrumentation, see UUM-155177")]
         public IEnumerator FrameWithDiffusionProfileOverride_DoesNotAllocatePerFrame()
         {
             var detector = new AllocationDetector
@@ -88,8 +90,11 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 m_Camera.Render,
                 r => result = r);
 
-            while (frames.MoveNext())
-                yield return frames.Current;
+            using (frames as IDisposable)
+            {
+                while (frames.MoveNext())
+                    yield return frames.Current;
+            }
 
             var resolved = HDCamera.GetOrCreate(m_Camera).volumeStack.GetComponent<DiffusionProfileList>();
             Assert.That(resolved.diffusionProfiles.value, Does.Contain(m_DiffusionProfile),

@@ -3,8 +3,6 @@
 #error SHADERPASS must be defined (at) this point
 #endif
 
-#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/SurfaceType.hlsl"
-
 #if VFX_MATERIAL_TYPE_SIX_WAY_SMOKE
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SixWayLighting.hlsl"
     #include "Packages/com.unity.visualeffectgraph/Shaders/SixWay/VFXSixWayCommon.hlsl"
@@ -22,7 +20,7 @@ float3 VFXGetPositionRWS(VFX_VARYING_PS_INPUTS i)
     return VFXGetPositionRWS(posWS);
 }
 
-InputData VFXGetInputData(const VFX_VARYING_PS_INPUTS i, const PositionInputs posInputs, float3 normalWS, bool frontFace, out float3 geometricNormalWS)
+InputData VFXGetInputData(const VFX_VARYING_PS_INPUTS i, const PositionInputs posInputs, float3 normalWS, bool frontFace)
 {
     InputData inputData = (InputData)0;
 
@@ -34,9 +32,9 @@ InputData VFXGetInputData(const VFX_VARYING_PS_INPUTS i, const PositionInputs po
     #if USE_DOUBLE_SIDED
     geometricNormalSign = frontFace ? 1.0f : -1.0f;
     #endif
-    geometricNormalWS = geometricNormalSign * normalize(i.VFX_VARYING_NORMAL);
+    inputData.geometricNormalWS = geometricNormalSign * normalize(i.VFX_VARYING_NORMAL);
 #else
-    geometricNormalWS = normalWS;
+    inputData.geometricNormalWS = normalWS;
 #endif
     inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(inputData.positionWS);
     inputData.positionCS = i.VFX_VARYING_POSCS;
@@ -47,11 +45,17 @@ InputData VFXGetInputData(const VFX_VARYING_PS_INPUTS i, const PositionInputs po
     inputData.tangentToWorld = half3x3(i.VFX_VARYING_TANGENT.xyz, bitangent.xyz, signNormal * i.VFX_VARYING_NORMAL.xyz);
 #endif
 
+#if IS_OPAQUE_PARTICLE
+    bool isSurfaceTypeTransparent = false;
+#else
+    bool isSurfaceTypeTransparent = true;
+#endif
+
 //When there is only one cascaded, this shadowCoord can be computed at vertex stage
 //#if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
 //    inputData.shadowCoord = inputData.shadowCoord;
     if (MainLightShadowsAvailable())
-        inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), geometricNormalWS);
+        inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS, isSurfaceTypeTransparent, inputData.geometricNormalWS);
     else
         inputData.shadowCoord = float4(0, 0, 0, 0);
 

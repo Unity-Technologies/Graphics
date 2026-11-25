@@ -24,6 +24,7 @@ namespace UnityEngine.Rendering.Universal
 
         public NativeArray<SurfaceCacheEntityInstanceRecord> EntityInstanceChangedList { get; set; }
         public NativeArray<SurfaceCacheSubMeshMaterial> EntityInstanceMaterialList { get; set; }
+        public NativeArray<SurfaceCacheMaterialOverride> EntityInstanceMaterialOverrideList { get; set; }
         public NativeArray<SurfaceCacheEntityTransformRecord> EntityInstanceTransformChangedList { get; set; }
         public NativeArray<EntityId> EntityInstanceDestroyedList { get; set; }
 

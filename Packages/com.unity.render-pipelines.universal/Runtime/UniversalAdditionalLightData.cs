@@ -26,6 +26,17 @@ namespace UnityEngine.Rendering.Universal
     }
 
     /// <summary>
+    /// The PCSS sample count preset of a light. Higher presets reduce noise at a GPU cost.
+    /// </summary>
+    internal enum PCSSSampleQuality
+    {
+        Low,
+        Medium,
+        High,
+        Custom,
+    }
+
+    /// <summary>
     /// Class containing various additional light data used by URP.
     /// </summary>
     [DisallowMultipleComponent]
@@ -169,6 +180,163 @@ namespace UnityEngine.Rendering.Universal
         }
         [SerializeField] SoftShadowQuality m_SoftShadowQuality = SoftShadowQuality.UsePipelineSettings;
 
+        // PCSS defaults, also used for a light without this component
+        internal const float k_DefaultSoftShadowAngularDiameter = 0.5f;
+        internal const float k_DefaultSoftShadowScale = 1.0f;
+        internal const int k_DefaultSoftShadowBlockerSampleCount = 24;
+        internal const int k_DefaultSoftShadowFilterSampleCount = 16;
+        internal const float k_DefaultSoftShadowMaxPenumbraSize = 0.56f;
+        internal const float k_DefaultSoftShadowMaxSamplingDistance = 0.5f;
+        internal const float k_DefaultSoftShadowMinFilterSizeTexels = 1.5f;
+        internal const float k_DefaultSoftShadowMinFilterMaxAngularDiameter = 10.0f;
+        internal const float k_DefaultSoftShadowBlockerSearchAngularDiameter = 12.0f;
+        internal const float k_DefaultSoftShadowBlockerSamplingClumpExponent = 2.0f;
+        internal const float k_DefaultSoftShadowMinFilterSize = 0.1f;
+
+        // PCSS sample counts of the Low and High presets. Medium uses the defaults above.
+        internal const int k_LowSoftShadowBlockerSampleCount = 12;
+        internal const int k_LowSoftShadowFilterSampleCount = 8;
+        internal const int k_HighSoftShadowBlockerSampleCount = 32;
+        internal const int k_HighSoftShadowFilterSampleCount = 24;
+
+        /// <summary>
+        /// The angular diameter in degrees of the main directional light, which sets how wide its PCSS penumbra grows.
+        /// Spot and point lights use <see cref="Light.shapeRadius"/> instead.
+        /// </summary>
+        [Tooltip("Controls the angular diameter of the light in degrees, which sets how wide the PCSS penumbra grows with distance. The sun is roughly 0.5 degrees.")]
+        internal float softShadowAngularDiameter
+        {
+            get => m_SoftShadowAngularDiameter;
+            set => m_SoftShadowAngularDiameter = Mathf.Max(value, 0.0f);
+        }
+        [SerializeField, Min(0f)] float m_SoftShadowAngularDiameter = k_DefaultSoftShadowAngularDiameter;
+
+        /// <summary>
+        /// The multiplier applied to the PCSS penumbra size of this light, on top of its angular diameter or shape radius.
+        /// </summary>
+        [Tooltip("Controls the multiplier applied to the PCSS penumbra size, so shadows can be softened without changing the size of the light.")]
+        internal float softShadowScale
+        {
+            get => m_SoftShadowScale;
+            set => m_SoftShadowScale = Mathf.Max(value, 0.0f);
+        }
+        [SerializeField, Min(0f)] float m_SoftShadowScale = k_DefaultSoftShadowScale;
+
+        /// <summary>
+        /// The PCSS sample count preset of this light.
+        /// The presets use the default tuning values, and <see cref="PCSSSampleQuality.Custom"/> uses the sample counts and tuning values set on this light.
+        /// </summary>
+        [Tooltip("Controls how many shadow map samples PCSS takes per pixel. Higher quality reduces noise but has lower performance. Lower settings rely on temporal anti-aliasing to hide noise. Select Custom to set the sample counts and tuning values yourself.")]
+        internal PCSSSampleQuality softShadowPCSSSampleQuality
+        {
+            get => m_SoftShadowPCSSSampleQuality;
+            set => m_SoftShadowPCSSSampleQuality = value;
+        }
+        [SerializeField] PCSSSampleQuality m_SoftShadowPCSSSampleQuality = PCSSSampleQuality.Medium;
+
+        /// <summary>
+        /// The number of samples the PCSS blocker search takes, clamped to 1 to 64.
+        /// </summary>
+        [Tooltip("Controls the number of samples the PCSS blocker search takes. Higher values reduce noise but have lower performance.")]
+        internal int softShadowBlockerSampleCount
+        {
+            get => m_SoftShadowBlockerSampleCount;
+            set => m_SoftShadowBlockerSampleCount = Mathf.Clamp(value, 1, ShadowUtils.k_PCSSMaxSampleCount);
+        }
+        [SerializeField, Range(1, ShadowUtils.k_PCSSMaxSampleCount)] int m_SoftShadowBlockerSampleCount = k_DefaultSoftShadowBlockerSampleCount;
+
+        /// <summary>
+        /// The number of samples the PCSS filtering phase takes, clamped to 1 to 64.
+        /// </summary>
+        [Tooltip("Controls the number of samples the PCSS filtering phase takes. Higher values reduce noise but have lower performance.")]
+        internal int softShadowFilterSampleCount
+        {
+            get => m_SoftShadowFilterSampleCount;
+            set => m_SoftShadowFilterSampleCount = Mathf.Clamp(value, 1, ShadowUtils.k_PCSSMaxSampleCount);
+        }
+        [SerializeField, Range(1, ShadowUtils.k_PCSSMaxSampleCount)] int m_SoftShadowFilterSampleCount = k_DefaultSoftShadowFilterSampleCount;
+
+        /// <summary>
+        /// The world-space upper bound on the PCSS penumbra size of the main directional light.
+        /// </summary>
+        [Tooltip("Controls the world-space upper bound on the PCSS penumbra size. This acts as a safety clamp.")]
+        internal float softShadowMaxPenumbraSize
+        {
+            get => m_SoftShadowMaxPenumbraSize;
+            set => m_SoftShadowMaxPenumbraSize = Mathf.Max(value, 0.0f);
+        }
+        [SerializeField, Min(0f)] float m_SoftShadowMaxPenumbraSize = k_DefaultSoftShadowMaxPenumbraSize;
+
+        /// <summary>
+        /// The world-space distance, at most, that the PCSS filter of the main directional light moves the depth each sample compares against towards the light.
+        /// The sample positions on the shadow map do not change.
+        /// </summary>
+        [Tooltip("Controls the world-space distance, at most, that PCSS moves the depth each sample compares against towards the light. This does not move the samples across the shadow map. Useful for reducing light bleeding.")]
+        internal float softShadowMaxSamplingDistance
+        {
+            get => m_SoftShadowMaxSamplingDistance;
+            set => m_SoftShadowMaxSamplingDistance = Mathf.Max(value, 0.0f);
+        }
+        [SerializeField, Min(0f)] float m_SoftShadowMaxSamplingDistance = k_DefaultSoftShadowMaxSamplingDistance;
+
+        /// <summary>
+        /// The smallest PCSS filter radius of the main directional light, in shadow map texels.
+        /// </summary>
+        [Tooltip("Controls the smallest PCSS filter radius in shadow map texels. Useful for hiding flickering at shadow contact points.")]
+        internal float softShadowMinFilterSizeTexels
+        {
+            get => m_SoftShadowMinFilterSizeTexels;
+            set => m_SoftShadowMinFilterSizeTexels = Mathf.Max(value, 0.0f);
+        }
+        [SerializeField, Min(0f)] float m_SoftShadowMinFilterSizeTexels = k_DefaultSoftShadowMinFilterSizeTexels;
+
+        /// <summary>
+        /// The angular diameter in degrees the minimum PCSS filter cone of the main directional light widens to.
+        /// Values below <see cref="softShadowBlockerSearchAngularDiameter"/>, or below the scaled angular diameter of the light, are raised to the larger of the two.
+        /// </summary>
+        [Tooltip("Controls the angle in degrees the minimum PCSS filter cone widens to. Values below Blocker Search Angle, or below Angular Diameter multiplied by Softness Scale, are raised to the larger of the two.")]
+        internal float softShadowMinFilterMaxAngularDiameter
+        {
+            get => m_SoftShadowMinFilterMaxAngularDiameter;
+            set => m_SoftShadowMinFilterMaxAngularDiameter = Mathf.Max(value, 0.0f);
+        }
+        [SerializeField, Min(0f)] float m_SoftShadowMinFilterMaxAngularDiameter = k_DefaultSoftShadowMinFilterMaxAngularDiameter;
+
+        /// <summary>
+        /// The angular diameter in degrees of the PCSS blocker search cone of the main directional light.
+        /// Values below the scaled angular diameter of the light are raised to it.
+        /// </summary>
+        [Tooltip("Controls the angle in degrees of the PCSS blocker search cone. Wider angles reduce light bleeding. Values below Angular Diameter multiplied by Softness Scale are raised to it.")]
+        internal float softShadowBlockerSearchAngularDiameter
+        {
+            get => m_SoftShadowBlockerSearchAngularDiameter;
+            set => m_SoftShadowBlockerSearchAngularDiameter = Mathf.Max(value, 0.0f);
+        }
+        [SerializeField, Min(0f)] float m_SoftShadowBlockerSearchAngularDiameter = k_DefaultSoftShadowBlockerSearchAngularDiameter;
+
+        /// <summary>
+        /// How strongly the PCSS blocker search samples of the main directional light clump towards the center of the search cone.
+        /// </summary>
+        [Tooltip("Controls how strongly the PCSS blocker search samples clump towards the center of the search cone.")]
+        internal float softShadowBlockerSamplingClumpExponent
+        {
+            get => m_SoftShadowBlockerSamplingClumpExponent;
+            set => m_SoftShadowBlockerSamplingClumpExponent = Mathf.Max(value, 0.0f);
+        }
+        [SerializeField, Min(0f)] float m_SoftShadowBlockerSamplingClumpExponent = k_DefaultSoftShadowBlockerSamplingClumpExponent;
+
+        /// <summary>
+        /// The smallest PCSS filter radius of a spot or point light.
+        /// The range 0 to 1 maps to 0 to about 4 shadow map texels.
+        /// </summary>
+        [Tooltip("Controls the smallest PCSS filter radius. The range 0 to 1 maps to 0 to about 4 shadow map texels. Useful for hiding flickering at shadow contact points.")]
+        internal float softShadowMinFilterSize
+        {
+            get => m_SoftShadowMinFilterSize;
+            set => m_SoftShadowMinFilterSize = Mathf.Clamp01(value);
+        }
+        [SerializeField, Range(0f, 1f)] float m_SoftShadowMinFilterSize = k_DefaultSoftShadowMinFilterSize;
+
 #if VOLUMETRIC_FOG
         /// <summary>
         /// When enabled, this light interacts with volumetric fog.
@@ -238,7 +406,7 @@ namespace UnityEngine.Rendering.Universal
             if (light)
                 light.renderingLayerMask = m_CustomShadowLayers ? m_ShadowRenderingLayersMask : m_RenderingLayersMask;
         }
-        
+
         enum Version
         {
             Initial = 0,

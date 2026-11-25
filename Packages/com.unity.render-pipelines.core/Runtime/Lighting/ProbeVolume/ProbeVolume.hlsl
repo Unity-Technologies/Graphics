@@ -210,7 +210,7 @@ TEXTURE3D_APV(_APVProbeOcclusion);
 TEXTURE3D_APV(_APVResValidity);
 
 TEXTURE3D_APV(_SkyOcclusionTexL0L1);
-TEXTURE3D(_SkyShadingDirectionIndicesTex);
+TEXTURE3D_FLOAT(_SkyShadingDirectionIndicesTex);
 
 
 // -------------------------------------------------------------

@@ -321,6 +321,26 @@ namespace ShaderStrippingAndPrefiltering
         }
 
         [Test]
+        public void TestCreatePrefilteringSettings_ShadowReceiverNormalBias()
+        {
+            ShaderPrefilteringData actual;
+            ShaderPrefilteringData expected;
+            TestHelper helper = new();
+
+            // Caster
+            expected = helper.defaultPrefilteringData;
+            expected.stripShadowReceiverNormalBias = true;
+            actual = helper.CreatePrefilteringSettings(ShaderFeatures.None);
+            helper.AssertPrefilteringData(expected, actual);
+
+            // Receiver
+            expected = helper.defaultPrefilteringData;
+            expected.stripShadowReceiverNormalBias = false;
+            actual = helper.CreatePrefilteringSettings(ShaderFeatures.ShadowReceiverNormalBias);
+            helper.AssertPrefilteringData(expected, actual);
+        }
+
+        [Test]
         public void TestCreatePrefilteringSettings_RenderingLayers()
         {
             ShaderPrefilteringData actual;

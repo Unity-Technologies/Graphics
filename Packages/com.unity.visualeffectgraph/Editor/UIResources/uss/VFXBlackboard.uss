@@ -208,7 +208,6 @@ VFXBlackboard #unity-tree-view__item-indent
 VFXBlackboard #unity-tree-view__item-toggle
 {
     left: 8px;
-    margin: 8px 0;
     position: absolute;
 }
 

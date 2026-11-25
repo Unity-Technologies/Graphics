@@ -409,7 +409,8 @@ namespace UnityEngine.Rendering.Universal
         // material cache. Sets BOTH the non-volumetric properties (_SrcBlend/_DstBlend, pass 0) and
         // the volumetric properties (_VolSrcBlend/_VolDstBlend, pass 1). Both depend only on
         // light.overlapOperation and light.lightType, which are baked into the customLightMaterials
-        // cache key, so calling this once per cache-fill is sufficient — no per-frame mutation.
+        // cache key. It is called on every lookup, after the clone is re-synced from its source,
+        // because that copy overwrites these properties.
         // Using separate properties per-pass avoids intra-material conflict where pass 0 and pass 1
         // would otherwise share `_SrcBlend/_DstBlend` and the later-set value would win.
         private static void ApplyBlendModesForLight(Material material, Light2D light)
@@ -458,10 +459,12 @@ namespace UnityEngine.Rendering.Universal
             // live on Renderer2DData and are destroyed alongside `lightMaterials` in Dispose /
             // ClearLightMaterialCache.
             //
-            // Trade-off: property changes on the source material at runtime (e.g. user-tweaked
-            // color) don't propagate to the clones. Users needing dynamic property updates should
-            // re-assign `light.material` (invalidates the cache) or drive the property via a shader
-            // global. This mirrors the existing built-in `lightMaterials` cache contract.
+            // The clone is synced from its source on every lookup (shader, properties, keywords),
+            // so edits to the source material show up without a domain reload (UUM-152882). Any
+            // direct writes to the clone are overwritten; only the blend state is re-applied after
+            // the copy. Cost: one native property and keyword copy per lookup, and DrawLight2DPass
+            // looks up once per light draw (each blend style, layer batch and volumetric pass, per
+            // camera). A cache hit makes no managed GC allocation.
             var custom = light.material;
             if (custom != null)
             {
@@ -469,9 +472,17 @@ namespace UnityEngine.Rendering.Universal
                 if (!rendererData.customLightMaterials.TryGetValue(key, out var instance) || instance == null)
                 {
                     instance = new Material(custom);
-                    ApplyBlendModesForLight(instance, light);
                     rendererData.customLightMaterials[key] = instance;
                 }
+                else
+                {
+                    if (instance.shader != custom.shader)
+                        instance.shader = custom.shader;
+                    instance.CopyPropertiesFromMaterial(custom);
+                }
+
+                // Must run after the copy, which overwrites _SrcBlend/_DstBlend/_VolSrcBlend/_VolDstBlend.
+                ApplyBlendModesForLight(instance, light);
                 return instance;
             }
 

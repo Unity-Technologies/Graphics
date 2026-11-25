@@ -9,6 +9,7 @@ public class RenderParamsInstancedDrawer : MonoBehaviour
     public int gridCount;
     public float offset;
     public bool useInstancing;
+    public bool useMaterialPropertyBlock;
     public bool useRandomColor = true;
     public SpriteMaskInteraction maskInteraction;
     public string sortingLayerName = "Default";
@@ -17,6 +18,7 @@ public class RenderParamsInstancedDrawer : MonoBehaviour
 
     private int instanceCount;
     MyInstanceData[] instanceData;
+    MaterialPropertyBlock materialPropertyBlock;
 
     struct MyInstanceData
     {
@@ -62,6 +64,12 @@ public class RenderParamsInstancedDrawer : MonoBehaviour
             }
         }
 
+        if (useMaterialPropertyBlock)
+        {
+            materialPropertyBlock = new MaterialPropertyBlock();
+            materialPropertyBlock.SetColor("_TestColor", Color.red);
+        }
+
         RenderPipelineManager.beginContextRendering += OnBeginContextRendering;
     }
 
@@ -77,6 +85,8 @@ public class RenderParamsInstancedDrawer : MonoBehaviour
             RenderParams rp = new RenderParams(drawMaterial);
             rp.sortingLayerID = SortingLayer.NameToID(sortingLayerName);
             rp.sortingOrder = sortingOrder;
+            if (useMaterialPropertyBlock)
+                rp.matProps = materialPropertyBlock;
 
             if (useInstancing)
             {

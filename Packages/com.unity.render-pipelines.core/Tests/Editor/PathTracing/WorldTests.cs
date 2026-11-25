@@ -326,5 +326,78 @@ namespace UnityEngine.PathTracing.Tests
             var m = math.transpose(instancesArray[0].localToWorld);
             Assert.AreEqual((float4x4)newLocalToWorld, new float4x4(new float3x3(m.c0, m.c1, m.c2), m.c3));
         }
+
+        static MaterialPool.MaterialDescriptor CreateAlbedoOnlyDescriptor(Texture albedo)
+        {
+            return new MaterialPool.MaterialDescriptor
+            {
+                Albedo = albedo,
+                AlbedoScale = Vector2.one,
+                EmissionType = Core.MaterialPropertyType.None,
+                TransmissionChannels = TransmissionChannels.None,
+                Alpha = 1.0f,
+            };
+        }
+
+        // The baker (BakeInputToWorldConversion) passes the handle from World.AddMaterial straight to AddInstance. A
+        // sub-mesh whose material was rejected because the atlas is full is masked out of the bake.
+        [Test]
+        public void AddInstance_MaterialRejectedByFullAtlas_SubMeshIsMaskedOut()
+        {
+            var world = new World();
+            var worldResources = new WorldResourceSet();
+            worldResources.LoadFromAssetDatabase();
+            world.Init(_rayTracingContext, worldResources, materialAtlasMaxSliceCount: 1);
+            var albedo = new RenderTexture(256, 256, 0, RenderTextureFormat.ARGB32);
+            albedo.Create();
+            try
+            {
+                var descriptor = CreateAlbedoOnlyDescriptor(albedo);
+                Assert.IsTrue(world.AddMaterial(descriptor, UVChannel.UV1) != MaterialHandle.Invalid, "Precondition: the first material should fill the atlas.");
+                var rejected = world.AddMaterial(descriptor, UVChannel.UV1);
+                Assert.IsTrue(rejected == MaterialHandle.Invalid, "Precondition: the second material should be rejected.");
+
+                var mesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+                const bool isStatic = true;
+                uint mask = World.GetInstanceMask(ShadowCastingMode.On, isStatic, RenderedGameObjectsFilter.OnlyStatic);
+                world.AddInstance(mesh, new MaterialHandle[] { rejected }, new uint[] { mask }, 1u, Matrix4x4.identity, CalculateBounds(mesh, Matrix4x4.identity), isStatic, RenderedGameObjectsFilter.OnlyStatic, true);
+
+                var instances = GetAccelStructInstancesFromWorld(world);
+                Assert.AreEqual(1, instances.instances.Count, "Precondition: the cube should be the only ray tracing instance.");
+                foreach (var entry in instances.instances)
+                    Assert.AreEqual(0u, instances.instanceBuffer.Get(entry.indexInInstanceBuffer).instanceMask);
+            }
+            finally
+            {
+                world.Dispose();
+                Object.DestroyImmediate(albedo);
+            }
+        }
+
+        [Test]
+        public void UpdateInstanceMaterials_RejectedMaterial_DoesNotThrow()
+        {
+            var world = new World();
+            var worldResources = new WorldResourceSet();
+            worldResources.LoadFromAssetDatabase();
+            world.Init(_rayTracingContext, worldResources, materialAtlasMaxSliceCount: 1);
+            var albedo = new RenderTexture(256, 256, 0, RenderTextureFormat.ARGB32);
+            albedo.Create();
+            try
+            {
+                var accepted = world.AddMaterial(CreateAlbedoOnlyDescriptor(albedo), UVChannel.UV1);
+                var mesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+                const bool isStatic = true;
+                uint mask = World.GetInstanceMask(ShadowCastingMode.On, isStatic, RenderedGameObjectsFilter.OnlyStatic);
+                var instance = world.AddInstance(mesh, new MaterialHandle[] { accepted }, new uint[] { mask }, 1u, Matrix4x4.identity, CalculateBounds(mesh, Matrix4x4.identity), isStatic, RenderedGameObjectsFilter.OnlyStatic, false);
+
+                Assert.DoesNotThrow(() => world.UpdateInstanceMaterials(instance, new MaterialHandle[] { MaterialHandle.Invalid }));
+            }
+            finally
+            {
+                world.Dispose();
+                Object.DestroyImmediate(albedo);
+            }
+        }
     }
 }

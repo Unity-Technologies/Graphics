@@ -303,8 +303,11 @@ namespace UnityEditor.Rendering
                     EditorGUIUtility.labelWidth = GetLongestLabelWidth(labels) + CoreEditorConstants.standardHorizontalSpacing;
                     int oldIndentLevel = EditorGUI.indentLevel;
                     EditorGUI.indentLevel = 0;
-                    for (var i = 0; i < ppts.Length; ++i)
-                        EditorGUILayout.PropertyField(ppts[i], labels[i]);
+                    using (new EditorGUIBridge.CompositeStylingScope())
+                    {
+                        for (var i = 0; i < ppts.Length; ++i)
+                            EditorGUILayout.PropertyField(ppts[i], labels[i]);
+                    }
                     EditorGUI.indentLevel = oldIndentLevel;
                 }
             }

@@ -2,7 +2,6 @@
 using System.IO;
 using UnityEditor.VFX.Block;
 using UnityEngine;
-using UnityEngine.Profiling;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.VFX.UI
@@ -159,7 +158,7 @@ namespace UnityEditor.VFX.UI
             if (m_ProfilingGPUItemLeaves != null)
             {
                 ClearContent();
-                m_ProfilingGPUItemLeaves.Clear();
+                VFXProfilingBoard.ProfilingItemLeaf.DisposeAll(m_ProfilingGPUItemLeaves);
             }
             else
             {
@@ -220,8 +219,7 @@ namespace UnityEditor.VFX.UI
                 labelContainer.Add(taskTimingLabel);
                 gpuTimeFoldout.Add(labelContainer);
 
-                var recorder = Recorder.Get(markerName);
-                VFXProfilingBoard.ProfilingItemLeaf leaf = new VFXProfilingBoard.ProfilingItemLeaf(recorder, taskTimingLabel);
+                VFXProfilingBoard.ProfilingItemLeaf leaf = new VFXProfilingBoard.ProfilingItemLeaf(markerName, taskTimingLabel, gpu: true);
                 m_ProfilingGPUItemLeaves.Add(leaf);
             }
             if(gpuTimeFoldout.childCount > 0)

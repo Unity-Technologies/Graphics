@@ -32,7 +32,6 @@ namespace UnityEngine.Rendering
             public Vector4 visualizationParams;
         }
 
-        [NoAutoStaticsCleanup]
         internal static readonly int shadingRateFragmentSizeCount = Enum.GetNames(typeof(ShadingRateFragmentSize)).Length;
 
         [OnCodeInitializing]

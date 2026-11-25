@@ -1,6 +1,7 @@
 #if SURFACE_CACHE_SUPPORTED || UNITY_EDITOR
 
 using System;
+using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -15,6 +16,7 @@ namespace UnityEngine.Rendering.Universal
         static NativeList<SurfaceCacheEntityInstanceRecord> s_PendingChanged;
         static NativeHashMap<EntityId, int> s_PendingChangedIndex;
         static NativeList<SurfaceCacheSubMeshMaterial> s_PendingMaterials;
+        static NativeList<SurfaceCacheMaterialOverride> s_PendingOverrides;
         static NativeList<EntityId> s_PendingDestroyed;
         static NativeList<SurfaceCacheEntityTransformRecord> s_PendingTransforms;
 
@@ -26,11 +28,74 @@ namespace UnityEngine.Rendering.Universal
         static bool s_FoldNeeded;
         static uint s_ConsumerVersion;
         static JobHandle s_TransformJob;
+        static SurfaceCacheCullingObserver[] s_CullingObservers = Array.Empty<SurfaceCacheCullingObserver>();
+        static int s_CullingObserverCount;
 
         public static bool IsConsumerPresent => s_ConsumerRegistered;
 
         // Producers push their full state again when this changes, so a recreated consumer starts complete.
         public static uint ConsumerVersion => s_ConsumerVersion;
+
+        public static ReadOnlySpan<SurfaceCacheCullingObserver> CullingObservers => new(s_CullingObservers, 0, s_CullingObserverCount);
+
+        struct CullingStatistics
+        {
+            public int TrackedEntityCount;
+            public int CulledEntityCount;
+            public int TrackedChunkCount;
+            public int CulledChunkCount;
+        }
+
+        static readonly Dictionary<ulong, CullingStatistics> s_CullingStatistics = new();
+
+        public static int TrackedEntityCount { get; private set; }
+        public static int CulledEntityCount { get; private set; }
+        public static int TrackedChunkCount { get; private set; }
+        public static int CulledChunkCount { get; private set; }
+
+        public static void SetCullingObservers(ReadOnlySpan<SurfaceCacheCullingObserver> observers)
+        {
+            if (s_CullingObservers.Length < observers.Length)
+                s_CullingObservers = new SurfaceCacheCullingObserver[observers.Length];
+
+            observers.CopyTo(s_CullingObservers);
+            s_CullingObserverCount = observers.Length;
+        }
+
+        public static void ReportCullingStatistics(ulong producer, int trackedEntityCount, int culledEntityCount, int trackedChunkCount, int culledChunkCount)
+        {
+            s_CullingStatistics[producer] = new CullingStatistics
+            {
+                TrackedEntityCount = trackedEntityCount,
+                CulledEntityCount = culledEntityCount,
+                TrackedChunkCount = trackedChunkCount,
+                CulledChunkCount = culledChunkCount,
+            };
+            SumCullingStatistics();
+        }
+
+        public static void RemoveCullingStatistics(ulong producer)
+        {
+            if (s_CullingStatistics.Remove(producer))
+                SumCullingStatistics();
+        }
+
+        static void SumCullingStatistics()
+        {
+            int trackedEntityCount = 0, culledEntityCount = 0, trackedChunkCount = 0, culledChunkCount = 0;
+            foreach (var statistics in s_CullingStatistics.Values)
+            {
+                trackedEntityCount += statistics.TrackedEntityCount;
+                culledEntityCount += statistics.CulledEntityCount;
+                trackedChunkCount += statistics.TrackedChunkCount;
+                culledChunkCount += statistics.CulledChunkCount;
+            }
+
+            TrackedEntityCount = trackedEntityCount;
+            CulledEntityCount = culledEntityCount;
+            TrackedChunkCount = trackedChunkCount;
+            CulledChunkCount = culledChunkCount;
+        }
 
         public static bool TryRegisterConsumer()
         {
@@ -42,6 +107,7 @@ namespace UnityEngine.Rendering.Universal
             s_PendingChanged = new NativeList<SurfaceCacheEntityInstanceRecord>(Allocator.Persistent);
             s_PendingChangedIndex = new NativeHashMap<EntityId, int>(64, Allocator.Persistent);
             s_PendingMaterials = new NativeList<SurfaceCacheSubMeshMaterial>(Allocator.Persistent);
+            s_PendingOverrides = new NativeList<SurfaceCacheMaterialOverride>(Allocator.Persistent);
             s_PendingDestroyed = new NativeList<EntityId>(Allocator.Persistent);
             s_PendingTransforms = new NativeList<SurfaceCacheEntityTransformRecord>(Allocator.Persistent);
             ClearPending();
@@ -55,12 +121,16 @@ namespace UnityEngine.Rendering.Universal
             CompleteTransformJob();
             s_ConsumerRegistered = false;
             s_DrainInProgress = false;
+            s_CullingObserverCount = 0;
+            s_CullingStatistics.Clear();
+            SumCullingStatistics();
 
             if (s_PendingTransforms.IsCreated)
             {
                 s_PendingChanged.Dispose();
                 s_PendingChangedIndex.Dispose();
                 s_PendingMaterials.Dispose();
+                s_PendingOverrides.Dispose();
                 s_PendingDestroyed.Dispose();
                 s_PendingTransforms.Dispose();
             }
@@ -109,11 +179,16 @@ namespace UnityEngine.Rendering.Universal
 
         public static void PushChanged(in SurfaceCacheEntityInstanceRecord record, ReadOnlySpan<SurfaceCacheSubMeshMaterial> materials)
         {
+            PushChanged(record, materials, ReadOnlySpan<SurfaceCacheMaterialOverride>.Empty);
+        }
+
+        public static void PushChanged(in SurfaceCacheEntityInstanceRecord record, ReadOnlySpan<SurfaceCacheSubMeshMaterial> materials, ReadOnlySpan<SurfaceCacheMaterialOverride> overrides)
+        {
             if (!IsConsumerPresent)
                 return;
 
             MarkPushOutsideProducerPass();
-            Writer.PushChanged(record, materials);
+            Writer.PushChanged(record, materials, overrides);
         }
 
         // For jobs that push records. Unavailable without a consumer or during a drain, whose views a push would invalidate.
@@ -129,6 +204,7 @@ namespace UnityEngine.Rendering.Universal
             Changed = s_PendingChanged,
             Index = s_PendingChangedIndex,
             Materials = s_PendingMaterials,
+            Overrides = s_PendingOverrides,
             Transforms = s_PendingTransforms,
         };
 
@@ -155,6 +231,7 @@ namespace UnityEngine.Rendering.Universal
         public static void BeginDrain(
             out NativeArray<SurfaceCacheEntityInstanceRecord> changed,
             out NativeArray<SurfaceCacheSubMeshMaterial> changedMaterials,
+            out NativeArray<SurfaceCacheMaterialOverride> changedOverrides,
             out NativeArray<EntityId> destroyed,
             out NativeArray<SurfaceCacheEntityTransformRecord> transformChanged)
         {
@@ -167,6 +244,7 @@ namespace UnityEngine.Rendering.Universal
 
             changed = s_PendingChanged.AsArray();
             changedMaterials = s_PendingMaterials.AsArray();
+            changedOverrides = s_PendingOverrides.AsArray();
             destroyed = s_PendingDestroyed.AsArray();
             transformChanged = s_PendingTransforms.AsArray();
         }
@@ -257,6 +335,7 @@ namespace UnityEngine.Rendering.Universal
 
             s_PendingChanged.Clear();
             s_PendingMaterials.Clear();
+            s_PendingOverrides.Clear();
             s_PendingDestroyed.Clear();
             s_FoldNeeded = false;
 
@@ -270,42 +349,49 @@ namespace UnityEngine.Rendering.Universal
         public NativeList<SurfaceCacheEntityInstanceRecord> Changed;
         public NativeHashMap<EntityId, int> Index;
         public NativeList<SurfaceCacheSubMeshMaterial> Materials;
+        public NativeList<SurfaceCacheMaterialOverride> Overrides;
         public NativeList<SurfaceCacheEntityTransformRecord> Transforms;
 
-        public void PushChanged(in SurfaceCacheEntityInstanceRecord record, ReadOnlySpan<SurfaceCacheSubMeshMaterial> materials)
+        public void PushChanged(in SurfaceCacheEntityInstanceRecord record, ReadOnlySpan<SurfaceCacheSubMeshMaterial> materials, ReadOnlySpan<SurfaceCacheMaterialOverride> overrides)
         {
             var stored = record;
             stored.MaterialsCount = materials.Length;
+            stored.OverridesCount = overrides.Length;
             stored.TransformsBefore = Transforms.Length;
 
-            // Avoids re-appending when a key's assignment count does not grow.
             if (Index.TryGetValue(record.Key, out int at))
             {
                 var previous = Changed[at];
-                if (previous.MaterialsCount >= materials.Length)
-                {
-                    for (int i = 0; i < materials.Length; i++)
-                        Materials[previous.MaterialsStart + i] = materials[i];
-
-                    stored.MaterialsStart = previous.MaterialsStart;
-                }
-                else
-                {
-                    stored.MaterialsStart = Materials.Length;
-                    for (int i = 0; i < materials.Length; i++)
-                        Materials.Add(materials[i]);
-                }
-
+                stored.MaterialsStart = Store(Materials, materials, previous.MaterialsStart, previous.MaterialsCount);
+                stored.OverridesStart = Store(Overrides, overrides, previous.OverridesStart, previous.OverridesCount);
                 Changed[at] = stored;
                 return;
             }
 
-            stored.MaterialsStart = Materials.Length;
-            for (int i = 0; i < materials.Length; i++)
-                Materials.Add(materials[i]);
+            stored.MaterialsStart = Store(Materials, materials, 0, 0);
+            stored.OverridesStart = Store(Overrides, overrides, 0, 0);
 
             Index.Add(record.Key, Changed.Length);
             Changed.Add(stored);
+        }
+
+        // Avoids re-appending when a key's previous range is large enough.
+        static int Store<T>(NativeList<T> list, ReadOnlySpan<T> values, int previousStart, int previousCount)
+            where T : unmanaged
+        {
+            if (previousCount >= values.Length)
+            {
+                for (int i = 0; i < values.Length; i++)
+                    list[previousStart + i] = values[i];
+
+                return previousStart;
+            }
+
+            int start = list.Length;
+            for (int i = 0; i < values.Length; i++)
+                list.Add(values[i]);
+
+            return start;
         }
     }
 
@@ -322,7 +408,7 @@ namespace UnityEngine.Rendering.Universal
         bool m_DrainBegun;
         bool m_ContentionLogged;
 
-        bool TryAcquireBridge()
+        public bool TryAcquireBridge()
         {
             if (!m_BridgeAcquired)
                 m_BridgeAcquired = SurfaceCacheEntityChangeBridge.TryRegisterConsumer();
@@ -345,11 +431,12 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            SurfaceCacheEntityChangeBridge.BeginDrain(out var changed, out var materials, out var destroyed, out var transformChanged);
+            SurfaceCacheEntityChangeBridge.BeginDrain(out var changed, out var materials, out var overrides, out var destroyed, out var transformChanged);
             m_DrainBegun = true;
 
             changeSet.EntityInstanceChangedList = changed;
             changeSet.EntityInstanceMaterialList = materials;
+            changeSet.EntityInstanceMaterialOverrideList = overrides;
             changeSet.EntityInstanceDestroyedList = destroyed;
             changeSet.EntityInstanceTransformChangedList = transformChanged;
         }

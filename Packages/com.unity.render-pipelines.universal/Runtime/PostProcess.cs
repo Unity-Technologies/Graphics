@@ -174,30 +174,37 @@ namespace UnityEngine.Rendering.Universal
             m_PaniniProjectionPass.RecordRenderGraph(renderGraph, frameData);
 
             // Bloom & Screen Space Lens Flares
+            float? bloomIntensityOverride = null;
             {
                 var volumeStack = VolumeManager.instance.stack;
                 var bloom = volumeStack.GetComponent<Bloom>();
                 var lensFlareScreenSpace = volumeStack.GetComponent<ScreenSpaceLensFlare>();
 
-                // NOTE: Even if bloom is not active we might need to run it for the texture if the lensFlareScreenSpace pass is active.
-                if (!bloom.IsActive() && LensFlareScreenSpacePostProcessPass.IsActive(volumeStack, frameData))
-                    bloom.intensity = lensFlareScreenSpace.intensity;   // Set Bloom Active to true.
+                // Screen space lens flares use a bloom mip as their source, so bloom runs as their dependency and is composited at the flare intensity.
+                bool bloomRequiredByFlares = !bloom.IsActive() && LensFlareScreenSpacePostProcessPass.IsActive(volumeStack, frameData);
+                if (bloomRequiredByFlares)
+                    bloomIntensityOverride = lensFlareScreenSpace.intensity.value;
 
+                m_BloomPass.Setup(bloomRequiredByFlares);
                 m_BloomPass.RecordRenderGraph(renderGraph, frameData);
 
-                // We need to take into account how many valid mips the bloom pass produced.
-                var mipPyramid = m_BloomPass.mipPyramid;
-                int bloomMipCount = mipPyramid.mipCount;
-                int bloomMipMax = Mathf.Clamp(bloomMipCount - 1, 0, bloom.maxIterations.value / 2);
-                int bloomMipIndex = Mathf.Clamp(lensFlareScreenSpace.bloomMip.value, 0, bloomMipMax);
+                // Bloom produces no output if it is inactive or its shader is missing, e.g. stripped from the build.
+                if (resourceData.bloom.IsValid())
+                {
+                    // We need to take into account how many valid mips the bloom pass produced.
+                    var mipPyramid = m_BloomPass.mipPyramid;
+                    int bloomMipCount = mipPyramid.mipCount;
+                    int bloomMipMax = Mathf.Clamp(bloomMipCount - 1, 0, bloom.maxIterations.value / 2);
+                    int bloomMipIndex = Mathf.Clamp(lensFlareScreenSpace.bloomMip.value, 0, bloomMipMax);
 
-                var prevCameraColor = resourceData.cameraColor;
-                resourceData.cameraColor = mipPyramid.GetResultMip(bloomMipIndex);;
+                    var prevCameraColor = resourceData.cameraColor;
+                    resourceData.cameraColor = mipPyramid.GetResultMip(bloomMipIndex);
 
-                m_LensFlareScreenSpacePass.Setup(colorSourceDesc.width, colorSourceDesc.height, bloomMipIndex);
-                m_LensFlareScreenSpacePass.RecordRenderGraph(renderGraph, frameData);
+                    m_LensFlareScreenSpacePass.Setup(colorSourceDesc.width, colorSourceDesc.height, bloomMipIndex);
+                    m_LensFlareScreenSpacePass.RecordRenderGraph(renderGraph, frameData);
 
-                resourceData.cameraColor = prevCameraColor;
+                    resourceData.cameraColor = prevCameraColor;
+                }
             }
 
             // Lens Flares are procedurally generated and blended to the destination texture.
@@ -228,7 +235,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             bool renderOverlayUI = requireHDROutput && enableColorEncodingIfNeeded;
-            m_UberPass.Setup(ditherTexture, filteringOperation, hdrOperations, applySrgbEncoding, !hasFinalPass, renderOverlayUI);
+            m_UberPass.Setup(ditherTexture, filteringOperation, hdrOperations, applySrgbEncoding, !hasFinalPass, renderOverlayUI, bloomIntensityOverride);
             m_UberPass.RecordRenderGraph(renderGraph, frameData);
         }
 

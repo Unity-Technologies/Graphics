@@ -1,5 +1,3 @@
-#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/SurfaceType.hlsl"
-
 #if (SHADERPASS == SHADERPASS_SHADOWCASTER)
     // Shadow Casting Light geometric parameters. These variables are used when applying the shadow Normal Bias and are set by UnityEngine.Rendering.Universal.ShadowUtils.SetupShadowCasterConstantBuffer in com.unity.render-pipelines.universal/Runtime/ShadowUtils.cs
     // For Directional lights, _LightDirection is used when applying shadow Normal Bias.
@@ -291,7 +289,12 @@ Varyings BuildVaryings(Attributes input
 #endif
 
     #if defined(VARYINGS_NEED_SHADOW_COORD) && USE_VERTEX_SHADOW_COORD_INTERPOLATOR
-        output.shadowCoord = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(vertexInput, IsSurfaceTypeTransparent(), normalWS) : float4(0, 0, 0, 0);
+        #if defined(_SURFACE_TYPE_TRANSPARENT)
+            bool isSurfaceTypeTransparent = true;
+        #else
+            bool isSurfaceTypeTransparent = false;
+        #endif
+        output.shadowCoord = ShadowCoordInterpolatorAvailable() ? GetShadowCoord(vertexInput, isSurfaceTypeTransparent, normalWS) : float4(0, 0, 0, 0);
     #endif
 
     #if defined(VARYINGS_NEED_SIX_WAY_DIFFUSE_GI_DATA)

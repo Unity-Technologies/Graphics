@@ -578,5 +578,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/366_LitShaderMaps_DeferredTileOnly.unity
     guid: d518a4e585b2b8a40866a80cad2b0b57
+  - enabled: 1
+    path: Assets/Test/Runtime/ClusterData/ClusterDataReadback.unity
+    guid: 923dffc78d5ed4ba49cfd992dea1771d
   m_configObjects:
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 20e925b8abdd424429b17f709e9d00f8, type: 2}

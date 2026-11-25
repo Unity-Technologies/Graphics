@@ -102,6 +102,7 @@
     * [Dropdown](Dropdown-Node.md)
     * [Input](Input-Nodes.md)
         * 2D
+            * [Active Shadow2D Light](active-shadow2d-light-node.md)
             * [Light Texture](light-texture-node.md)
         * Basic
             * [Boolean](Boolean-Node.md)

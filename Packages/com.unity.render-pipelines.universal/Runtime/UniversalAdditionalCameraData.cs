@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Scripting.LifecycleManagement;
 using UnityEditor;
 using UnityEngine.Serialization;
 using UnityEngine.Assertions;
@@ -387,7 +386,6 @@ namespace UnityEngine.Rendering.Universal
 
     static class CameraTypeUtility
     {
-        [NoAutoStaticsCleanup] // Reflection data cache, no need to clear.
         static readonly string[] s_CameraTypeNames = Enum.GetNames(typeof(CameraRenderType));
 
         public static string GetName(this CameraRenderType type)

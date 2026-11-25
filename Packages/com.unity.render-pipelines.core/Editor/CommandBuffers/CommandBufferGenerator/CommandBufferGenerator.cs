@@ -196,7 +196,7 @@ namespace UnityEngine.Rendering
 @"
         /// <summary>Wraps [{0}](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.{0}.html) on a CommandBuffer.</summary>
 {1}
-        public void {0}{5}({2}) {6} {{ {4} m_WrappedCommandBuffer.{0}({3}); }}
+{7}        public void {0}{5}({2}) {6} {{ {4} m_WrappedCommandBuffer.{0}({3}); }}
 ";
 
         // Generated individual function template
@@ -204,7 +204,7 @@ namespace UnityEngine.Rendering
 @"
         /// <summary>Wraps [{0}](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.{0}.html) on a CommandBuffer.</summary>
 {1}
-        public void {0}{5}({2}) {6};
+{7}        public void {0}{5}({2}) {6};
 ";
 
         static string paramDocTemplate =
@@ -346,7 +346,12 @@ namespace UnityEngine.Rendering
                     argDocList.AppendFormat(typeParamDocTemplate, "T", method.Name);
                 }
 
-                result.AppendFormat((isInterface) ? interfaceFunctionTemplate : functionTemplate, method.Name, argDocList.ToString(), typedArgList.ToString(), argList.ToString(), validationCode.ToString(), genericArgList.ToString(), genericConstraints.ToString());
+                var obsoleteAttribute = (ObsoleteAttribute)Attribute.GetCustomAttribute(method, typeof(ObsoleteAttribute), false);
+                var obsoleteCode = obsoleteAttribute == null
+                    ? ""
+                    : string.Format("        [Obsolete(\"{0}\", {1})]\n", obsoleteAttribute.Message?.Replace("\"", "\\\""), obsoleteAttribute.IsError ? "true" : "false");
+
+                result.AppendFormat((isInterface) ? interfaceFunctionTemplate : functionTemplate, method.Name, argDocList.ToString(), typedArgList.ToString(), argList.ToString(), validationCode.ToString(), genericArgList.ToString(), genericConstraints.ToString(), obsoleteCode);
             }
 
             result.Append(postamble);

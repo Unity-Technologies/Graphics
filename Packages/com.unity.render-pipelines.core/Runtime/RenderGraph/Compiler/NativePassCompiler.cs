@@ -32,6 +32,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         RenderTargetIdentifier[][] m_TempMRTArrays = null;
 
+#if UNITY_ENABLE_CHECKS
+        HashSet<string> m_LoggedMemorylessAcrossNativePasses = new HashSet<string>();
+#endif
+
         internal const int k_EstimatedPassCount = 100;
         internal const int k_MaxSubpass = 8; // Needs to match with RenderPassSetup.h
 
@@ -42,6 +46,12 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
 
         [NoAutoStaticsCleanup]
         internal static bool s_ForceGenerateAuditsForTests = false;
+
+        internal static bool? s_SupportsMemorylessTexturesOverride;
+        internal static bool? s_CanStoreMemorylessTexturesOverride;
+
+        static bool supportsMemorylessTextures => s_SupportsMemorylessTexturesOverride ?? SystemInfo.supportsMemorylessTextures;
+        static bool canStoreMemorylessTextures => s_CanStoreMemorylessTexturesOverride ?? SystemInfo.canStoreMemorylessTextures;
 
         public NativePassCompiler(RenderGraphCompilationCache cache)
         {
@@ -1174,16 +1184,36 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                     // Find a texture attachment that is storing to find out the orientation for this pass.
                     int attachmentsCount = nativePassData.attachments.size;
                     int firstStoreAttachmentIndex = 0;
+                    bool hasStore = false;
                     TextureUVOriginSelection storeUVOrigin = TextureUVOriginSelection.Unknown;
                     for (int attIdx = 0; attIdx < attachmentsCount; ++attIdx)
                     {
                         ref NativePassAttachment nativePassAttachment = ref nativePassData.attachments[attIdx];
+                        if (nativePassAttachment.handle.type != RenderGraphResourceType.Texture) // Only textures have orientation
+                            continue;
+
+                        ref ResourceUnversionedData resData = ref contextData.UnversionedResourceData(nativePassAttachment.handle);
                         if (nativePassAttachment.storeAction != RenderBufferStoreAction.DontCare)
                         {
-                            if (nativePassAttachment.handle.type == RenderGraphResourceType.Texture) // Only textures have orientation
+                            storeUVOrigin = resData.textureUVOrigin; // Inherit the orientation of the store if we are currently storing to an unknown orientation.
+                            firstStoreAttachmentIndex = attIdx;
+                            hasStore = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasStore)
+                    {
+                        for (int attIdx = 0; attIdx < attachmentsCount; ++attIdx)
+                        {
+                            ref NativePassAttachment nativePassAttachment = ref nativePassData.attachments[attIdx];
+                            if (nativePassAttachment.handle.type != RenderGraphResourceType.Texture)
+                                continue;
+
+                            ref ResourceUnversionedData resData = ref contextData.UnversionedResourceData(nativePassAttachment.handle);
+                            if (resData.textureUVOrigin != TextureUVOriginSelection.Unknown)
                             {
-                                ref ResourceUnversionedData resData = ref contextData.UnversionedResourceData(nativePassAttachment.handle);
-                                storeUVOrigin = resData.textureUVOrigin; // Inherit the orientation of the store if we are currently storing to an unknown orientation.
+                                storeUVOrigin = resData.textureUVOrigin;
                                 firstStoreAttachmentIndex = attIdx;
                                 break;
                             }
@@ -1200,8 +1230,16 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                         if (nativePassAttachment.handle.type == RenderGraphResourceType.Texture)
                         {
                             ref ResourceUnversionedData resData = ref contextData.UnversionedResourceData(nativePassAttachment.handle);
-                            ValidateConflictingUVOrigins(ref nativePassData, ref nativePassAttachment, ref resData, storeUVOrigin, firstStoreAttachmentIndex);
-                            resData.textureUVOrigin = storeUVOrigin;
+                            if (hasStore)
+                            {
+                                ValidateConflictingUVOrigins(ref nativePassData, ref nativePassAttachment, ref resData, storeUVOrigin, firstStoreAttachmentIndex);
+                                if (storeUVOrigin != TextureUVOriginSelection.Unknown)
+                                    resData.textureUVOrigin = storeUVOrigin;
+                            }
+                            else if (resData.textureUVOrigin == TextureUVOriginSelection.Unknown)
+                            {
+                                resData.textureUVOrigin = storeUVOrigin;
+                            }
                         }
                     }
                 }
@@ -1221,24 +1259,21 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             return false;
         }
 
-        // An imported memoryless surface only retains its contents within a single native render pass. The graph does not
-        // own the surface, so it cannot make the contents survive a pass boundary - all it can do is tell the pipeline
-        // that it asked for something the hardware will not give it.
-        [Conditional("UNITY_ENABLE_CHECKS")]
-        void ValidateImportedMemorylessLifetimes()
+        // An imported memoryless surface only retains its contents within a single native render pass. Where the platform
+        // backs memoryless surfaces with memory on demand, the graph falls back to a regular store and load across the pass boundary.
+        void HandleImportedMemorylessLifetimes()
         {
-            if (!RenderGraph.enableValidityChecks)
-                return;
+            bool canStoreMemoryless = canStoreMemorylessTextures;
 
             var textureData = contextData.resources.unversionedData[(int)RenderGraphResourceType.Texture];
             for (int i = 1; i < textureData.Length; ++i)
             {
-                ref readonly var resourceData = ref textureData.ElementAt(i);
+                ref var resourceData = ref textureData.ElementAt(i);
 
                 if (!resourceData.isImported || !resourceData.memoryLess)
                     continue;
 
-                // Unused or culled, nothing to validate.
+                // Unused or culled, nothing to handle.
                 if (resourceData.firstUsePassID < 0 || resourceData.lastUsePassID < 0)
                     continue;
 
@@ -1248,11 +1283,33 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                 if (firstNativePass == lastNativePass)
                     continue;
 
-                var name = graph.m_ResourcesForDebugOnly.GetRenderGraphResourceName(RenderGraphResourceType.Texture, i);
-                Debug.LogWarning($"Imported memoryless resource '{name}' is used from pass '{contextData.GetPassName(resourceData.firstUsePassID)}' to pass '{contextData.GetPassName(resourceData.lastUsePassID)}', which span different native render passes. "
-                    + "A memoryless surface does not retain its contents across a native render pass boundary, so the later pass reads undefined data. "
-                    + "Either avoid the pass break, or render into a resource the render graph owns instead of importing a memoryless one.");
+                if (canStoreMemoryless)
+                    resourceData.memoryLess = false;
+
+                LogImportedMemorylessAcrossNativePasses(i, resourceData.firstUsePassID, resourceData.lastUsePassID, canStoreMemoryless);
             }
+        }
+
+        [Conditional("UNITY_ENABLE_CHECKS")]
+        void LogImportedMemorylessAcrossNativePasses(int resourceIndex, int firstUsePassID, int lastUsePassID, bool canStoreMemoryless)
+        {
+#if UNITY_ENABLE_CHECKS
+            if (!RenderGraph.enableValidityChecks)
+                return;
+
+            var name = graph.m_ResourcesForDebugOnly.GetRenderGraphResourceName(RenderGraphResourceType.Texture, resourceIndex);
+            if (!m_LoggedMemorylessAcrossNativePasses.Add(name))
+                return;
+
+            var usage = $"Imported memoryless resource '{name}' is used from pass '{contextData.GetPassName(firstUsePassID)}' to pass '{contextData.GetPassName(lastUsePassID)}', which span different native render passes. ";
+
+            if (canStoreMemoryless)
+                Debug.Log(usage + "Its contents are stored and loaded across the pass boundary, so it gets backed by regular memory, for all samples if it is multisampled, for as long as the surface exists. "
+                    + "Avoid the pass break to keep the memory savings.");
+            else
+                Debug.LogWarning(usage + "A memoryless surface does not retain its contents across a native render pass boundary, so the later pass reads undefined data. "
+                    + "Avoid the pass break, or don't request memoryless storage for this surface.");
+#endif
         }
 
         void DetectMemoryLessResources()
@@ -1260,12 +1317,10 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
             using (k_DetectMemorylessResources.Auto())
             {
                 // No need to go further if we don't support memoryless textures
-                if (!SystemInfo.supportsMemorylessTextures)
+                if (!supportsMemorylessTextures)
                     return;
 
-                // Note: memoryless on an imported resource is imposed by whoever created the surface (PlayerSettings for
-                // the Metal backbuffer depth, the provider for XR eye textures), so the graph cannot retract it here.
-                ValidateImportedMemorylessLifetimes();
+                HandleImportedMemorylessLifetimes();
 
                 // Native renderpasses and create/destroy lists have now been set-up. Detect memoryless resources, i.e resources that are created/destroyed
                 // within the scope of an nrp
@@ -1400,7 +1455,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                 }
                                 else // Imported resource
                                 {
-                                    if (resInfo.clear && !resInfo.memoryLess && resources.forceManualClearOfResource)
+                                    if (resInfo.clear && !resInfo.createdMemoryless && resources.forceManualClearOfResource)
                                     {
                                         haveGfxCommandsBeenAddedToCmd |= resources.ClearResource(rgContext, res.iType, res.index);
                                     }
@@ -1546,7 +1601,7 @@ namespace UnityEngine.Rendering.RenderGraphModule.NativeRenderPassCompiler
                                         currLoadAudit = new LoadAudit(LoadReason.ClearImported);
 #endif
                                 }
-                                else if (resourceData.memoryLess)
+                                else if (resourceData.createdMemoryless)
                                 {
                                     loadAction = RenderBufferLoadAction.DontCare;
 #if UNITY_ENABLE_CHECKS

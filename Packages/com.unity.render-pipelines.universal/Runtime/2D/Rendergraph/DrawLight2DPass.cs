@@ -206,7 +206,6 @@ namespace UnityEngine.Rendering.Universal
 
             internal int lightTextureIndex;
             internal bool useRenderingLayers;
-            internal RenderingLayerUtils.MaskSize maskSize;
         }
 
         void InitializeRenderPass(RenderGraph graph, IRasterRenderGraphBuilder builder, ContextContainer frameData, PassData passData, int batchIndex, bool isVolumetric = false)
@@ -241,7 +240,6 @@ namespace UnityEngine.Rendering.Universal
                 builder.UseTexture(universal2DResourceData.renderingLayersTexture);
 
             passData.useRenderingLayers = rendererData.useRenderingLayers;
-            passData.maskSize = rendererData.renderingLayersMaskSize;
             passData.layerBatch = layerBatch;
             passData.rendererData = rendererData;
             passData.isVolumetric = isVolumetric;
@@ -266,7 +264,7 @@ namespace UnityEngine.Rendering.Universal
                 !isLightingActive)
                 return;
 
-            // Render single RTs by for apis that don't support MRTs
+            // Render one light texture per pass where Renderer2D.supportsMRT is false (OpenGLES3 and OpenGLCore)
             if (!isVolumetric && !Renderer2D.supportsMRT)
             {
                 var passName = ProfilerMarkers.s_LightSRTPass;
@@ -286,8 +284,6 @@ namespace UnityEngine.Rendering.Universal
 
                         builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                         {
-                            RenderingLayerUtils.SetupProperties(context.cmd, data.maskSize);
-
                             Execute(context.cmd, data, data.layerBatch, data.lightTextureIndex);
                         });
                     }
@@ -311,8 +307,6 @@ namespace UnityEngine.Rendering.Universal
 
                     builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                     {
-                        RenderingLayerUtils.SetupProperties(context.cmd, data.maskSize);
-
                         for (var i = 0; i < data.layerBatch.activeBlendStylesIndices.Length; ++i)
                             Execute(context.cmd, data, data.layerBatch, i);
                     });

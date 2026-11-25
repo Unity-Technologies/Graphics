@@ -66,6 +66,15 @@ namespace UnityEngine.Rendering.Universal
             get => m_ScreenSpaceMultipleScatteringPS;
             set => this.SetValueAndNotify(ref m_ScreenSpaceMultipleScatteringPS, value);
         }
+
+        [SerializeField, ResourcePath("Runtime/RendererFeatures/Fog/Shaders/FogVolume.shader")]
+        private Shader m_FogVolumePS;
+
+        public Shader fogVolumePS
+        {
+            get => m_FogVolumePS;
+            set => this.SetValueAndNotify(ref m_FogVolumePS, value);
+        }
     }
 }
 

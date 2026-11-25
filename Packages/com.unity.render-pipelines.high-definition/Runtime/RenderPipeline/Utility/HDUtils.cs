@@ -952,14 +952,14 @@ namespace UnityEngine.Rendering.HighDefinition
             // Metal support depends on OS version:
             // macOS 10.11.x doesn't have tessellation / earlydepthstencil support, early driver versions were buggy in general
             // macOS 10.12.x should usually work with AMD, but issues with Intel/Nvidia GPUs. Regardless of the GPU, there are issues with MTLCompilerService crashing with some shaders
-            // macOS 10.13.x should work, but active development tests against current OS
+            // macOS 14 is required for atomics on texture_buffer (MSL 3.1), which HDRP uses for typed buffers
             //
             // Has worked experimentally with iOS in the past, but it's not currently supported
             //
 
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
             {
-                if (os.StartsWith("Mac") && !IsMacOSVersionAtLeast(os, 10, 13, 0))
+                if (os.StartsWith("Mac") && !IsMacOSVersionAtLeast(os, 14, 0, 0))
                     return false;
             }
 

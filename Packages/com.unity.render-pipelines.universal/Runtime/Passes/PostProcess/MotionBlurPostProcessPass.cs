@@ -8,28 +8,25 @@ namespace UnityEngine.Rendering.Universal
     {
         public const string k_TargetName = "CameraColorMotionBlur";
 
-        Material m_Material;
-        bool m_IsValid;
+        PostProcessMaterial m_Material;
 
         public MotionBlurPostProcessPass(Shader shader)
         {
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
             this.profilingSampler = URPProfilingSamplers.MotionBlur;
 
-            m_Material = PostProcessUtils.LoadShader(shader, passName, logLevel: LogType.Log);
-            m_IsValid = m_Material != null;
+            m_Material = new PostProcessMaterial(shader, passName);
         }
 
         public override void Dispose()
         {
-            CoreUtils.Destroy(m_Material);
-            m_IsValid = false;
+            m_Material.Dispose();
         }
 
         private class MotionBlurPassData
         {
             internal Material material;
-            internal Camera camera;
+            internal MotionVectorsPersistentData motionData;
             internal TextureHandle sourceTexture;
             internal int passIndex;
             internal float intensity;
@@ -39,9 +36,6 @@ namespace UnityEngine.Rendering.Universal
         }
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            if(!m_IsValid)
-                return;
-
             // Disable MotionBlur in EditMode, so that editing remains clear and readable.
             // NOTE: HDRP does the same via CoreUtils::AreAnimatedMaterialsEnabled().
             // Disable MotionBlurMode.CameraAndObjects on renderers that do not support motion vectors
@@ -54,6 +48,9 @@ namespace UnityEngine.Rendering.Universal
 
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             if (cameraData.isSceneViewCamera)
+                return;
+
+            if (!m_Material.Validate())
                 return;
 
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
@@ -97,9 +94,10 @@ namespace UnityEngine.Rendering.Universal
 
                 Debug.Assert(cameraDepthTexture.IsValid(), "Camera depth texture is invalid. Per-camera motion blur requires a depth texture.");
                 builder.UseTexture(cameraDepthTexture, AccessFlags.Read);
-                passData.material = m_Material;
+                passData.material = m_Material.material;
                 passData.passIndex = passIndex;
-                passData.camera = cameraData.camera;
+                var additionalCameraData = cameraData.additionalCameraData;
+                passData.motionData = additionalCameraData != null ? additionalCameraData.motionVectorsPersistentData : null;
                 passData.enableAlphaOutput = cameraData.isAlphaOutputEnabled;
                 passData.intensity = motionBlur.intensity.value;
                 passData.clamp = motionBlur.clamp.value;
@@ -109,7 +107,7 @@ namespace UnityEngine.Rendering.Universal
                     var cmd = context.cmd;
                     RTHandle sourceTextureHdl = data.sourceTexture;
 
-                    UpdateMotionBlurMatrices(data.material, data.camera, data.xr);
+                    UpdateMotionBlurMatrices(data.material, data.motionData, data.xr);
 
                     var sourceSize = PostProcessUtils.CalcShaderSourceSize(sourceTextureHdl);
                     data.material.SetVector(ShaderConstants._SourceSize, sourceSize);
@@ -126,13 +124,8 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void UpdateMotionBlurMatrices(Material material, Camera camera, Experimental.Rendering.XRPass xr)
+        public static void UpdateMotionBlurMatrices(Material material, MotionVectorsPersistentData motionData, Experimental.Rendering.XRPass xr)
         {
-            MotionVectorsPersistentData motionData = null;
-
-            if(camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
-                motionData = additionalCameraData.motionVectorsPersistentData;
-
             if (motionData == null)
                 return;
 

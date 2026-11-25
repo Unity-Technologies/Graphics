@@ -91,6 +91,22 @@ namespace UnityEngine.PathTracing.Core
             public bool PointSampleEmission;
         };
 
+        private struct StagedTexture
+        {
+            public readonly TextureType Type;
+            public readonly TextureSlotAllocator.TextureLocation Original;
+            public readonly bool UsesAtlasSlot;
+            public TextureSlotAllocator.TextureLocation Allocated;
+
+            public StagedTexture(TextureType type, TextureSlotAllocator.TextureLocation original, bool usesAtlasSlot)
+            {
+                Type = type;
+                Original = original;
+                UsesAtlasSlot = usesAtlasSlot;
+                Allocated = TextureSlotAllocator.TextureLocation.Invalid;
+            }
+        }
+
         private readonly Dictionary<UInt64, MaterialEntry> _materialMap = new();
         private readonly Dictionary<ulong, BlockAllocator.Allocation> _lightCookies = new();  // this dictionary is used to keep track of which textures are inserted in the atlas and avoid duplication (important for LiveGI)
         private readonly Dictionary<int, ulong> _cookieHandleToID = new();                    // this dictionary is used when deleting lights with cookies attached, so we can free-up the atlas slots
@@ -130,9 +146,13 @@ namespace UnityEngine.PathTracing.Core
         private readonly int _blitGrayscaleCookieKernel;
 
         private const int AtlasSize = 256;
+        private readonly int _maxSliceCount;
 
-        public MaterialPool(ComputeShader setAlphaChannelShader, ComputeShader blitCubemapShader, ComputeShader blitGrayscaleCookieShader)
+        public MaterialPool(ComputeShader setAlphaChannelShader, ComputeShader blitCubemapShader, ComputeShader blitGrayscaleCookieShader, int maxSliceCount)
         {
+            Debug.Assert(maxSliceCount > 0, "The atlas must allow at least one slice.");
+            _maxSliceCount = maxSliceCount;
+
             _setAlphaChannelShader = setAlphaChannelShader;
             _setAlphaChannelKernel = _setAlphaChannelShader.FindKernel("SetAlphaChannel");
             _setAlphaChannelShader.GetKernelThreadGroupSizes(_setAlphaChannelKernel,
@@ -148,9 +168,9 @@ namespace UnityEngine.PathTracing.Core
             const int initialMaxLightCubemapTextureCount = 3;
             const int initialMaxMaterialCount = 100;
 
-            _albedoTextureAllocator = new TextureSlotAllocator(AtlasSize, GetTextureFormat(TextureType.Albedo), FilterMode.Bilinear);
-            _emissionTextureAllocator = new TextureSlotAllocator(AtlasSize, GetTextureFormat(TextureType.Emission), FilterMode.Bilinear);
-            _transmissionTextureAllocator = new TextureSlotAllocator(AtlasSize, GetTextureFormat(TextureType.Transmission), FilterMode.Bilinear);
+            _albedoTextureAllocator = new TextureSlotAllocator(AtlasSize, GetTextureFormat(TextureType.Albedo), FilterMode.Bilinear, maxSliceCount);
+            _emissionTextureAllocator = new TextureSlotAllocator(AtlasSize, GetTextureFormat(TextureType.Emission), FilterMode.Bilinear, maxSliceCount);
+            _transmissionTextureAllocator = new TextureSlotAllocator(AtlasSize, GetTextureFormat(TextureType.Transmission), FilterMode.Bilinear, maxSliceCount);
 
             _materialSlotAllocator.Initialize(initialMaxMaterialCount);
             MaterialBuffer = new ComputeBuffer(initialMaxMaterialCount, Marshal.SizeOf<GpuMaterialEntry>());
@@ -189,7 +209,7 @@ namespace UnityEngine.PathTracing.Core
             }
         }
 
-        public void AddMaterial(UInt64 materialHandle, in MaterialDescriptor material, UVChannel albedoAndEmissionUVChannel)
+        public bool AddMaterial(UInt64 materialHandle, in MaterialDescriptor material, UVChannel albedoAndEmissionUVChannel)
         {
             MaterialEntry materialEntry;
             Debug.Assert(!_materialMap.ContainsKey(materialHandle), "Material was already added to the pool.");
@@ -204,17 +224,30 @@ namespace UnityEngine.PathTracing.Core
             }
 
             materialEntry = new MaterialEntry(slotAllocation);
-            UpdateMaterial(in material, albedoAndEmissionUVChannel, materialEntry);
+            if (!UpdateMaterial(in material, albedoAndEmissionUVChannel, materialEntry))
+            {
+                _materialSlotAllocator.FreeAllocation(in slotAllocation);
+                return false;
+            }
 
             _materialMap.Add(materialHandle, materialEntry);
 
             UpdateMaterialList(materialEntry);
+            return true;
         }
 
-        public void UpdateMaterial(UInt64 materialHandle, in MaterialDescriptor material, UVChannel albedoAndEmissionUVChannel)
+        public bool UpdateMaterial(UInt64 materialHandle, in MaterialDescriptor material, UVChannel albedoAndEmissionUVChannel)
         {
+            Debug.Assert(_materialMap.ContainsKey(materialHandle), "Material was not added to the pool.");
             MaterialEntry materialEntry = _materialMap[materialHandle];
-            UpdateMaterial(in material, albedoAndEmissionUVChannel, materialEntry);
+            return UpdateMaterial(in material, albedoAndEmissionUVChannel, materialEntry);
+        }
+
+        internal void GetAtlasUsage(out AtlasUsage albedo, out AtlasUsage emission, out AtlasUsage transmission)
+        {
+            albedo = _albedoTextureAllocator.GetUsage();
+            emission = _emissionTextureAllocator.GetUsage();
+            transmission = _transmissionTextureAllocator.GetUsage();
         }
 
         public void RemoveMaterial(UInt64 materialInstanceID)
@@ -274,9 +307,38 @@ namespace UnityEngine.PathTracing.Core
             }
         }
 
-        private void UpdateMaterial(in MaterialDescriptor material, UVChannel albedoAndEmissionUVChannel, MaterialEntry materialEntry)
+#if UNITY_INCLUDE_TESTS
+        internal List<Vector3> ReadBackEmissionColors()
         {
-            AddOrUpdateTexture(in material, TextureType.Albedo, ref materialEntry.AlbedoTextureLocation);
+            var entries = new GpuMaterialEntry[MaterialBuffer.count];
+            MaterialBuffer.GetData(entries);
+
+            var emissionColors = new List<Vector3>(entries.Length);
+            foreach (var entry in entries)
+                emissionColors.Add(entry.EmissionColor);
+
+            return emissionColors;
+        }
+#endif
+
+        private bool UpdateMaterial(in MaterialDescriptor material, UVChannel albedoAndEmissionUVChannel, MaterialEntry materialEntry)
+        {
+            var albedo = new StagedTexture(TextureType.Albedo, materialEntry.AlbedoTextureLocation, true);
+            var emission = new StagedTexture(TextureType.Emission, materialEntry.EmissionTextureLocation, material.EmissionType == MaterialPropertyType.Texture);
+            var transmission = new StagedTexture(TextureType.Transmission, materialEntry.TransmissionTextureLocation,
+                material.TransmissionChannels == TransmissionChannels.RGB && material.Transmission != null);
+
+            if (!TryStageTexture(in material, ref albedo) || !TryStageTexture(in material, ref emission) || !TryStageTexture(in material, ref transmission))
+            {
+                DiscardStagedTexture(in albedo);
+                DiscardStagedTexture(in emission);
+                DiscardStagedTexture(in transmission);
+                return false;
+            }
+
+            materialEntry.AlbedoTextureLocation = CommitStagedTexture(in material, in albedo);
+            materialEntry.EmissionTextureLocation = CommitStagedTexture(in material, in emission);
+            materialEntry.TransmissionTextureLocation = CommitStagedTexture(in material, in transmission);
 
             if (material.TransmissionChannels == TransmissionChannels.Alpha)
                 FillAlbedoTextureAlphaWithOpacity(in material, materialEntry.AlbedoTextureLocation);
@@ -288,33 +350,10 @@ namespace UnityEngine.PathTracing.Core
             materialEntry.PointSampleAlbedo = material.PointSampleAlbedo;
             materialEntry.PointSampleEmission = material.PointSampleEmission;
 
-            var emissionType = material.EmissionType;
-            if (emissionType == MaterialPropertyType.Texture)
-            {
-                AddOrUpdateTexture(in material, TextureType.Emission, ref materialEntry.EmissionTextureLocation);
-                materialEntry.EmissionColor = 0;
-            }
-            else if (emissionType == MaterialPropertyType.Color)
-            {
-                RemoveTextureIfPresent(TextureType.Emission, ref materialEntry.EmissionTextureLocation);
-                materialEntry.EmissionColor = material.EmissionColor;
-            }
-            else if (emissionType == MaterialPropertyType.None)
-            {
-                RemoveTextureIfPresent(TextureType.Emission, ref materialEntry.EmissionTextureLocation);
-                materialEntry.EmissionColor = 0;
-            }
-
-            if (material.TransmissionChannels == TransmissionChannels.RGB && material.Transmission != null)
-            {
-                AddOrUpdateTexture(in material, TextureType.Transmission, ref materialEntry.TransmissionTextureLocation);
-            }
-            else
-            {
-                RemoveTextureIfPresent(TextureType.Transmission, ref materialEntry.TransmissionTextureLocation);
-            }
+            materialEntry.EmissionColor = material.EmissionType == MaterialPropertyType.Color ? material.EmissionColor : 0;
 
             UpdateMaterialList(materialEntry);
+            return true;
         }
 
         private void UpdateMaterialList(MaterialEntry entry)
@@ -382,47 +421,48 @@ namespace UnityEngine.PathTracing.Core
             return 2 * handle + offset;
         }
 
-        public int AddCookieTexture(Texture cookie)
+        public bool TryAddCookieTexture(Texture cookie, out int cookieIndex)
         {
-            if (cookie != null)
+            cookieIndex = -1;
+            if (cookie == null)
+                return false;
+
+            var cookieID = Util.EntityIDToUlong(cookie.GetEntityId());
+            if (_lightCookies.TryGetValue(cookieID, out var allocator))
             {
-                var cookieID = Util.EntityIDToUlong(cookie.GetEntityId());
-                if (_lightCookies.TryGetValue(cookieID, out var allocator))
-                {
-                    // This cookie was already copied in the atlas in a previous frame
-                    // Baking will never hit this path, as the lights are not updated during a bake, but it's important for LiveGI
-                    return allocator.handle;
-                }
-
-                int slices = GetCookieFaces(cookie);
-
-                BlockAllocator.Allocation slotAllocation;
-                if (slices > 1)
-                {
-                    slotAllocation = _lightCubemapTexturesSlotAllocator.Allocate(1);
-                    ExpandCookieTextureArray(true, ref _lightCubemapTexturesSlotAllocator, ref LightCubemapTextures, ref slotAllocation);
-
-                    RenderTexture prevRT = RenderTexture.active;
-                    BlitCubemapCookie(cookie, LightCubemapTextures, slotAllocation.block.offset);
-                    RenderTexture.active = prevRT;
-                }
-                else
-                {
-                    slotAllocation = _lightCookieTexturesSlotAllocator.Allocate(1);
-                    ExpandCookieTextureArray(false, ref _lightCookieTexturesSlotAllocator, ref LightCookieTextures, ref slotAllocation);
-
-                    RenderTexture prevRT = RenderTexture.active;
-                    Blit2DCookie(cookie, LightCookieTextures, slotAllocation.block.offset);
-                    RenderTexture.active = prevRT;
-                }
-
-                int handle = GetCookieHandle(slices, slotAllocation.handle);
-                _lightCookies.Add(cookieID, slotAllocation);
-                _cookieHandleToID.Add(handle, cookieID);
-                return slotAllocation.handle;
+                // This cookie was already copied in the atlas in a previous frame
+                // Baking will never hit this path, as the lights are not updated during a bake, but it's important for LiveGI
+                cookieIndex = allocator.handle;
+                return true;
             }
 
-            return -1;
+            int slices = GetCookieFaces(cookie);
+
+            BlockAllocator.Allocation slotAllocation;
+            if (slices > 1)
+            {
+                if (!TryAllocateCookieSlot(true, ref _lightCubemapTexturesSlotAllocator, ref LightCubemapTextures, out slotAllocation))
+                    return false;
+
+                RenderTexture prevRT = RenderTexture.active;
+                BlitCubemapCookie(cookie, LightCubemapTextures, slotAllocation.block.offset);
+                RenderTexture.active = prevRT;
+            }
+            else
+            {
+                if (!TryAllocateCookieSlot(false, ref _lightCookieTexturesSlotAllocator, ref LightCookieTextures, out slotAllocation))
+                    return false;
+
+                RenderTexture prevRT = RenderTexture.active;
+                Blit2DCookie(cookie, LightCookieTextures, slotAllocation.block.offset);
+                RenderTexture.active = prevRT;
+            }
+
+            int handle = GetCookieHandle(slices, slotAllocation.handle);
+            _lightCookies.Add(cookieID, slotAllocation);
+            _cookieHandleToID.Add(handle, cookieID);
+            cookieIndex = slotAllocation.handle;
+            return true;
         }
 
         public void RemoveCookieTexture(int cookieFaces, int cookieIndex)
@@ -449,30 +489,40 @@ namespace UnityEngine.PathTracing.Core
             }
         }
 
-        private void ExpandCookieTextureArray(bool isCubemapCookie, ref BlockAllocator allocator, ref RenderTexture texture, ref BlockAllocator.Allocation textureAlloc)
+        private bool TryAllocateCookieSlot(bool isCubemapCookie, ref BlockAllocator allocator, ref RenderTexture texture, out BlockAllocator.Allocation slot)
         {
-            if (!textureAlloc.valid)
+            slot = allocator.Allocate(1);
+            if (slot.valid)
+                return true;
+
+            var oldCapacity = allocator.capacity;
+            int limit = isCubemapCookie ? _maxSliceCount / 6 : _maxSliceCount;
+            if (oldCapacity >= limit)
+                return false;
+
+            int newCapacity = Mathf.Min(Mathf.Max(oldCapacity * 2, oldCapacity + 1), limit);
+            var newTexture = CreateTextureArray(newCapacity, isCubemapCookie ? TextureType.LightCubemap : TextureType.LightCookie);
+            if (!newTexture.IsCreated())
             {
-                textureAlloc = allocator.Allocate(1);
-                if (!textureAlloc.valid)
-                {
-                    var oldCapacity = allocator.capacity;
-                    allocator.Grow(allocator.capacity + 1);
-
-                    var newTexture = CreateTextureArray(allocator.capacity, isCubemapCookie ? TextureType.LightCubemap : TextureType.LightCookie);
-
-                    using var cmd = new CommandBuffer();
-                    for (int i = 0; i < oldCapacity; ++i)
-                        cmd.CopyTexture(texture, i, newTexture, i);
-                    Graphics.ExecuteCommandBuffer(cmd);
-
-                    texture.Release();
-                    texture = newTexture;
-
-                    textureAlloc = allocator.Allocate(1);
-                    Assert.IsTrue(textureAlloc.valid);
-                }
+                CoreUtils.Destroy(newTexture);
+                return false;
             }
+
+            allocator.Grow(newCapacity);
+
+            int copySliceCount = isCubemapCookie ? oldCapacity * 6 : oldCapacity;
+            using var cmd = new CommandBuffer();
+            for (int i = 0; i < copySliceCount; ++i)
+                cmd.CopyTexture(texture, i, newTexture, i);
+            Graphics.ExecuteCommandBuffer(cmd);
+
+            texture.Release();
+            CoreUtils.Destroy(texture);
+            texture = newTexture;
+
+            slot = allocator.Allocate(1);
+            Assert.IsTrue(slot.valid);
+            return true;
         }
 
         // Blits all faces of a cubemap to a slice of a cubemap array, performing any format conversions that are necessary
@@ -534,44 +584,104 @@ namespace UnityEngine.PathTracing.Core
         }
         #endregion
 
-        private void AddOrUpdateTexture(in MaterialDescriptor material, TextureType textureType, ref TextureSlotAllocator.TextureLocation location)
+        private TextureSlotAllocator GetAllocator(TextureType textureType)
         {
-            // Find appropriate allocator, scale, offset and texture
-            var allocator = _transmissionTextureAllocator;
-            Vector2 scale = material.TransmissionScale;
-            Vector2 offset = material.TransmissionOffset;
+            if (textureType == TextureType.Albedo)
+                return _albedoTextureAllocator;
+            if (textureType == TextureType.Emission)
+                return _emissionTextureAllocator;
+            return _transmissionTextureAllocator;
+        }
+
+        private void GetTextureSource(in MaterialDescriptor material, TextureType textureType, out TextureSlotAllocator allocator, out Texture texture, out Vector2 scale, out Vector2 offset)
+        {
+            allocator = GetAllocator(textureType);
+            scale = material.TransmissionScale;
+            offset = material.TransmissionOffset;
             offset.y = -offset.y; // TODO: During extraction this value is negated. This should be fixed. Tracked here: https://jira.unity3d.com/browse/GFXFEAT-802
-            Texture texture = material.Transmission;
+            texture = material.Transmission;
             if (textureType == TextureType.Albedo)
             {
-                allocator = _albedoTextureAllocator;
                 texture = material.Albedo;
                 scale = material.AlbedoScale;
                 offset = material.AlbedoOffset;
             }
             else if (textureType == TextureType.Emission)
             {
-                allocator = _emissionTextureAllocator;
                 texture = material.Emission;
                 scale = material.EmissionScale;
                 offset = material.EmissionOffset;
             }
+        }
 
-            // Invalid texture - bail
-            if (texture == null)
+        // Only allocations that can fail happen here; in-place updates and shrinks are deferred to CommitStagedTexture
+        // so that a rejected material update leaves the entry and its atlas content untouched.
+        private bool TryStageTexture(in MaterialDescriptor material, ref StagedTexture staged)
+        {
+            GetTextureSource(in material, staged.Type, out var allocator, out var texture, out var scale, out var offset);
+            if (!staged.UsesAtlasSlot || texture == null)
+                return true;
+
+            int nodeSize = allocator.GetNodeSize(Mathf.Max(texture.width, texture.height));
+            if (staged.Original.IsValid && nodeSize == staged.Original.TextureNode.Size)
+                return true;
+
+            staged.Allocated = allocator.AddTexture(texture, scale, offset);
+            if (staged.Allocated.IsValid)
+            {
+                CountTextureBlit();
+                return true;
+            }
+
+            // Without a new node, the texture goes into the node it already has: freed and re-added when smaller,
+            // scaled down into it when larger.
+            return staged.Original.IsValid;
+        }
+
+        private void DiscardStagedTexture(in StagedTexture staged)
+        {
+            if (!staged.Allocated.IsValid)
                 return;
 
-            // Update path
-            if (location.IsValid)
+            GetAllocator(staged.Type).RemoveTexture(in staged.Allocated);
+        }
+
+        private TextureSlotAllocator.TextureLocation CommitStagedTexture(in MaterialDescriptor material, in StagedTexture staged)
+        {
+            GetTextureSource(in material, staged.Type, out var allocator, out var texture, out var scale, out var offset);
+            if (!staged.UsesAtlasSlot)
             {
-                allocator.UpdateTexture(in location, texture, scale, offset);
-            }
-            // Add path
-            else
-            {
-                location = allocator.AddTexture(texture, scale, offset);
+                if (staged.Original.IsValid)
+                    allocator.RemoveTexture(in staged.Original);
+                return TextureSlotAllocator.TextureLocation.Invalid;
             }
 
+            if (texture == null)
+                return staged.Original;
+
+            if (staged.Allocated.IsValid)
+            {
+                if (staged.Original.IsValid)
+                    allocator.RemoveTexture(in staged.Original);
+                return staged.Allocated;
+            }
+
+            if (allocator.GetNodeSize(Mathf.Max(texture.width, texture.height)) >= staged.Original.TextureNode.Size)
+            {
+                allocator.UpdateTexture(in staged.Original, texture, scale, offset);
+                CountTextureBlit();
+                return staged.Original;
+            }
+
+            allocator.RemoveTexture(in staged.Original);
+            var location = allocator.AddTexture(texture, scale, offset);
+            Debug.Assert(location.IsValid, "Shrinking a texture in the atlas should not fail.");
+            CountTextureBlit();
+            return location;
+        }
+
+        private void CountTextureBlit()
+        {
             if (++_textureBlitsSinceLastFlush >= k_TextureFlushThreshold)
             {
                 GL.Flush();
@@ -621,7 +731,7 @@ namespace UnityEngine.PathTracing.Core
         }
 
         // Render out an albedo/emission texture using the meta pass
-        private static Texture EvaluateMetaPass(Material material, TextureType textureType)
+        private static Texture EvaluateMetaPass(Material material, TextureType textureType, int resolution)
         {
             if (textureType == TextureType.Transmission)
             {
@@ -629,7 +739,7 @@ namespace UnityEngine.PathTracing.Core
                 return null;
             }
 
-            var targetTexture = CreateTexture(textureType);
+            var targetTexture = CreateTexture(textureType, resolution: resolution);
 
             int metaPassIndex = material.FindPass("Meta");
 
@@ -667,7 +777,7 @@ namespace UnityEngine.PathTracing.Core
         }
 
         // The textures referenced by the material descriptor are owned by the material descriptor.
-        public static MaterialPool.MaterialDescriptor ConvertUnityMaterialToMaterialDescriptor(Material material, EmissionMode emissionMode)
+        public static MaterialPool.MaterialDescriptor ConvertUnityMaterialToMaterialDescriptor(Material material, EmissionMode emissionMode, int resolution = AtlasSize)
         {
             MaterialPool.MaterialDescriptor descriptor = new();
 
@@ -682,13 +792,13 @@ namespace UnityEngine.PathTracing.Core
 
             if (emission.Type == MaterialPropertyType.Texture)
             {
-                descriptor.Emission = EvaluateMetaPass(material, TextureType.Emission);
+                descriptor.Emission = EvaluateMetaPass(material, TextureType.Emission, resolution);
                 descriptor.EmissionScale = Vector2.one; // Scale and offset handled by meta pass
                 descriptor.EmissionOffset = Vector2.zero;
             }
 
             // Albedo
-            descriptor.Albedo = EvaluateMetaPass(material, TextureType.Albedo);
+            descriptor.Albedo = EvaluateMetaPass(material, TextureType.Albedo, resolution);
             descriptor.AlbedoScale = Vector2.one; // Scale and offset handled by meta pass
             descriptor.AlbedoOffset = Vector2.zero;
 
@@ -700,7 +810,7 @@ namespace UnityEngine.PathTracing.Core
             if (transmission.Channels != TransmissionChannels.None)
             {
                 RenderTexture prevRT = RenderTexture.active;
-                var transmissionTexture = CreateTexture(TextureType.Transmission);
+                var transmissionTexture = CreateTexture(TextureType.Transmission, resolution: resolution);
                 Graphics.Blit(transmission.SourceTexture, transmissionTexture, transmission.Scale, transmission.Offset);
                 descriptor.Transmission = transmissionTexture;
                 RenderTexture.active = prevRT;
@@ -735,11 +845,11 @@ namespace UnityEngine.PathTracing.Core
             return CreateTexture(textureType, dimension, textureType == TextureType.LightCubemap ? sliceCount * 6 : sliceCount);
         }
 
-        private static RenderTexture CreateTexture(TextureType textureType, TextureDimension dimension = TextureDimension.Tex2D, int sliceCount = 1)
+        private static RenderTexture CreateTexture(TextureType textureType, TextureDimension dimension = TextureDimension.Tex2D, int sliceCount = 1, int resolution = AtlasSize)
         {
             var format = GetTextureFormat(textureType);
 
-            var texture = new RenderTexture(new RenderTextureDescriptor(AtlasSize, AtlasSize)
+            var texture = new RenderTexture(new RenderTextureDescriptor(resolution, resolution)
             {
                 dimension = dimension,
                 depthBufferBits = 0,

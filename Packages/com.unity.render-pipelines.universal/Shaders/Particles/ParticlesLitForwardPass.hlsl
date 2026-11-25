@@ -38,6 +38,7 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData i
 #endif
 
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS, UseNormalMap());
+    inputData.geometricNormalWS = input.normalWS.xyz;
 
     viewDirWS = SafeNormalize(viewDirWS);
 
@@ -149,7 +150,7 @@ half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
 
     URP_LIGHT_ACCUM4 color = UniversalFragmentPBR(inputData, surfaceData,
         IsSpecularSetup(), UseSpecularHighlights(), UseAlphaPremultiply(),
-        UseClearCoat() || UseClearCoatMap(), ReceiveShadows(), IsSurfaceTypeTransparent(), UseEnvironmentReflections(), input.normalWS.xyz);
+        UseClearCoat() || UseClearCoatMap(), ReceiveShadows(), IsSurfaceTypeTransparent(), UseEnvironmentReflections());
     color.rgb = ClampExposed(inputData.preExposureMultiplier * BlendDistanceFog(color.rgb, input.clipPos));
 #if defined(_TRANSPARENT_RECEIVE_FOG)
     if (IsSurfaceTypeTransparent())

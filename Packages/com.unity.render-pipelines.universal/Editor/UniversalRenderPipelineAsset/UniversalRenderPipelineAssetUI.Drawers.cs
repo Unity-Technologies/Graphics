@@ -96,6 +96,29 @@ namespace UnityEditor.Rendering.Universal
             return unsupportedGraphicsApisMessage == null;
         }
 
+        internal static bool ValidateGraphicsAPIsForPCSS(out string unsupportedGraphicsApisMessage)
+        {
+            unsupportedGraphicsApisMessage = null;
+
+            BuildTarget platform = EditorUserBuildSettings.activeBuildTarget;
+            GraphicsDeviceType[] graphicsAPIs = PlayerSettings.GetGraphicsAPIs(platform);
+
+            for (int apiIndex = 0; apiIndex < graphicsAPIs.Length; apiIndex++)
+            {
+                if (!ShadowUtils.SupportsPCSS(graphicsAPIs[apiIndex]))
+                {
+                    if (unsupportedGraphicsApisMessage != null)
+                        unsupportedGraphicsApisMessage += ", ";
+                    unsupportedGraphicsApisMessage += graphicsAPIs[apiIndex];
+                }
+            }
+
+            if (unsupportedGraphicsApisMessage != null)
+                unsupportedGraphicsApisMessage += ".";
+
+            return unsupportedGraphicsApisMessage == null;
+        }
+
         static bool ValidateRendererGraphicsAPIs(UniversalRenderPipelineAsset pipelineAsset, out string unsupportedGraphicsApisMessage)
         {
             // Check the list of Renderers against all Graphics APIs the player is built with.
@@ -321,7 +344,7 @@ namespace UnityEditor.Rendering.Universal
 
         internal static bool IsAndroidXRTargetted() //Include Quest platform
         {
-#if XR_MANAGEMENT_4_0_1_OR_NEWER
+#if XR_MANAGEMENT_4_0_1_OR_NEWER || XR_FOUNDATION_7_0_0_OR_NEWER
             var buildTargetGroup = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
             if (buildTargetGroup != BuildTargetGroup.Android)
                 return false;
@@ -352,6 +375,8 @@ namespace UnityEditor.Rendering.Universal
                 serialized.msaa,
                 p => p.intValue != (int)MsaaQuality.Disabled && AnyTileOnlyDeferredRenderer(serialized),
                 Styles.msaaText, MessageType.Warning, Styles.msaaTileOnlyDeferredWarning);
+            if (serialized.msaa.intValue != (int)MsaaQuality.Disabled && AnyTemporalUpscaler(serialized))
+                EditorGUILayout.HelpBox(Styles.msaaTemporalUpscalerWarning, MessageType.Warning, true);
 
             EditorGUILayout.PropertyField(serialized.enableLODCrossFadeProp, Styles.enableLODCrossFadeText);
             EditorGUI.BeginDisabledGroup(!serialized.enableLODCrossFadeProp.boolValue);
@@ -594,6 +619,7 @@ namespace UnityEditor.Rendering.Universal
             disableGroup |= serialized.mainLightShadowsSupportedProp.hasMultipleDifferentValues || !serialized.mainLightShadowsSupportedProp.boolValue;
             EditorGUI.BeginDisabledGroup(disableGroup);
             EditorGUILayout.PropertyField(serialized.mainLightShadowmapResolutionProp, Styles.mainLightShadowmapResolutionText);
+            EditorGUILayout.IntPopup(serialized.mainLightShadowmapDepthBitsProp, Styles.shadowmapDepthBitsNames, Styles.shadowmapDepthBitsValues, Styles.mainLightShadowmapDepthBits);
             EditorGUI.EndDisabledGroup();
 
             EditorGUI.indentLevel--;
@@ -675,6 +701,7 @@ namespace UnityEditor.Rendering.Universal
             disableGroup |= serialized.additionalLightShadowsSupportedProp.hasMultipleDifferentValues || !serialized.additionalLightShadowsSupportedProp.boolValue;
             EditorGUI.BeginDisabledGroup(disableGroup);
             EditorGUILayout.PropertyField(serialized.additionalLightShadowmapResolutionProp, Styles.additionalLightsShadowmapResolution);
+            EditorGUILayout.IntPopup(serialized.additionalLightsShadowmapDepthBitsProp, Styles.shadowmapDepthBitsNames, Styles.shadowmapDepthBitsValues, Styles.additionalLightsShadowmapDepthBits);
             DrawShadowResolutionTierSettings(serialized, ownerEditor);
             EditorGUI.EndDisabledGroup();
 
@@ -783,38 +810,7 @@ namespace UnityEditor.Rendering.Universal
 
         static void DrawShadows(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {
-            using (new EditorGUI.MixedValueScope(serialized.shadowDistanceProp.hasMultipleDifferentValues))
-            {
-                EditorGUI.BeginChangeCheck();
-                float newShadowDistance = Mathf.Max(0.0f, EditorGUILayout.FloatField(Styles.shadowDistanceText, serialized.shadowDistanceProp.floatValue));
-                if (EditorGUI.EndChangeCheck())
-                    serialized.shadowDistanceProp.floatValue = newShadowDistance;
-            }
-            EditorUtils.Unit unit = EditorUtils.Unit.Metric;
-            if (serialized.shadowCascadeCountProp.intValue != 0)
-            {
-                EditorGUI.BeginChangeCheck();
-                unit = (EditorUtils.Unit)EditorGUILayout.EnumPopup(Styles.shadowWorkingUnitText, serialized.state.value);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    serialized.state.value = unit;
-                }
-            }
-
-            EditorGUILayout.IntSlider(serialized.shadowCascadeCountProp, UniversalRenderPipelineAsset.k_ShadowCascadeMinCount, UniversalRenderPipelineAsset.k_ShadowCascadeMaxCount, Styles.shadowCascadesText);
-
-            int cascadeCount = serialized.shadowCascadeCountProp.intValue;
-            EditorGUI.indentLevel++;
-
-            bool useMetric = unit == EditorUtils.Unit.Metric;
-            float baseMetric = serialized.shadowDistanceProp.floatValue;
-            int cascadeSplitCount = cascadeCount - 1;
-
-            DrawCascadeSliders(serialized, cascadeSplitCount, useMetric, baseMetric);
-
-            EditorGUI.indentLevel--;
-            DrawCascades(serialized, cascadeCount, useMetric, baseMetric);
-            EditorGUI.indentLevel++;
+            EditorGUILayout.HelpBox(Styles.shadowVolumeSettingsInfo, MessageType.Info);
 
             if ((GPUResidentDrawerMode)serialized.gpuResidentDrawerMode.intValue != GPUResidentDrawerMode.Disabled)
             {
@@ -862,10 +858,35 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUI.indentLevel++;
                     DrawShadowsSoftShadowQuality(serialized, ownerEditor);
+                    DrawShadowsPCSS(serialized);
+                    EditorGUILayout.PropertyField(serialized.softShadowKernelRadiusPercentProp, Styles.softShadowsKernelRadiusPercent);
+                    if (serialized.mainLightShadowsPCSSProp.boolValue && serialized.softShadowKernelRadiusPercentProp.floatValue > 0.0f)
+                        EditorGUILayout.HelpBox(Styles.softShadowsKernelRadiusPCSSInfo.text, MessageType.Info, true);
                 EditorGUI.indentLevel--;
             }
+        }
 
-            EditorGUI.indentLevel--;
+        // PCSS replaces the High quality filter, so its toggles are listed only there
+        static void DrawShadowsPCSS(SerializedUniversalRenderPipelineAsset serialized)
+        {
+            bool isHighQuality = serialized.softShadowQualityProp.hasMultipleDifferentValues || serialized.softShadowQualityProp.intValue >= (int)SoftShadowQuality.High;
+
+            if (isHighQuality)
+            {
+                EditorGUILayout.PropertyField(serialized.mainLightShadowsPCSSProp, Styles.mainLightShadowsPCSS);
+                EditorGUILayout.PropertyField(serialized.additionalLightShadowsPCSSProp, Styles.additionalLightShadowsPCSS);
+            }
+
+            bool enabledInAsset = serialized.mainLightShadowsPCSSProp.boolValue || serialized.additionalLightShadowsPCSSProp.boolValue;
+            if (!enabledInAsset)
+                return;
+
+            // A hidden toggle still applies to lights set to High on their own
+            if (!isHighQuality)
+                EditorGUILayout.HelpBox(Styles.pcssEnabledBelowHighQuality.text, MessageType.Info, true);
+
+            if (!ValidateGraphicsAPIsForPCSS(out var unsupportedGraphicsApisMessage))
+                EditorGUILayout.HelpBox(Styles.pcssUnsupportedMessage.text + unsupportedGraphicsApisMessage, MessageType.Info, true);
         }
 
         static void DrawShadowsSoftShadowQuality(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
@@ -889,150 +910,6 @@ namespace UnityEditor.Rendering.Universal
         static void DrawShadowsAdditional(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
         {
             EditorGUILayout.PropertyField(serialized.conservativeEnclosingSphereProp, Styles.conservativeEnclosingSphere);
-        }
-
-        static void DrawCascadeSliders(SerializedUniversalRenderPipelineAsset serialized, int splitCount, bool useMetric, float baseMetric)
-        {
-            Vector4 shadowCascadeSplit = Vector4.one;
-            if (splitCount == 3)
-                shadowCascadeSplit = new Vector4(serialized.shadowCascade4SplitProp.vector3Value.x, serialized.shadowCascade4SplitProp.vector3Value.y, serialized.shadowCascade4SplitProp.vector3Value.z, 1);
-            else if (splitCount == 2)
-                shadowCascadeSplit = new Vector4(serialized.shadowCascade3SplitProp.vector2Value.x, serialized.shadowCascade3SplitProp.vector2Value.y, 1, 0);
-            else if (splitCount == 1)
-                shadowCascadeSplit = new Vector4(serialized.shadowCascade2SplitProp.floatValue, 1, 0, 0);
-
-            float splitBias = 0.001f;
-            float invBaseMetric = baseMetric == 0 ? 0 : 1f / baseMetric;
-
-            // Ensure correct split order
-            shadowCascadeSplit[0] = Mathf.Clamp(shadowCascadeSplit[0], 0f, shadowCascadeSplit[1] - splitBias);
-            shadowCascadeSplit[1] = Mathf.Clamp(shadowCascadeSplit[1], shadowCascadeSplit[0] + splitBias, shadowCascadeSplit[2] - splitBias);
-            shadowCascadeSplit[2] = Mathf.Clamp(shadowCascadeSplit[2], shadowCascadeSplit[1] + splitBias, shadowCascadeSplit[3] - splitBias);
-
-
-            EditorGUI.BeginChangeCheck();
-            for (int i = 0; i < splitCount; ++i)
-            {
-                float value = shadowCascadeSplit[i];
-
-                float minimum = i == 0 ? 0 : shadowCascadeSplit[i - 1] + splitBias;
-                float maximum = i == splitCount - 1 ? 1 : shadowCascadeSplit[i + 1] - splitBias;
-
-                if (useMetric)
-                {
-                    float valueMetric = value * baseMetric;
-                    valueMetric = EditorGUILayout.Slider(L10n.TextContent($"Split {i + 1}", "The distance where this cascade ends and the next one starts.", null, null), valueMetric, 0f, baseMetric, null);
-
-                    shadowCascadeSplit[i] = Mathf.Clamp(valueMetric * invBaseMetric, minimum, maximum);
-                }
-                else
-                {
-                    float valueProcentage = value * 100f;
-                    valueProcentage = EditorGUILayout.Slider(L10n.TextContent($"Split {i + 1}", "The distance where this cascade ends and the next one starts.", null, null), valueProcentage, 0f, 100f, null);
-
-                    shadowCascadeSplit[i] = Mathf.Clamp(valueProcentage * 0.01f, minimum, maximum);
-                }
-            }
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                switch (splitCount)
-                {
-                    case 3:
-                        serialized.shadowCascade4SplitProp.vector3Value = shadowCascadeSplit;
-                        break;
-                    case 2:
-                        serialized.shadowCascade3SplitProp.vector2Value = shadowCascadeSplit;
-                        break;
-                    case 1:
-                        serialized.shadowCascade2SplitProp.floatValue = shadowCascadeSplit.x;
-                        break;
-                }
-            }
-
-            var borderValue = serialized.shadowCascadeBorderProp.floatValue;
-
-            EditorGUI.BeginChangeCheck();
-            if (useMetric)
-            {
-                var lastCascadeSplitSize = splitCount == 0 ? baseMetric : (1.0f - shadowCascadeSplit[splitCount - 1]) * baseMetric;
-                var invLastCascadeSplitSize = lastCascadeSplitSize == 0 ? 0 : 1f / lastCascadeSplitSize;
-                float valueMetric = borderValue * lastCascadeSplitSize;
-                valueMetric = EditorGUILayout.Slider(L10n.TextContent("Last Border", "The distance of the last cascade.", null, null), valueMetric, 0f, lastCascadeSplitSize, null);
-
-                borderValue = valueMetric * invLastCascadeSplitSize;
-            }
-            else
-            {
-                float valueProcentage = borderValue * 100f;
-                valueProcentage = EditorGUILayout.Slider(L10n.TextContent("Last Border", "The distance of the last cascade.", null, null), valueProcentage, 0f, 100f, null);
-
-                borderValue = valueProcentage * 0.01f;
-            }
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                serialized.shadowCascadeBorderProp.floatValue = borderValue;
-            }
-        }
-
-        static void DrawCascades(SerializedUniversalRenderPipelineAsset serialized, int cascadeCount, bool useMetric, float baseMetric)
-        {
-            var cascades = new ShadowCascadeGUI.Cascade[cascadeCount];
-
-            Vector3 shadowCascadeSplit = Vector3.zero;
-            if (cascadeCount == 4)
-                shadowCascadeSplit = serialized.shadowCascade4SplitProp.vector3Value;
-            else if (cascadeCount == 3)
-                shadowCascadeSplit = serialized.shadowCascade3SplitProp.vector2Value;
-            else if (cascadeCount == 2)
-                shadowCascadeSplit.x = serialized.shadowCascade2SplitProp.floatValue;
-            else
-                shadowCascadeSplit.x = serialized.shadowCascade2SplitProp.floatValue;
-
-            float lastCascadePartitionSplit = 0;
-            for (int i = 0; i < cascadeCount - 1; ++i)
-            {
-                cascades[i] = new ShadowCascadeGUI.Cascade()
-                {
-                    size = i == 0 ? shadowCascadeSplit[i] : shadowCascadeSplit[i] - lastCascadePartitionSplit, // Calculate the size of cascade
-                    borderSize = 0,
-                    cascadeHandleState = ShadowCascadeGUI.HandleState.Enabled,
-                    borderHandleState = ShadowCascadeGUI.HandleState.Hidden,
-                };
-                lastCascadePartitionSplit = shadowCascadeSplit[i];
-            }
-
-            // Last cascade is special
-            var lastCascade = cascadeCount - 1;
-            cascades[lastCascade] = new ShadowCascadeGUI.Cascade()
-            {
-                size = lastCascade == 0 ? 1.0f : 1 - shadowCascadeSplit[lastCascade - 1], // Calculate the size of cascade
-                borderSize = serialized.shadowCascadeBorderProp.floatValue,
-                cascadeHandleState = ShadowCascadeGUI.HandleState.Hidden,
-                borderHandleState = ShadowCascadeGUI.HandleState.Enabled,
-            };
-
-            EditorGUI.BeginChangeCheck();
-            ShadowCascadeGUI.DrawCascades(ref cascades, useMetric, baseMetric);
-            if (EditorGUI.EndChangeCheck())
-            {
-                if (cascadeCount == 4)
-                    serialized.shadowCascade4SplitProp.vector3Value = new Vector3(
-                        cascades[0].size,
-                        cascades[0].size + cascades[1].size,
-                        cascades[0].size + cascades[1].size + cascades[2].size
-                    );
-                else if (cascadeCount == 3)
-                    serialized.shadowCascade3SplitProp.vector2Value = new Vector2(
-                        cascades[0].size,
-                        cascades[0].size + cascades[1].size
-                    );
-                else if (cascadeCount == 2)
-                    serialized.shadowCascade2SplitProp.floatValue = cascades[0].size;
-
-                serialized.shadowCascadeBorderProp.floatValue = cascades[lastCascade].borderSize;
-            }
         }
 
         static void DrawPostProcessing(SerializedUniversalRenderPipelineAsset serialized, Editor ownerEditor)
@@ -1307,6 +1184,23 @@ namespace UnityEditor.Rendering.Universal
             string message = string.Format(fmt, labelText, lastTileOnlyModeInfos.rendererNames);
 
             EditorGUILayout.HelpBox(message, messageType);
+        }
+
+        static bool AnyTemporalUpscaler(SerializedUniversalRenderPipelineAsset serialized)
+        {
+            if ((ScalingMode)serialized.scalingMode.enumValueIndex != ScalingMode.Upscaling)
+                return false;
+
+            for (int i = 0; i < serialized.upscalerPriority.arraySize; ++i)
+            {
+                string upscalerId = serialized.upscalerPriority.GetArrayElementAtIndex(i).FindPropertyRelative("upscalerId").stringValue;
+                IUpscaler upscaler = UniversalRenderPipeline.upscaling?.GetIUpscalerById(upscalerId);
+
+                if (upscaler != null && upscaler.isTemporal)
+                    return true;
+            }
+
+            return false;
         }
     }
 }

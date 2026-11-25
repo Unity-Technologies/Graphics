@@ -33,6 +33,12 @@ namespace UnityEngine.Rendering.UnifiedRayTracing
 #endif
 
         [Conditional("UNITY_ASSERTIONS")]
+        public static void CheckMeshLod(in MeshInstanceDesc meshInstance)
+        {
+            CheckArgRange(meshInstance.meshLod, 0, Math.Max(1, meshInstance.mesh.lodCount), "meshInstance.meshLod");
+        }
+
+        [Conditional("UNITY_ASSERTIONS")]
         public static void CheckArgIsNotNull(System.Object obj, string argName)
         {
             if (obj == null)

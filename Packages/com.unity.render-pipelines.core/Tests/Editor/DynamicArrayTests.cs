@@ -1,6 +1,7 @@
 using System;
 using NUnit.Framework;
-using UnityEngine.Profiling;
+using UnityEngine.TestTools.Constraints;
+using Is = UnityEngine.TestTools.Constraints.Is;
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -76,6 +77,60 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(3, smallDynamicArray[2]);
             Assert.AreEqual(4, smallDynamicArray[3]);
             Assert.AreEqual(4, smallDynamicArray.size);
+        }
+
+        [TestCase(0, 9, new[] { 9, 1, 2, 3 })]
+        [TestCase(1, 9, new[] { 1, 9, 2, 3 })]
+        [TestCase(2, 9, new[] { 1, 2, 9, 3 })]
+        [TestCase(3, 9, new[] { 1, 2, 3, 9 })]
+        public void TestInsertIntoFullArrayKeepOrder(int index, int item, int[] expected)
+        {
+            var fullDynamicArray = new DynamicArray<int>(3);
+            fullDynamicArray[0] = 1;
+            fullDynamicArray[1] = 2;
+            fullDynamicArray[2] = 3;
+
+            fullDynamicArray.Insert(index, item);
+
+            Assert.AreEqual(expected.Length, fullDynamicArray.size);
+            for (int i = 0; i < expected.Length; ++i)
+            {
+                Assert.AreEqual(expected[i], fullDynamicArray[i]);
+            }
+        }
+
+        [Test]
+        public void TestInsertWithOneFreeSlotKeepOrder()
+        {
+            var dynamicArray = new DynamicArray<int>(4);
+            dynamicArray.Resize(3);
+            dynamicArray[0] = 1;
+            dynamicArray[1] = 2;
+            dynamicArray[2] = 3;
+
+            dynamicArray.Insert(1, 9);
+
+            Assert.AreEqual(4, dynamicArray.size);
+            Assert.AreEqual(1, dynamicArray[0]);
+            Assert.AreEqual(9, dynamicArray[1]);
+            Assert.AreEqual(2, dynamicArray[2]);
+            Assert.AreEqual(3, dynamicArray[3]);
+        }
+
+        [Test]
+        public void TestInsertWithFreeCapacityKeepOrder()
+        {
+            m_DynamicArray.Add(1);
+            m_DynamicArray.Add(2);
+            m_DynamicArray.Add(3);
+
+            m_DynamicArray.Insert(0, 9);
+
+            Assert.AreEqual(4, m_DynamicArray.size);
+            Assert.AreEqual(9, m_DynamicArray[0]);
+            Assert.AreEqual(1, m_DynamicArray[1]);
+            Assert.AreEqual(2, m_DynamicArray[2]);
+            Assert.AreEqual(3, m_DynamicArray[3]);
         }
 
         [Test]
@@ -516,28 +571,14 @@ namespace UnityEngine.Rendering.Tests
             });
         }
 
-        static Recorder gcAllocRecorder = Recorder.Get("GC.Alloc");
-        static int CountGCAllocs(Action action)
-        {
-            gcAllocRecorder.FilterToCurrentThread();
-            gcAllocRecorder.enabled = false;
-            gcAllocRecorder.enabled = true;
-
-            action();
-
-            gcAllocRecorder.enabled = false;
-            return gcAllocRecorder.sampleBlockCount;
-        }
         static void ValidateNoGCAllocs(Action action)
         {
             // warmup
             // this will catch static c'tors etc
-            CountGCAllocs(action);
+            action();
 
             // actual test
-            var count = CountGCAllocs(action);
-            if (count != 0)
-                throw new AssertionException($"Expected 0 GC allocations but there were {count}");
+            Assert.That(() => action(), Is.Not.AllocatingGCMemory());
         }
 
         [Test]

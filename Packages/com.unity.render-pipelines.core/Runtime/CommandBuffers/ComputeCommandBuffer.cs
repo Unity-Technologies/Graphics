@@ -223,10 +223,12 @@ namespace UnityEngine.Rendering
 
         /// <summary>Wraps [BeginSample](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.BeginSample.html) on a CommandBuffer.</summary>
         /// <param name="sampler">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.BeginSample.html)</param>
+        [Obsolete("Use BeginSample(ProfilerMarker) instead.", false)]
         public void BeginSample(CustomSampler sampler)  {  m_WrappedCommandBuffer.BeginSample(sampler); }
 
         /// <summary>Wraps [EndSample](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.EndSample.html) on a CommandBuffer.</summary>
         /// <param name="sampler">[See CommandBuffer documentation](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.EndSample.html)</param>
+        [Obsolete("Use EndSample(ProfilerMarker) instead.", false)]
         public void EndSample(CustomSampler sampler)  {  m_WrappedCommandBuffer.EndSample(sampler); }
 
         /// <summary>Wraps [BeginSample](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.BeginSample.html) on a CommandBuffer.</summary>

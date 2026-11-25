@@ -6,6 +6,7 @@
         "Unity.Testing.VisualEffectGraph",
         "Unity.Testing.XR.Editor",
         "Unity.VisualEffectGraph.Editor",
+        "Unity.VisualEffectGraph.Runtime",
         "UnityEditor.TestTools.Graphics",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
@@ -15,7 +16,9 @@
         "UnityEngine.TestTools.Graphics",
         "Unity.RenderPipelines.Core.Editor",
         "Unity.RenderPipelines.Universal.Editor",
-        "Unity.Nuget.Moq.Editor"
+        "Unity.Nuget.Moq.Editor",
+        "Unity.UI.TestFramework.Runtime",
+        "Unity.UI.TestFramework.Editor"
     ],
     "includePlatforms": [
         "Editor"

@@ -648,7 +648,18 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// The number of bits used.
         /// </summary>
+        [Obsolete("Use mainLightShadowmapDepthBits or additionalLightsShadowmapDepthBits. #from(7000.0)", false)]
         public ref int shadowmapDepthBufferBits => ref frameData.Get<UniversalShadowData>().shadowmapDepthBufferBits;
+
+        /// <summary>
+        /// The depth buffer precision of the main light shadow map.
+        /// </summary>
+        public ref DepthBits mainLightShadowmapDepthBits => ref frameData.Get<UniversalShadowData>().mainLightShadowmapDepthBits;
+
+        /// <summary>
+        /// The depth buffer precision of the additional lights shadow map atlas.
+        /// </summary>
+        public ref DepthBits additionalLightsShadowmapDepthBits => ref frameData.Get<UniversalShadowData>().additionalLightsShadowmapDepthBits;
 
         /// <summary>
         /// A list of shadow bias.
@@ -663,6 +674,14 @@ namespace UnityEngine.Rendering.Universal
         internal ref ShadowDepthBiasMode depthBiasMode => ref frameData.Get<UniversalShadowData>().depthBiasMode;
 
         internal ref ShadowNormalBiasMode normalBiasMode => ref frameData.Get<UniversalShadowData>().normalBiasMode;
+
+        internal ref GraphicsFormat mainLightShadowmapFormat => ref frameData.Get<UniversalShadowData>().mainLightShadowmapFormat;
+
+        internal ref GraphicsFormat additionalLightsShadowmapFormat => ref frameData.Get<UniversalShadowData>().additionalLightsShadowmapFormat;
+
+        internal ref bool mainLightReceiverNormalBiasSkipped => ref frameData.Get<UniversalShadowData>().mainLightReceiverNormalBiasSkipped;
+
+        internal ref float softShadowKernelRadiusPercent => ref frameData.Get<UniversalShadowData>().softShadowKernelRadiusPercent;
 
         internal ref bool isKeywordAdditionalLightShadowsEnabled => ref frameData.Get<UniversalShadowData>().isKeywordAdditionalLightShadowsEnabled;
         internal ref bool isKeywordSoftShadowsEnabled => ref frameData.Get<UniversalShadowData>().isKeywordSoftShadowsEnabled;
@@ -820,6 +839,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int cameraToWorldMatrix = Shader.PropertyToID("unity_CameraToWorld");
 
         public static readonly int shadowBias = Shader.PropertyToID("_ShadowBias");
+        public static readonly int zClip = Shader.PropertyToID("_ZClip");
         public static readonly int lightDirection = Shader.PropertyToID("_LightDirection");
         public static readonly int lightPosition = Shader.PropertyToID("_LightPosition");
 
@@ -844,9 +864,6 @@ namespace UnityEngine.Rendering.Universal
 
         // This uniform is specific to the RTHandle system
         public static readonly int rtHandleScale = Shader.PropertyToID("_RTHandleScale");
-
-        // Required for 2D Unlit Shadergraph master node as it doesn't currently support hidden properties.
-        public static readonly int rendererColor = Shader.PropertyToID("_RendererColor");
 
         public static readonly int ditheringTexture = Shader.PropertyToID("_DitheringTexture");
         public static readonly int ditheringTextureInvSize = Shader.PropertyToID("_DitheringTextureInvSize");
@@ -922,8 +939,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly GlobalKeyword SoftShadowsLow = GlobalKeyword.Create(ShaderKeywordStrings.SoftShadowsLow);
         public static readonly GlobalKeyword SoftShadowsMedium = GlobalKeyword.Create(ShaderKeywordStrings.SoftShadowsMedium);
         public static readonly GlobalKeyword SoftShadowsHigh = GlobalKeyword.Create(ShaderKeywordStrings.SoftShadowsHigh);
-        public static readonly GlobalKeyword MainLightShadowsSoftPcss = GlobalKeyword.Create(ShaderKeywordStrings.MainLightShadowsSoftPcss);
-        public static readonly GlobalKeyword AdditionalLightShadowsSoftPcss = GlobalKeyword.Create(ShaderKeywordStrings.AdditionalLightShadowsSoftPcss);
+        public static readonly GlobalKeyword ShadowsPCSS = GlobalKeyword.Create(ShaderKeywordStrings.ShadowsPCSS);
         public static readonly GlobalKeyword MixedLightingSubtractive = GlobalKeyword.Create(ShaderKeywordStrings.MixedLightingSubtractive); // Backward compatibility
         public static readonly GlobalKeyword LightmapShadowMixing = GlobalKeyword.Create(ShaderKeywordStrings.LightmapShadowMixing);
         public static readonly GlobalKeyword ShadowsShadowMask = GlobalKeyword.Create(ShaderKeywordStrings.ShadowsShadowMask);
@@ -1005,6 +1021,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly GlobalKeyword DEPTH_AS_INPUT_ATTACHMENT_MSAA = GlobalKeyword.Create(ShaderKeywordStrings.DEPTH_AS_INPUT_ATTACHMENT_MSAA);
 
         public static readonly GlobalKeyword LightFalloffQuadratic = GlobalKeyword.Create(ShaderKeywordStrings.LightFalloffQuadratic);
+        public static readonly GlobalKeyword ShadowReceiverNormalBias = GlobalKeyword.Create(ShaderKeywordStrings.ShadowReceiverNormalBias);
 
         // TODO: Move following keywords to Local keywords?
         // https://docs.unity3d.com/ScriptReference/Rendering.LocalKeyword.html
@@ -1101,11 +1118,8 @@ namespace UnityEngine.Rendering.Universal
         /// <summary> Keyword used for high quality soft shadows. </summary>
         public const string SoftShadowsHigh = "_SHADOWS_SOFT_HIGH";
 
-        /// <summary> Keyword used for PCSS (Percentage-Closer Soft Shadows) on the main directional light. </summary>
-        internal const string MainLightShadowsSoftPcss = "_MAIN_LIGHT_SHADOWS_SOFT_PCSS";
-
-        /// <summary> Keyword used for PCSS (Percentage-Closer Soft Shadows) on additional punctual lights. </summary>
-        internal const string AdditionalLightShadowsSoftPcss = "_ADDITIONAL_LIGHT_SHADOWS_SOFT_PCSS";
+        /// <summary> Keyword used alongside SoftShadows when at least one light uses PCSS (Percentage-Closer Soft Shadows). Each light still selects its own filter. </summary>
+        public const string ShadowsPCSS = "_SHADOWS_PCSS";
 
         /// <summary> Deprecated keyword, equivalent to LightmapShadowMixing without ShadowsShadowMask. Use those instead. </summary>
         public const string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE"; // Backward compatibility
@@ -1432,6 +1446,9 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary> Keyword used to enable Built-in Render Pipeline compatible light falloff. </summary>
         public const string LightFalloffQuadratic = "_LIGHT_FALLOFF_QUADRATIC";
+
+        /// <summary> Keyword used to apply the shadow normal bias at the shadow receiver. </summary>
+        public const string ShadowReceiverNormalBias = "_SHADOW_RECEIVER_NORMAL_BIAS";
     }
 
     public sealed partial class UniversalRenderPipeline

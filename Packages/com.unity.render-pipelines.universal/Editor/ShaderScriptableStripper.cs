@@ -162,6 +162,7 @@ namespace UnityEditor.Rendering.Universal
         Shader m_CameraMotionBlur = Shader.Find("Hidden/Universal Render Pipeline/CameraMotionBlur");
         Shader m_PaniniProjection = Shader.Find("Hidden/Universal Render Pipeline/PaniniProjection");
         Shader m_Bloom = Shader.Find("Hidden/Universal Render Pipeline/Bloom");
+        Shader m_ScreenSpaceAmbientOcclusion = Shader.Find("Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion");
         Shader m_TerrainLit = Shader.Find("Universal Render Pipeline/Terrain/Lit");
         Shader m_TerrainLitAddPass = Shader.Find("Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)");
         Shader m_TerrainLitBasePass = Shader.Find("Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)");
@@ -188,6 +189,7 @@ namespace UnityEditor.Rendering.Universal
         public static readonly string kPassNameXRMotionVectors = "XRMotionVectors";
         public static readonly string kPassNameXRUberPost = "UberPostXR";
         public static readonly string kPassNameXRFinalPost = "FinalPostXR";
+        public static readonly string kPassNameRenderingLayerMask2D = "Rendering Layer Mask";
 
         // Keywords
         LocalKeyword m_MainLightShadows;
@@ -206,6 +208,7 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_SoftShadowsLow;
         LocalKeyword m_SoftShadowsMedium;
         LocalKeyword m_SoftShadowsHigh;
+        LocalKeyword m_ShadowsPCSS;
         LocalKeyword m_MixedLightingSubtractive;
         LocalKeyword m_LightmapShadowMixing;
         LocalKeyword m_ShadowsShadowMask;
@@ -217,6 +220,11 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_ScreenSpaceOcclusion;
         LocalKeyword m_ScreenSpaceIrradiance;
         LocalKeyword m_ScreenSpaceReflection;
+        LocalKeyword m_GTAOMode;
+        LocalKeyword m_GTAODepthPyramid;
+        LocalKeyword m_SourceDepthLow;
+        LocalKeyword m_SourceDepthMedium;
+        LocalKeyword m_SourceDepthHigh;
         LocalKeyword m_WriteSmoothness;
         LocalKeyword m_UseFastSRGBLinearConversion;
         LocalKeyword m_LightLayers;
@@ -241,6 +249,7 @@ namespace UnityEditor.Rendering.Universal
         LocalKeyword m_TransparentReceiveFog;
         LocalKeyword m_SurfaceTypeTransparent;
         LocalKeyword m_LightFalloffQuadratic;
+        LocalKeyword m_ShadowReceiverNormalBias;
         LocalKeyword m_LensDistortion;
         LocalKeyword m_ChromaticAberration;
         LocalKeyword m_BloomLQ;
@@ -290,6 +299,7 @@ namespace UnityEditor.Rendering.Universal
             m_SoftShadowsLow = TryGetLocalKeyword(shader, ShaderKeywordStrings.SoftShadowsLow);
             m_SoftShadowsMedium = TryGetLocalKeyword(shader, ShaderKeywordStrings.SoftShadowsMedium);
             m_SoftShadowsHigh = TryGetLocalKeyword(shader, ShaderKeywordStrings.SoftShadowsHigh);
+            m_ShadowsPCSS = TryGetLocalKeyword(shader, ShaderKeywordStrings.ShadowsPCSS);
             m_MixedLightingSubtractive = TryGetLocalKeyword(shader, ShaderKeywordStrings.MixedLightingSubtractive);
             m_LightmapShadowMixing = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightmapShadowMixing);
             m_ShadowsShadowMask = TryGetLocalKeyword(shader, ShaderKeywordStrings.ShadowsShadowMask);
@@ -301,6 +311,11 @@ namespace UnityEditor.Rendering.Universal
             m_ScreenSpaceOcclusion = TryGetLocalKeyword(shader, ShaderKeywordStrings.ScreenSpaceOcclusion);
             m_ScreenSpaceIrradiance = TryGetLocalKeyword(shader, ShaderKeywordStrings.ScreenSpaceIrradiance);
             m_ScreenSpaceReflection = TryGetLocalKeyword(shader, ShaderKeywordStrings.ScreenSpaceReflection);
+            m_GTAOMode = TryGetLocalKeyword(shader, ScreenSpaceAmbientOcclusionKeywords.k_GTAOModeKeyword);
+            m_GTAODepthPyramid = TryGetLocalKeyword(shader, ScreenSpaceAmbientOcclusionKeywords.k_GTAODepthPyramidKeyword);
+            m_SourceDepthLow = TryGetLocalKeyword(shader, ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthLowKeyword);
+            m_SourceDepthMedium = TryGetLocalKeyword(shader, ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthMediumKeyword);
+            m_SourceDepthHigh = TryGetLocalKeyword(shader, ScreenSpaceAmbientOcclusionKeywords.k_SourceDepthHighKeyword);
             m_WriteSmoothness = TryGetLocalKeyword(shader, ShaderKeywordStrings.WriteSmoothness);
             m_UseFastSRGBLinearConversion = TryGetLocalKeyword(shader, ShaderKeywordStrings.UseFastSRGBLinearConversion);
             m_LightLayers = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightLayers);
@@ -325,6 +340,7 @@ namespace UnityEditor.Rendering.Universal
             m_TransparentReceiveFog = TryGetLocalKeyword(shader, ShaderKeywordStrings.TransparentReceiveFog);
             m_SurfaceTypeTransparent = TryGetLocalKeyword(shader, ShaderKeywordStrings._SURFACE_TYPE_TRANSPARENT);
             m_LightFalloffQuadratic = TryGetLocalKeyword(shader, ShaderKeywordStrings.LightFalloffQuadratic);
+            m_ShadowReceiverNormalBias = TryGetLocalKeyword(shader, ShaderKeywordStrings.ShadowReceiverNormalBias);
             m_DepthAsInputAttachment = TryGetLocalKeyword(shader, ShaderKeywordStrings.DEPTH_AS_INPUT_ATTACHMENT);
             m_DepthAsInputAttachmentMSAA = TryGetLocalKeyword(shader, ShaderKeywordStrings.DEPTH_AS_INPUT_ATTACHMENT_MSAA);
 
@@ -506,7 +522,7 @@ namespace UnityEditor.Rendering.Universal
 
         internal bool StripUnusedFeatures_ReflectionProbeRotation(ref IShaderScriptableStrippingData strippingData)
         {
-            if (strippingData.PassHasKeyword(m_ReflectionProbeRotation))
+            if (strippingData.PassHasKeyword(m_ReflectionProbeRotation) && !strippingData.IsKeywordDynamic(m_ReflectionProbeRotation))
             {
                 bool useRotation = !strippingData.stripReflectionProbeRotationVariants;
                 return useRotation != strippingData.IsKeywordEnabled(m_ReflectionProbeRotation);
@@ -645,6 +661,21 @@ namespace UnityEditor.Rendering.Universal
                         m_SoftShadowsLow, ShaderFeatures.SoftShadowsLow,
                         m_SoftShadowsMedium, ShaderFeatures.SoftShadowsMedium,
                         m_SoftShadowsHigh, ShaderFeatures.SoftShadowsHigh));
+        }
+
+        internal bool StripUnusedFeatures_PCSS(ref IShaderScriptableStrippingData strippingData, ref ShaderStripTool<ShaderFeatures> stripTool)
+        {
+            if (stripTool.StripMultiCompileKeepOffVariant(m_ShadowsPCSS, ShaderFeatures.ShadowsPCSS))
+                return true;
+
+            // Matches ShadowUtils.SupportsPCSS
+            if (strippingData.isGLDevice && strippingData.IsKeywordEnabled(m_ShadowsPCSS))
+                return true;
+
+            // URP only sets PCSS with the per-light soft shadow keyword
+            return strippingData.IsKeywordEnabled(m_ShadowsPCSS)
+                && !strippingData.IsKeywordEnabled(m_SoftShadows)
+                && !strippingData.IsKeywordDynamic(m_SoftShadows);
         }
 
         internal bool StripUnusedFeatures_HDRGrading(ref ShaderStripTool<ShaderFeatures> stripTool)
@@ -901,6 +932,11 @@ namespace UnityEditor.Rendering.Universal
             return stripTool.StripMultiCompile(m_LightFalloffQuadratic, ShaderFeatures.LightFalloffQuadratic);
         }
 
+        internal bool StripUnusedFeatures_ShadowReceiverNormalBias(ref ShaderStripTool<ShaderFeatures> stripTool)
+        {
+            return stripTool.StripMultiCompile(m_ShadowReceiverNormalBias, ShaderFeatures.ShadowReceiverNormalBias);
+        }
+
         internal bool StripUnusedFeatures_ProbesVolumes(ref ShaderStripTool<ShaderFeatures> stripTool)
         {
             return stripTool.StripMultiCompileKeepOffVariant(m_ProbeVolumesL1, ShaderFeatures.ProbeVolumeL1, m_ProbeVolumesL2, ShaderFeatures.ProbeVolumeL2);
@@ -1057,6 +1093,9 @@ namespace UnityEditor.Rendering.Universal
             if (StripUnusedFeatures_SoftShadowsQualityLevels(ref strippingData, ref stripTool))
                 return true;
 
+            if (StripUnusedFeatures_PCSS(ref strippingData, ref stripTool))
+                return true;
+
             if (StripUnusedFeatures_HDRGrading(ref stripTool))
                 return true;
 
@@ -1112,6 +1151,9 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             if (StripUnusedFeatures_LightFalloffQuadratic(ref stripTool))
+                return true;
+
+            if (StripUnusedFeatures_ShadowReceiverNormalBias(ref stripTool))
                 return true;
 
             if (StripUnusedFeatures_ProbesVolumes(ref stripTool))
@@ -1257,6 +1299,21 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
+        internal bool StripInvalidVariants_GTAODepthSource(ref IShaderScriptableStrippingData strippingData)
+        {
+            if (strippingData.shader != m_ScreenSpaceAmbientOcclusion)
+                return false;
+
+            // GTAO always reads the normals texture, so it is never paired with a reconstructed normals source.
+            bool isGTAO = strippingData.IsKeywordEnabled(m_GTAOMode) ||
+                          strippingData.IsKeywordEnabled(m_GTAODepthPyramid);
+            bool reconstructsNormals = strippingData.IsKeywordEnabled(m_SourceDepthLow) ||
+                                       strippingData.IsKeywordEnabled(m_SourceDepthMedium) ||
+                                       strippingData.IsKeywordEnabled(m_SourceDepthHigh);
+
+            return isGTAO && reconstructsNormals;
+        }
+
         internal bool StripInvalidVariants(ref IShaderScriptableStrippingData strippingData)
         {
             if (StripInvalidVariants_HDR(ref strippingData))
@@ -1269,6 +1326,9 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             if (StripInvalidVariants_AdditionalLights(ref strippingData))
+                return true;
+
+            if (StripInvalidVariants_GTAODepthSource(ref strippingData))
                 return true;
 
             return false;
@@ -1368,6 +1428,14 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
+        internal bool StripUnusedPass_RenderingLayerMask2D(ref IShaderScriptableStrippingData strippingData)
+        {
+            // Strip the Sprite Lit and Sprite Custom Lit Rendering Layer Mask pass (including VFX Graph outputs) if rendering layers are disabled
+            if (strippingData.passName == kPassNameRenderingLayerMask2D && !strippingData.IsShaderFeatureEnabled(ShaderFeatures.LightLayers))
+                return true;
+            return false;
+        }
+
         internal bool StripUnusedPass(ref IShaderScriptableStrippingData strippingData)
         {
             if (StripUnusedPass_2D(ref strippingData))
@@ -1389,6 +1457,9 @@ namespace UnityEditor.Rendering.Universal
                 return true;
 
             if (StripUnusedPass_XRFinalPost(ref strippingData))
+                return true;
+
+            if (StripUnusedPass_RenderingLayerMask2D(ref strippingData))
                 return true;
             return false;
         }

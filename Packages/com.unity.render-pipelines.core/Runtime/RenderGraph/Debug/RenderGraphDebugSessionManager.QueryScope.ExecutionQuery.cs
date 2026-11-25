@@ -868,7 +868,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     analysis = new ResourceAnalysis
                     {
                         memorySizeBytes = memoryBytes,
-                        memorySizeFormatted = FormatMemorySize(memoryBytes),
+                        memorySizeFormatted = CoreUtils.FormatMemorySize(memoryBytes),
                         bytesPerPixel = totalPixels > 0 ? memoryBytes / totalPixels : 0,
                         totalPixels = totalPixels
                     };
@@ -879,7 +879,7 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     analysis = new ResourceAnalysis
                     {
                         memorySizeBytes = memoryBytes,
-                        memorySizeFormatted = FormatMemorySize(memoryBytes),
+                        memorySizeFormatted = CoreUtils.FormatMemorySize(memoryBytes),
                         stride = height,
                         elementCount = width
                     };
@@ -903,21 +903,6 @@ namespace UnityEngine.Rendering.RenderGraphModule
                     producerPasses = resource.producerList?.ToArray(),
                     analysis = analysis
                 };
-            }
-
-            private static string FormatMemorySize(long bytes)
-            {
-                const long KB = 1024;
-                const long MB = KB * 1024;
-                const long GB = MB * 1024;
-
-                if (bytes >= GB)
-                    return $"{bytes / (double)GB:F1} GB";
-                if (bytes >= MB)
-                    return $"{bytes / (double)MB:F1} MB";
-                if (bytes >= KB)
-                    return $"{bytes / (double)KB:F1} KB";
-                return $"{bytes} B";
             }
         }
     }

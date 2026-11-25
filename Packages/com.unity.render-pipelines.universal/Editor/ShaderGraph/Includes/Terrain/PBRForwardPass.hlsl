@@ -2,9 +2,8 @@
 #define SG_TERRAIN_PBRFORWARDPASS_INC
 
 #include "TerrainVert.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/SurfaceType.hlsl"
 
-void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData, out half3 geometricNormalWS)
+void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData, bool isSurfaceTypeTransparent)
 {
     inputData = (InputData)0;
 
@@ -12,12 +11,12 @@ void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, 
     inputData.positionCS = input.positionCS;
     inputData.preExposureMultiplier = GetPreExposureMultiplier();
 
-    CalculateTerrainNormalWS(input, surfaceDescription, inputData, geometricNormalWS);
+    CalculateTerrainNormalWS(input, surfaceDescription, inputData);
 
     #if USE_VERTEX_SHADOW_COORD_INTERPOLATOR
-        inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), geometricNormalWS);
+        inputData.shadowCoord = ShadowCoordInterpolatorAvailable() ? input.shadowCoord : TransformWorldToShadowCoord(inputData.positionWS, isSurfaceTypeTransparent, inputData.geometricNormalWS);
     #else
-        inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, IsSurfaceTypeTransparent(), geometricNormalWS) : float4(0, 0, 0, 0);
+        inputData.shadowCoord = MainLightShadowsAvailable() ? TransformWorldToShadowCoord(inputData.positionWS, isSurfaceTypeTransparent, inputData.geometricNormalWS) : float4(0, 0, 0, 0);
     #endif
 
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
@@ -91,9 +90,14 @@ void frag(PackedVaryings packedInput,
         AlphaDiscard(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
     #endif
 
+    #if defined(_SURFACE_TYPE_TRANSPARENT)
+        bool isSurfaceTypeTransparent = true;
+    #else
+        bool isSurfaceTypeTransparent = false;
+    #endif
+
     InputData inputData;
-    half3 geometricNormalWS;
-    InitializeInputData(unpacked, surfaceDescription, inputData, geometricNormalWS);
+    InitializeInputData(unpacked, surfaceDescription, inputData, isSurfaceTypeTransparent);
     SETUP_DEBUG_TEXTURE_DATA(inputData, unpacked.texCoord0.xy);
 
     float3 specular = 0;
@@ -122,7 +126,7 @@ void frag(PackedVaryings packedInput,
     ApplyDecalToSurfaceData(unpacked.positionCS, surface, inputData);
 #endif
 
-    URP_LIGHT_ACCUM4 finalColor = UniversalFragmentPBR(inputData, surface, geometricNormalWS);
+    URP_LIGHT_ACCUM4 finalColor = UniversalFragmentPBR(inputData, surface);
     SplatmapFinalColor(finalColor, unpacked.positionCS);
 
 #ifdef _WRITE_RENDERING_LAYERS

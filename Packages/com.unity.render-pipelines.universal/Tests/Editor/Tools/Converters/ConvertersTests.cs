@@ -606,6 +606,182 @@ namespace UnityEditor.Rendering.Universal.Tools
             }
         }
 
+        // Moves each object it converts to another layer, which unlike the name of a prefab root is kept on import
+        class LayerAssetsConverter : NoQueriesAssetsConverter
+        {
+            public const int convertedLayer = 4;
+
+            protected override Status ConvertObject(UnityEngine.Object obj, StringBuilder message)
+            {
+                ((GameObject)obj).layer = convertedLayer;
+                EditorUtility.SetDirty(obj);
+                return Status.Success;
+            }
+        }
+
+        // Returns the id of the prefab without keeping a reference to it, so that it can be unloaded
+        static string CreatePrefabAsset(string path)
+        {
+            var go = new GameObject("Prefab");
+            var prefab = PrefabUtility.SaveAsPrefabAsset(go, path);
+            UnityEngine.Object.DestroyImmediate(go);
+            return GlobalObjectId.GetGlobalObjectIdSlow(prefab).ToString();
+        }
+
+        // Opening a scene, to convert an object in it or after the conversion, unloads converted prefabs that are not saved
+        [TestCase(true, TestName = "{m}(Prefab converted first)")]
+        [TestCase(false, TestName = "{m}(Prefab converted last)")]
+        public void Convert_PrefabAndObjectInClosedScene_KeepsThePrefabConversion(bool prefabFirst)
+        {
+            const string prefabPath = "Assets/ConverterPrefabBeforeClosedSceneTest.prefab";
+            const string scenePath = "Assets/ConverterPrefabBeforeClosedSceneTest.unity";
+
+            try
+            {
+                var prefabGidString = CreatePrefabAsset(prefabPath);
+
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                var go = new GameObject("Cube");
+                Assert.IsTrue(EditorSceneManager.SaveScene(scene, scenePath));
+                var sceneObjectGidString = GlobalObjectId.GetGlobalObjectIdSlow(go).ToString();
+
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+                var converter = new LayerAssetsConverter();
+                var prefabItem = new RenderPipelineConverterAssetItem(prefabGidString);
+                var sceneObjectItem = AssetsConverter.CreateAssetItem(new SearchItem(sceneObjectGidString) { label = "/Cube" });
+
+                converter.BeforeConvert();
+                if (prefabFirst)
+                    Assert.AreEqual(Status.Success, converter.Convert(prefabItem, out _));
+                Assert.AreEqual(Status.Success, converter.Convert(sceneObjectItem, out _));
+                if (!prefabFirst)
+                    Assert.AreEqual(Status.Success, converter.Convert(prefabItem, out _));
+                converter.AfterConvert();
+
+                // Like returning to the scene the conversion started from
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+                Assert.AreEqual(LayerAssetsConverter.convertedLayer, AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath).layer,
+                    "Opening a scene during or after the conversion must not discard the conversion of a prefab.");
+            }
+            finally
+            {
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                AssetDatabase.DeleteAsset(prefabPath);
+                AssetDatabase.DeleteAsset(scenePath);
+            }
+        }
+
+        [Test]
+        public void ParametricToFreeformLightUpgraderCreateItem_ObjectInClosedScene_CreatesItemFromSearchResult()
+        {
+            const string scenePath = "Assets/LightUpgraderClosedSceneTest.unity";
+
+            try
+            {
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                var go = new GameObject("Light");
+                Assert.IsTrue(EditorSceneManager.SaveScene(scene, scenePath));
+                var gidString = GlobalObjectId.GetGlobalObjectIdSlow(go).ToString();
+
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+                var lightItem = ParametricToFreeformLightUpgrader.CreateItem(new SearchItem(gidString) { label = "/Light" });
+
+                Assert.IsNotNull(lightItem, "An object in a closed scene must not be skipped.");
+                Assert.AreEqual(gidString, lightItem.GlobalObjectId);
+                Assert.AreEqual(scenePath, lightItem.assetPath);
+                Assert.AreEqual($"Scene: {scenePath}", lightItem.info);
+                Assert.AreEqual(GlobalObjectIdentifierType.SceneObject, lightItem.type);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(scenePath);
+            }
+        }
+
+        [Test]
+        public void PixelPerfectCameraConverterCreateItem_ObjectInClosedScene_CreatesItemFromSearchResult()
+        {
+            const string scenePath = "Assets/PixelPerfectCameraClosedSceneTest.unity";
+
+            try
+            {
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                var go = new GameObject("Camera");
+                Assert.IsTrue(EditorSceneManager.SaveScene(scene, scenePath));
+                var gidString = GlobalObjectId.GetGlobalObjectIdSlow(go).ToString();
+
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+                var ppCameraItem = BuiltInPixelPerfectCameraConverter.CreateItem(new SearchItem(gidString) { label = "/Camera" });
+
+                Assert.IsNotNull(ppCameraItem, "An object in a closed scene must not be skipped.");
+                Assert.AreEqual(gidString, ppCameraItem.GlobalObjectId);
+                Assert.AreEqual("Camera (SceneObject)", ppCameraItem.name);
+                Assert.AreEqual(scenePath, ppCameraItem.info);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(scenePath);
+            }
+        }
+
+        [Test]
+        public void PixelPerfectCameraConverterCreateItem_NestedObject_HasSameNameWhetherSceneIsOpenOrClosed()
+        {
+            const string scenePath = "Assets/PixelPerfectCameraNestedNameTest.unity";
+
+            try
+            {
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                var root = new GameObject("Root");
+                var go = new GameObject("Camera");
+                go.transform.SetParent(root.transform);
+                Assert.IsTrue(EditorSceneManager.SaveScene(scene, scenePath));
+                var gidString = GlobalObjectId.GetGlobalObjectIdSlow(go).ToString();
+                var label = UnityEditor.Search.SearchUtils.GetTransformPath(go.transform);
+
+                var openSceneItem = BuiltInPixelPerfectCameraConverter.CreateItem(new SearchItem(gidString) { label = label, provider = k_LoadingSearchProvider });
+
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+
+                var closedSceneItem = BuiltInPixelPerfectCameraConverter.CreateItem(new SearchItem(gidString) { label = label, provider = k_LoadingSearchProvider });
+
+                Assert.AreEqual("Root/Camera (SceneObject)", openSceneItem.name);
+                Assert.AreEqual(openSceneItem.name, closedSceneItem.name);
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(scenePath);
+            }
+        }
+
+        // An object that is gone from an open scene has nothing left to convert
+        [Test]
+        public void ConverterCreateItem_ObjectDeletedFromOpenScene_IsSkipped()
+        {
+            const string scenePath = "Assets/ConverterDeletedObjectTest.unity";
+
+            try
+            {
+                var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                var go = new GameObject("Deleted");
+                Assert.IsTrue(EditorSceneManager.SaveScene(scene, scenePath));
+                var gidString = GlobalObjectId.GetGlobalObjectIdSlow(go).ToString();
+                UnityEngine.Object.DestroyImmediate(go);
+
+                Assert.IsNull(ParametricToFreeformLightUpgrader.CreateItem(new SearchItem(gidString) { label = "/Deleted" }));
+                Assert.IsNull(BuiltInPixelPerfectCameraConverter.CreateItem(new SearchItem(gidString) { label = "/Deleted" }));
+            }
+            finally
+            {
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                AssetDatabase.DeleteAsset(scenePath);
+            }
+        }
+
         [Test]
         public void BatchModeFails()
         {

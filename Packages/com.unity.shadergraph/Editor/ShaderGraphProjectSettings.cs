@@ -141,7 +141,7 @@ namespace UnityEditor.ShaderGraph
                 GUILayout.FlexibleSpace();
                 if (GUILayout.Button(Styles.kLearnMore, Styles.learnMoreStyle))
                 {
-                    System.Diagnostics.Process.Start(kCustomInterpolatorDocumentationURL);
+                    Application.OpenURL(kCustomInterpolatorDocumentationURL);
                 }
                 EditorGUIUtility.AddCursorRect(GUILayoutUtility.GetLastRect(), MouseCursor.Link);
                 GUILayout.EndHorizontal();

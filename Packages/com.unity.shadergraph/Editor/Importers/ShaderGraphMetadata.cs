@@ -138,7 +138,7 @@ namespace UnityEditor.ShaderGraph
 
         // these asset dependencies are stored here as a way for "Export Package..." to discover them
         // and automatically pull them in to the .unitypackage
-        public List<Object> assetDependencies;
+        public List<LazyLoadReference<Object>> assetDependencies;
 
         public List<MinimalCategoryData> categoryDatas;
     }

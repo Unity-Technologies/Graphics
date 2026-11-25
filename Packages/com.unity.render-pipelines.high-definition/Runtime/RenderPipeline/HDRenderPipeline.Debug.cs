@@ -1576,6 +1576,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public GBufferOutput gbuffer;
             public TextureHandle depthBuffer;
 
+            public TextureHandle waterDepthStencil;
+            public BufferHandle waterSurfaceProfiles;
+            public BufferHandle cameraHeightBuffer;
+            public BufferHandle waterLine;
+            public TextureHandle waterGBuffer3;
+
             public Texture clearColorTexture;
             public RenderTexture clearDepthTexture;
             public bool clearDepth;
@@ -1677,6 +1683,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     passData.dbuffer = ReadDBuffer(dbuffer, builder);
 
+                    // Water absorption buffers
+                    passData.waterDepthStencil = prepassOutput.depthBufferPreRefraction;
+                    builder.UseTexture(passData.waterDepthStencil, AccessFlags.Read);
+                    passData.waterSurfaceProfiles = prepassOutput.waterSurfaceProfiles;
+                    builder.UseBuffer(passData.waterSurfaceProfiles, AccessFlags.Read);
+                    passData.cameraHeightBuffer = prepassOutput.waterGBuffer.cameraHeight;
+                    builder.UseBuffer(passData.cameraHeightBuffer, AccessFlags.Read);
+                    passData.waterLine = prepassOutput.waterLine;
+                    builder.UseBuffer(passData.waterLine, AccessFlags.Read);
+                    passData.waterGBuffer3 = prepassOutput.waterGBuffer.waterGBuffer3;
+                    builder.UseTexture(passData.waterGBuffer3, AccessFlags.Read);
+
                     passData.clearColorTexture = Compositor.CompositionManager.GetClearTextureForStackedCamera(hdCamera);   // returns null if is not a stacked camera
                     passData.clearDepthTexture = Compositor.CompositionManager.GetClearDepthForStackedCamera(hdCamera);     // returns null if is not a stacked camera
                     passData.clearDepth = hdCamera.clearDepth;
@@ -1694,6 +1712,14 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
 
                             BindDefaultTexturesLightingBuffers(ctx.defaultResources, natCmd);
+
+                            // Water absorption buffers, read by transparent materials with fog or refractive sorting
+                            natCmd.SetGlobalTexture(HDShaderIDs._StencilTexture, data.waterDepthStencil, RenderTextureSubElement.Stencil);
+                            natCmd.SetGlobalTexture(HDShaderIDs._RefractiveDepthBuffer, data.waterDepthStencil, RenderTextureSubElement.Depth);
+                            natCmd.SetGlobalBuffer(HDShaderIDs._WaterCameraHeightBuffer, data.cameraHeightBuffer);
+                            natCmd.SetGlobalBuffer(HDShaderIDs._WaterSurfaceProfiles, data.waterSurfaceProfiles);
+                            natCmd.SetGlobalBuffer(HDShaderIDs._WaterLineBuffer, data.waterLine);
+                            natCmd.SetGlobalTexture(HDShaderIDs._WaterGBufferTexture3, data.waterGBuffer3);
 
                             bool bUseClustered = data.perVoxelLightLists.IsValid();
                             CoreUtils.SetKeyword(natCmd, "USE_FPTL_LIGHTLIST", !bUseClustered);

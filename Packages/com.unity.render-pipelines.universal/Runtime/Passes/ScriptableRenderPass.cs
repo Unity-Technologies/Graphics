@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Unity.Collections;
-using Unity.Scripting.LifecycleManagement;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.RenderGraphModule;
@@ -175,7 +174,6 @@ namespace UnityEngine.Rendering.Universal
     internal static class RenderPassEventsEnumValues
     {
         // we cache the values in this array at construction time to avoid runtime allocations, which we would cause if we accessed valuesInternal directly
-        [NoAutoStaticsCleanup] // Clearing the array is not necessary when entering play mode because it's reflection data.
         public static readonly int[] values;
 
         static RenderPassEventsEnumValues()

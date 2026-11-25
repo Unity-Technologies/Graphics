@@ -6,23 +6,24 @@ using UnityEngine.Rendering.Universal;
 
 public class ModifyShadowSettings : MonoBehaviour
 {
+    const float k_MaxShadowDistance = 1000;
+
     ModifiedShadowSettings overrideShadowSettings = new ModifiedShadowSettings
     {
-        maxDist = 1000,
         depthBias = 0.1f,
         normalBias = 0.1f,
     };
 
     UniversalRenderPipelineAsset urpAsset;
     ModifiedShadowSettings saveShadowSettings;
+    QualityProfileShadowDistance shadowDistance;
+
     struct ModifiedShadowSettings
     {
-        public float maxDist;
         public float depthBias;
         public float normalBias;
         public void SaveSettings(UniversalRenderPipelineAsset asset)
         {
-            maxDist = asset.shadowDistance;
             depthBias = asset.shadowDepthBias;
             normalBias = asset.shadowNormalBias;
         }
@@ -30,7 +31,6 @@ public class ModifyShadowSettings : MonoBehaviour
 
     UniversalRenderPipelineAsset WriteSettings(ModifiedShadowSettings settings)
     {
-        urpAsset.shadowDistance = settings.maxDist;
         urpAsset.shadowDepthBias = settings.depthBias;
         urpAsset.shadowNormalBias = settings.normalBias;
         return urpAsset;
@@ -41,10 +41,13 @@ public class ModifyShadowSettings : MonoBehaviour
         urpAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
         saveShadowSettings.SaveSettings(urpAsset);
         WriteSettings(overrideShadowSettings);
+        shadowDistance = new QualityProfileShadowDistance(urpAsset, k_MaxShadowDistance);
     }
 
     void OnDisable()
     {
         WriteSettings(saveShadowSettings);
+        shadowDistance?.Dispose();
+        shadowDistance = null;
     }
 }

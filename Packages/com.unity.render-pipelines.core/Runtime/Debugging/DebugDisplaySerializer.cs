@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -44,7 +45,14 @@ namespace UnityEngine.Rendering
             set => instance.m_AreDebugOverlaysHidden = value;
         }
 
-        ISerializedDebugDisplaySettings GetOrCreate(Type type)
+        // TODO https://jira.unity3d.com/browse/VM-3582 Remove Pragma warning disable once Engine modules are built under net10 
+        // Uses this assembly's DynamicallyAccessedMembers polyfill over the engine's and the BCL's copies.
+        // See DynamicallyAccessedMembersAttribute.cs.
+#pragma warning disable CS0436
+        const DynamicallyAccessedMemberTypes k_CreatedMembers =
+            DynamicallyAccessedMemberTypes.PublicParameterlessConstructor | DynamicallyAccessedMemberTypes.NonPublicConstructors;
+
+        ISerializedDebugDisplaySettings GetOrCreate([DynamicallyAccessedMembers(k_CreatedMembers)] Type type)
         {
             var setting = Get(type);
             if (setting != null)
@@ -79,10 +87,11 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <typeparam name="T">The debug display settings type to retrieve.</typeparam>
         /// <returns>The serialized instance for the given debug display settings type.</returns>
-        public static T GetOrCreate<T>() where T : class, ISerializedDebugDisplaySettings
+        public static T GetOrCreate<[DynamicallyAccessedMembers(k_CreatedMembers)] T>() where T : class, ISerializedDebugDisplaySettings
         {
             return instance.GetOrCreate(typeof(T)) as T;
         }
+#pragma warning restore CS0436
 
         /// <summary>
         /// Returns the serialized instance for the given debug display settings type.

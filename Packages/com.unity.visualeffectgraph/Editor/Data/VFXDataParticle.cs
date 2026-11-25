@@ -249,14 +249,26 @@ namespace UnityEditor.VFX
         protected uint stripCapacity = 1;
         [VFXSetting, Delayed, SerializeField]
         protected uint particlePerStripCount = 128;
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
-        protected bool needsComputeBounds = false;
+        bool m_IsRecordingBounds;
 
-        public bool NeedsComputeBounds() => needsComputeBounds;
+        public void SetRecordingBounds(bool recording)
+        {
+            if (m_IsRecordingBounds != recording)
+            {
+                m_IsRecordingBounds = recording;
+                GetGraph()?.SetExpressionGraphDirty();
+            }
+        }
+
+        public bool NeedsComputeBounds()
+        {
+            return boundsMode == BoundsSettingMode.Automatic ||
+                (boundsMode == BoundsSettingMode.Recorded && m_IsRecordingBounds);
+        }
 
         public bool NeedsComputeBounds(VFXContext context)
         {
-            return needsComputeBounds && context == m_Owners.Where(ctx => ctx is VFXBasicUpdate).Last();
+            return NeedsComputeBounds() && context == m_Owners.Where(ctx => ctx is VFXBasicUpdate).Last();
         }
 
         [FormerlySerializedAs("boundsSettingMode")]
@@ -290,13 +302,8 @@ namespace UnityEditor.VFX
 
                 if (boundsMode == BoundsSettingMode.Automatic)
                 {
-                    needsComputeBounds = true;
                     var graph = GetGraph();
                     graph.visualEffectResource.cullingFlags = VFXCullingFlags.CullNone;
-                }
-                else
-                {
-                    needsComputeBounds = false;
                 }
             }
             if (hasStrip)
@@ -925,7 +932,7 @@ namespace UnityEditor.VFX
                 systemFlag |= VFXSystemFlag.SystemHasDirectLink;
             }
 
-            if (needsComputeBounds || boundsMode == BoundsSettingMode.Automatic)
+            if (NeedsComputeBounds())
             {
                 systemFlag |= VFXSystemFlag.SystemNeedsComputeBounds;
 
@@ -1609,6 +1616,9 @@ namespace UnityEditor.VFX
             {
                 m_Space = VFXSpace.None;
             }
+
+            if (m_IsRecordingBounds)
+                SetRecordingBounds(false);
         }
 
         private static uint AddInstanceSplitDesc(List<VFXInstanceSplitDesc> instanceSplitDescs, List<uint> instanceSplitDescValues)
@@ -1641,9 +1651,6 @@ namespace UnityEditor.VFX
             {
                 SetSettingValue("boundsMode", BoundsSettingMode.Manual);
             }
-
-            if(boundsMode != BoundsSettingMode.Automatic && needsComputeBounds)
-                SetSettingValue(nameof(needsComputeBounds), false);
 
             if (version < 12 && (int)m_Space == int.MaxValue)
             {

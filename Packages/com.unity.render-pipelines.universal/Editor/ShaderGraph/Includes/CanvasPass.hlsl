@@ -77,9 +77,9 @@ Varyings BuildVaryings(Attributes input)
             float2 pixelSize =  output.positionCS.w;
             pixelSize /= float2(1, 1) * abs(mul((float2x2)UNITY_MATRIX_P, _ScreenParams.xy));
 
-            float4 clampedRect = clamp(_ClipRect, -2e10, 2e10);
-            float2 maskUV = (input.positionOS.xy - clampedRect.xy) / (clampedRect.zw - clampedRect.xy);
-            output.texCoord1 = float4(input.positionOS.xy * 2 - clampedRect.xy - clampedRect.zw, 0.25 / (0.25 * float2(_UIMaskSoftnessX, _UIMaskSoftnessY) + abs(pixelSize.xy)));
+            // Canvas position and pixel size, both linear in the vertex so they interpolate exactly under perspective.
+            // The fragment turns them into each edge's fade, so tilted masks keep their edges.
+            output.texCoord1 = float4(input.positionOS.xy, abs(pixelSize.xy));
         #else
             output.texCoord1 = input.uv1;
         #endif
@@ -154,12 +154,13 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 
     #ifdef UNITY_UI_CLIP_RECT
         //mask = Uv2
-        float2 softness = float2(_UIMaskSoftnessX, _UIMaskSoftnessY);
-        float2 halfPixelBias = 0.5 - 0.5 * softness * unpacked.texCoord1.zw;
-        half2 m = saturate((_ClipRect.zw - _ClipRect.xy - abs(unpacked.texCoord1.xy)) * unpacked.texCoord1.zw + halfPixelBias);
-        half2 hardThreshold = 0.5 + 1e-3 * step(0, unpacked.texCoord1.xy);
-        m = lerp(m, step(hardThreshold, m), step(softness, 0));
-        color.a *= m.x * m.y;
+        // Each edge fades over its own distance and softness: left, bottom, right, top.
+        float4 clampedRect = clamp(_ClipRect, -2e10, 2e10);
+        float4 edgeDistance = float4(unpacked.texCoord1.xy - clampedRect.xy, clampedRect.zw - unpacked.texCoord1.xy);
+        half4 soft = saturate((edgeDistance + unpacked.texCoord1.zwzw) / (0.5 * _UIMaskSoftness + 2 * unpacked.texCoord1.zwzw));
+        half4 hard = half4(edgeDistance.xy >= 0, edgeDistance.zw > 0);
+        half4 m    = _UIMaskSoftness > 0 ? soft : hard;
+        color.a *= min(m.x, m.z) * min(m.y, m.w);
     #endif
 
     #if _ALPHATEST_ON

@@ -58,6 +58,11 @@
             "define": "ENABLE_METALFX_MODULE"
         },
         {
+            "name": "com.unity.modules.intelxess",
+            "expression": "1.0.0",
+            "define": "ENABLE_INTELXESS_MODULE"
+        },
+        {
             "name": "com.unity.modules.terrain",
             "expression": "1.0.0",
             "define": "ENABLE_TERRAIN_MODULE"

@@ -47,9 +47,9 @@ namespace UnityEditor.VFX.Utility
 
         static class Styles
         {
-            public static GUIStyle helpBox;
-            public static GUIStyle helpBoxTitle;
-            public static GUIStyle helpBoxBody;
+            public static readonly GUIStyle helpBox;
+            public static readonly GUIStyle helpBoxTitle;
+            public static readonly GUIStyle helpBoxBody;
 
             static Styles()
             {

@@ -42,6 +42,8 @@ namespace UnityEditor.Rendering.Universal.Tests
             ShaderKeywordStrings.ShadowsShadowMask,
             ShaderKeywordStrings.LIGHTMAP_ON,
             ShaderKeywordStrings.AdditionalLightShadows,
+            ShaderKeywordStrings.SoftShadows,
+            ShaderKeywordStrings.ShadowsPCSS,
             ShaderKeywordStrings.ScreenSpaceReflection,
             ShaderKeywordStrings.ScreenSpaceOcclusion,
             ShaderKeywordStrings.DBufferMRT3,

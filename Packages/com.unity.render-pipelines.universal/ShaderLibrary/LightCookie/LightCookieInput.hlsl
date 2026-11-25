@@ -11,14 +11,8 @@ TEXTURE2D(_AdditionalLightsCookieAtlasTexture);
 // Samplers
 SAMPLER(sampler_MainLightCookieTexture);
 
-// Persistent constant buffer everywhere except GLES3, which falls back to field-wise SetGlobalXArray. WebGL2
-// reports as GLES3. Must match RenderingUtils.usePersistentConstantBuffer: if the two disagree, the field-wise
-// uploads never run and the shader reads whatever is in the bound buffer.
-#if !defined(SHADER_API_GLES3)
-    #define URP_LIGHT_COOKIE_PERSISTENT_CBUFFER
-#endif
-
-#if defined(URP_LIGHT_COOKIE_PERSISTENT_CBUFFER)
+// Persistent layout where URP fills its constant buffers from C#, field-wise SetGlobalXArray on GLES3 outside WebGL.
+#if defined(URP_PERSISTENT_CONSTANT_BUFFERS_ACTIVE)
 CBUFFER_START(LightCookies)
     float4x4 _AdditionalLightsWorldToLights[MAX_VISIBLE_LIGHTS];
     float4 _AdditionalLightsCookieAtlasUVRects[MAX_VISIBLE_LIGHTS];
@@ -26,18 +20,12 @@ CBUFFER_START(LightCookies)
     float4 _AdditionalLightsCookieEnableBits[(MAX_VISIBLE_LIGHTS + 31) / 32]; // yzw are padding
 CBUFFER_END
 #else
-    // Field-wise layout, GLES3 only: a transient CBUFFER on WebGL2, plain loose uniforms elsewhere, since
-    // CBUFFER causes a performance regression on some GLES3 devices.
-    #ifndef LIGHT_SHADOWS_NO_CBUFFER
-    CBUFFER_START(LightCookies)
-    #endif
-        float4x4 _AdditionalLightsWorldToLights[MAX_VISIBLE_LIGHTS];
-        float4 _AdditionalLightsCookieAtlasUVRects[MAX_VISIBLE_LIGHTS];
-        float _AdditionalLightsLightTypes[MAX_VISIBLE_LIGHTS];
-        float _AdditionalLightsCookieEnableBits[(MAX_VISIBLE_LIGHTS + 31) / 32];
-    #ifndef LIGHT_SHADOWS_NO_CBUFFER
-    CBUFFER_END
-    #endif
+    // Field-wise layout, GLES3 outside WebGL only: plain loose uniforms, since CBUFFER causes a performance
+    // regression on some GLES3 devices.
+    float4x4 _AdditionalLightsWorldToLights[MAX_VISIBLE_LIGHTS];
+    float4 _AdditionalLightsCookieAtlasUVRects[MAX_VISIBLE_LIGHTS];
+    float _AdditionalLightsLightTypes[MAX_VISIBLE_LIGHTS];
+    float _AdditionalLightsCookieEnableBits[(MAX_VISIBLE_LIGHTS + 31) / 32];
 #endif
 
 
@@ -55,7 +43,7 @@ float4 GetLightCookieAtlasUVRect(int lightIndex)
 
 int GetLightCookieLightType(int lightIndex)
 {
-#if defined(URP_LIGHT_COOKIE_PERSISTENT_CBUFFER)
+#if defined(URP_PERSISTENT_CONSTANT_BUFFERS_ACTIVE)
     return _AdditionalLightsLightTypes[lightIndex].x;
 #else
     return _AdditionalLightsLightTypes[lightIndex];
@@ -112,7 +100,7 @@ bool IsLightCookieEnabled(int lightBufferIndex)
     uint elemIndex = ((uint)lightBufferIndex) >> 5;
     uint bitOffset = (uint)lightBufferIndex & ((1 << 5) - 1);
 
-#if defined(URP_LIGHT_COOKIE_PERSISTENT_CBUFFER)
+#if defined(URP_PERSISTENT_CONSTANT_BUFFERS_ACTIVE)
     uint elem = asuint(_AdditionalLightsCookieEnableBits[elemIndex].x);
 #else
     uint elem = asuint(_AdditionalLightsCookieEnableBits[elemIndex]);

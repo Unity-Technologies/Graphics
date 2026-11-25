@@ -710,6 +710,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static readonly KeywordCollection LightingVariants = new KeywordCollection()
             {
                 { CoreKeywordDescriptors.MainLightShadows },
+                { CoreKeywordDescriptors.ShadowReceiverNormalBias },
                 { CoreKeywordDescriptors.AdditionalLights },
                 { CoreKeywordDescriptors.LightFalloffQuadratic },
                 { CoreKeywordDescriptors.AdditionalLightShadows },

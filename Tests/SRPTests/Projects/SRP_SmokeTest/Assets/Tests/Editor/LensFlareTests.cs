@@ -2,6 +2,8 @@ using System.IO;
 using NUnit.Framework;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.TestTools;
+using UnityEngine;
 
 namespace UnityEngine.Rendering.Tests
 {
@@ -12,6 +14,7 @@ namespace UnityEngine.Rendering.Tests
         GameObject go;
         GameObject camGo;
         ImageComparisonSettings comparisonSettings;
+        Universal.GlobalShaderVariablesUploader universalGlobals;
 
         [SetUp]
         public void Setup()
@@ -32,6 +35,9 @@ namespace UnityEngine.Rendering.Tests
         [TearDown]
         public void TearDown()
         {
+            universalGlobals?.Release();
+            universalGlobals = null;
+
             LensFlareCommonSRP.Dispose();
             GameObject.DestroyImmediate(go);
             GameObject.DestroyImmediate(camGo);
@@ -99,11 +105,26 @@ namespace UnityEngine.Rendering.Tests
 
             // Set constants that URP usually takes care of
             {
-                cmd.SetGlobalVector(Shader.PropertyToID("_ScaledScreenParams"),
-                    new Vector4(kRes, kRes,
-                        1.0f + 1.0f / kRes, 1.0f + 1.0f / kRes));
-                cmd.SetGlobalVector(Shader.PropertyToID("_ScreenSize"),
-                    new Vector4(kRes, kRes, 1.0f / kRes, 1.0f / kRes));
+                var scaledScreenParams = new Vector4(kRes, kRes,
+                    1.0f + 1.0f / kRes, 1.0f + 1.0f / kRes);
+                var screenSize = new Vector4(kRes, kRes, 1.0f / kRes, 1.0f / kRes);
+
+                if (srp == SRP.URP)
+                {
+                    Universal.UniversalRenderPipeline.RefreshGlobalConstantBufferFlag();
+                    universalGlobals = new Universal.GlobalShaderVariablesUploader(Universal.GlobalShaderVariablesGroup.Base);
+                    universalGlobals.useConstantBuffer = Universal.UniversalRenderPipeline.useGlobalConstantBuffer;
+                    universalGlobals.BeginFill();
+                    universalGlobals._ScaledScreenParams = scaledScreenParams;
+                    universalGlobals._ScreenSize = screenSize;
+                    universalGlobals.EndFill();
+                    universalGlobals.PushDefault(CommandBufferHelpers.GetUnsafeCommandBuffer(cmd));
+                }
+                else
+                {
+                    cmd.SetGlobalVector(Shader.PropertyToID("_ScaledScreenParams"), scaledScreenParams);
+                    cmd.SetGlobalVector(Shader.PropertyToID("_ScreenSize"), screenSize);
+                }
             }
 
             // Create a material for lens flare
@@ -318,6 +339,9 @@ namespace UnityEngine.Rendering.Tests
         }
 
         [Test, GraphicsTest]
+        [UnityPlatform(exclude = new RuntimePlatform[] {
+            RuntimePlatform.WindowsEditor // Disabled for Instability https://unitycorp.atlassian.net/browse/UUM-163051
+        })]
         public void FlareRendersToColorURP(
             GraphicsTestCase testCase,
             [Values(SRPLensFlareType.Circle, SRPLensFlareType.Polygon, SRPLensFlareType.Ring)] SRPLensFlareType flareType

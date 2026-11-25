@@ -383,6 +383,8 @@ namespace UnityEditor.VFX.UI
             }
 
             var fieldId = new List<int>();
+            var movedProperties = false;
+            var movedAttributes = false;
             var childIndex = arg.childIndex;
             // Reorder
             if (arg.dropPosition == DragAndDropPosition.BetweenItems)
@@ -390,16 +392,22 @@ namespace UnityEditor.VFX.UI
                 // Moving an attribute
                 if (m_Treeview.selectedItem is AttributeItem)
                 {
-                    foreach (var currentItem in m_Treeview.selectedItems.OfType<AttributeItem>())
+                    movedAttributes = true;
+                    foreach (var currentItem in m_Treeview.selectedItems.OfType<AttributeItem>().OrderBy(item => m_Treeview.viewController.GetIndexForId(item.id)))
                     {
                         fieldId.Add(currentItem.id);
-                        currentItem.graph.SetCustomAttributeOrder(currentItem.title, arg.childIndex);
                     }
                 }
                 // Moving a property
                 else if (m_Treeview.selectedItem is PropertyItem)
                 {
-                    foreach (var currentItem in m_Treeview.selectedItems.OfType<PropertyItem>())
+                    // Keep the on-screen order so a multi-selection drag doesn't get reversed
+                    var orderedSelection = m_Treeview.selectedItems.OfType<PropertyItem>()
+                        .OrderBy(item => m_Treeview.viewController.GetIndexForId(item.id))
+                        .ToList();
+
+                    movedProperties = true;
+                    foreach (var currentItem in orderedSelection)
                     {
                         fieldId.Add(currentItem.id);
                         var parentCategory = m_Treeview.GetItemDataForId<IParameterItem>(arg.parentId) as PropertyCategory;
@@ -422,8 +430,6 @@ namespace UnityEditor.VFX.UI
                         {
                             currentItem.controller.model.category = parentCategory.title;
                         }
-
-                        controller.SetParametersOrder(currentItem.controller, arg.childIndex);
                     }
                 }
                 // Moving a category
@@ -442,7 +448,10 @@ namespace UnityEditor.VFX.UI
             // Change category
             else if (m_Treeview.GetItemDataForId<IParameterItem>(arg.parentId) is PropertyCategory propertyCategory)
             {
-                foreach (var currentItem in m_Treeview.selectedItems.OfType<PropertyItem>())
+                movedProperties = true;
+                var orderedSelection = m_Treeview.selectedItems.OfType<PropertyItem>()
+                    .OrderBy(item => m_Treeview.viewController.GetIndexForId(item.id));
+                foreach (var currentItem in orderedSelection)
                 {
                     fieldId.Add(currentItem.id);
                     if (currentItem.controller.isOutput && propertyCategory is not OutputCategory)
@@ -479,7 +488,40 @@ namespace UnityEditor.VFX.UI
                 {
                     foreach (var id in fieldId)
                     {
+                        // Move shifts the index down by one for an item coming from above in the same parent
+                        var shiftedByMove = m_Treeview.viewController.GetParentId(id) == arg.parentId &&
+                            m_Treeview.viewController.GetChildIndexForId(id) < childIndex;
                         m_Treeview.viewController.Move(id, arg.parentId, childIndex, true);
+                        if (!shiftedByMove && childIndex >= 0)
+                        {
+                            ++childIndex;
+                        }
+                    }
+
+                    // The tree now holds the dropped order, the model follows it
+                    if (movedProperties)
+                    {
+                        var order = 0;
+                        foreach (var childId in m_Treeview.viewController.GetChildrenIds(arg.parentId))
+                        {
+                            if (m_Treeview.GetItemDataForId<IParameterItem>(childId) is PropertyItem property)
+                            {
+                                property.controller.order = order++;
+                            }
+                        }
+                    }
+
+                    if (movedAttributes)
+                    {
+                        var attributeIndex = 0;
+                        foreach (var childId in m_Treeview.viewController.GetChildrenIds(arg.parentId))
+                        {
+                            if (m_Treeview.GetItemDataForId<IParameterItem>(childId) is AttributeItem attribute &&
+                                controller.graph.SetCustomAttributeOrder(attribute.title, attributeIndex))
+                            {
+                                ++attributeIndex;
+                            }
+                        }
                     }
 
                     UpdateLastCategoryItem(arg.parentId);
@@ -904,21 +946,34 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public string DuplicateParameter(VFXBlackboardField parameterField)
+        public IReadOnlyList<VFXParameterController> GetSelectedParameters()
         {
-            var newController = m_View.DuplicateBlackboardField(parameterField);
+            return m_Treeview.selectedIds
+                .Select(id => m_Treeview.GetItemDataForId<IParameterItem>(id))
+                .OfType<PropertyItem>()
+                .OrderBy(item => m_Treeview.viewController.GetIndexForId(item.id))
+                .Select(item => item.controller)
+                .ToList();
+        }
 
-            var parentTreeviewItem = FindItemData<PropertyCategory>(x => x.children.Any(y => y.data == parameterField.PropertyItem));
+        // True when the selection designates a category to paste into, categoryName is empty for the root properties
+        public bool TryGetSelectedCategoryName(out string categoryName)
+        {
+            categoryName = null;
+            var selectedCategory = m_Treeview.selectedItem switch
+            {
+                PropertyCategory category => category,
+                PropertyItem propertyItem => m_Treeview.GetItemDataForId<IParameterItem>(m_Treeview.viewController.GetParentId(propertyItem.id)) as PropertyCategory,
+                _ => null,
+            };
 
-            var lastParentChild = parentTreeviewItem.children.LastOrDefault(x => x.data is PropertyItem);
-            var insertIndex = lastParentChild.data == null ? -1 : m_Treeview.viewController.GetIndexForId(lastParentChild.id);
-            var newId = m_Treeview.viewController.GetAllItemIds().Max() + 1;
-            var parameterData = new PropertyItem(newController, newId) { isLast = true };
+            if (selectedCategory == null || selectedCategory is OutputCategory)
+            {
+                return false;
+            }
 
-            m_Treeview.AddItem(new TreeViewItemData<IParameterItem>(newId, parameterData), parentTreeviewItem.id, insertIndex, true);
-            UpdateLastCategoryItem(parentTreeviewItem.id);
-            m_Treeview.selectedIndex = m_Treeview.viewController.GetIndexForId(newId);
-            return newController.exposedName;
+            categoryName = selectedCategory.isRoot ? string.Empty : selectedCategory.title;
+            return true;
         }
 
         public bool RemoveParameter(IParameterItem parameterItem)
@@ -1073,7 +1128,7 @@ namespace UnityEditor.VFX.UI
         private void StartEditingPath()
         {
             m_PathTextField.style.display = DisplayStyle.Flex;
-            m_PathTextField.value = m_PathLabel.text;
+            m_PathTextField.value = controller.graph.categoryPath ?? string.Empty;
             m_PathLabel.style.display = DisplayStyle.None;
 
             m_PathTextField.style.fontSize = 11;
@@ -1086,6 +1141,7 @@ namespace UnityEditor.VFX.UI
             switch (evt.keyCode)
             {
                 case KeyCode.Escape:
+                    m_PathTextField.value = controller.graph.categoryPath ?? string.Empty;
                     m_PathTextField.Q("unity-text-input").Blur();
                     break;
                 case KeyCode.Return:
@@ -1100,7 +1156,8 @@ namespace UnityEditor.VFX.UI
             m_PathTextField.style.display = DisplayStyle.None;
             m_PathLabel.style.display = DisplayStyle.Flex;
 
-            controller.graph.categoryPath = m_PathTextField.text;
+            if (m_PathTextField.text != (controller.graph.categoryPath ?? string.Empty))
+                controller.graph.categoryPath = m_PathTextField.text;
             UpdateSubtitle();
         }
 
@@ -1153,19 +1210,8 @@ namespace UnityEditor.VFX.UI
                 newParam.SetSettingValue("m_Exposed", true);
             }
 
-            // We must delay because the VFXParameterController will be added on new graph update
-            EditorApplication.delayCall += () => AddParameterIfNeeded(newParam, m_Controller);
-        }
-
-        private void AddParameterIfNeeded(VFXParameter parameter, VFXViewController vfxViewController)
-        {
-            // Check if parameter has not already been added by an Update because of a postprocess
-            if (GetItemsData<PropertyItem>().All(x => string.Compare(parameter.exposedName, x.data.title, StringComparison.OrdinalIgnoreCase) != 0))
-            {
-                AddParameter(vfxViewController.GetParameterController(parameter), true);
-            }
-
-            OpenTextEditor<VFXBlackboardField, PropertyItem>(parameter.exposedName);
+            AddParameter(m_Controller.GetNewParameterController(newParam), true);
+            OpenTextEditor<VFXBlackboardField, PropertyItem>(newParam.exposedName);
         }
 
         private void OnAddCustomAttribute(object parameter)
@@ -1239,7 +1285,7 @@ namespace UnityEditor.VFX.UI
 
         public void SetCategoryName(VFXBlackboardCategory cat, string newTitle)
         {
-            if (TryGetValidCategoryName(ref newTitle))
+            if (TryGetValidCategoryName(ref newTitle, out var error))
             {
                 if (cat.title != newTitle && controller.RenameCategory(cat.title, newTitle))
                 {
@@ -1250,16 +1296,29 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                Debug.LogError($"Can't change name, '{newTitle}' is not a valid category name.");
+                Debug.LogError($"Cannot rename category: {error}");
             }
 
             cat.title = cat.category.title;
         }
 
-        private bool TryGetValidCategoryName(ref string candidateName)
+        private bool TryGetValidCategoryName(ref string candidateName, out string error)
         {
             candidateName = candidateName.Trim();
-            return !IsReservedCategoryName(candidateName) && candidateName.Length > 0;
+            if (candidateName.Length == 0)
+            {
+                error = "a category name cannot be empty.";
+                return false;
+            }
+
+            if (IsReservedCategoryName(candidateName))
+            {
+                error = $"'{candidateName}' is a reserved category name.";
+                return false;
+            }
+
+            error = null;
+            return true;
         }
 
         void OnAddCategory()

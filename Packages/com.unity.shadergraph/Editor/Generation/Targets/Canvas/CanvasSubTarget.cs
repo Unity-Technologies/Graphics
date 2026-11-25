@@ -119,6 +119,7 @@ namespace UnityEditor.Rendering.Canvas.ShaderGraph
             collector.AddShaderProperty(CanvasProperties.ClipRect);
             collector.AddShaderProperty(CanvasProperties.UIMaskSoftnessX);
             collector.AddShaderProperty(CanvasProperties.UIMaskSoftnessY);
+            collector.AddShaderProperty(CanvasProperties.UIMaskSoftness);
         }
 
         public override void GetFields(ref TargetFieldContext context)

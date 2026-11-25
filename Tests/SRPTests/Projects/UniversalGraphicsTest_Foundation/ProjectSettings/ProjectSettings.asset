@@ -812,9 +812,18 @@ PlayerSettings:
     - -warnaserror-:UAC0005
     - -warnaserror-:UAC0007
     - -warnaserror-:UAC0020
+    - -warnaserror-:UAC1001
+    - -warnaserror-:UAC1009
     - -warnaserror-:UAC0024
     - -warnaserror-:UAC0025
     - -warnaserror-:UAC1009
+    - -warnaserror-:SYSLIB0006
+    - -warnaserror-:SYSLIB0013
+    - -warnaserror-:SYSLIB0014
+    - -warnaserror-:SYSLIB0021
+    - -warnaserror-:SYSLIB0045
+    - -warnaserror-:SYSLIB0050
+    - -warnaserror-:SYSLIB0051
   platformArchitecture: {}
   scriptingBackend:
     Android: 0

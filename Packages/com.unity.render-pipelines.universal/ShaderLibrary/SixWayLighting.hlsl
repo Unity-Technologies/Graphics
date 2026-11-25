@@ -100,7 +100,7 @@ half3 ComputeGIColor(SixWaySurfaceData surfaceData)
     return giColor;
 }
 
-half3 SixWayLightBlend(SixWaySurfaceData surfaceData, Light light,  half3x3 tangentToWorld)
+URP_LIGHT_ACCUM3 SixWayLightBlend(SixWaySurfaceData surfaceData, Light light,  half3x3 tangentToWorld)
 {
     half3x3 localFrame = tangentToWorld;
     localFrame[2] *= -1;
@@ -116,11 +116,11 @@ half3 SixWayLightBlend(SixWaySurfaceData surfaceData, Light light,  half3x3 tang
     #endif
 
     half3 cbsdf_R = GetTransmissionWithAbsorption(transmission, half4(surfaceData.baseColor, surfaceData.alpha), surfaceData.absorptionRange, alphaPremultipled);
-    half3 radiance = light.color * light.distanceAttenuation * light.shadowAttenuation;
+    URP_LIGHT_ACCUM3 radiance = light.color * light.distanceAttenuation * light.shadowAttenuation;
     return PI * cbsdf_R * radiance; // *PI because URP doesn't multiply by the Lambert term in its Lit implementation
 }
 
-URP_LIGHT_ACCUM4 UniversalFragmentSixWay(InputData inputData, SixWaySurfaceData surfaceData, float3 geometricNormalWS = float3(0.0, 0.0, 0.0))
+URP_LIGHT_ACCUM4 UniversalFragmentSixWay(InputData inputData, SixWaySurfaceData surfaceData)
 {
     if(surfaceData.alpha == 0)
         return half4(0,0,0,0);
@@ -146,7 +146,7 @@ URP_LIGHT_ACCUM4 UniversalFragmentSixWay(InputData inputData, SixWaySurfaceData 
     {
         CLUSTER_LIGHT_LOOP_SUBTRACTIVE_LIGHT_CHECK
 
-        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor, geometricNormalWS);
+        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
 
         if (IsMatchingLightLayer(light, meshRenderingLayers))
         {
@@ -156,7 +156,7 @@ URP_LIGHT_ACCUM4 UniversalFragmentSixWay(InputData inputData, SixWaySurfaceData 
     #endif
 
     LIGHT_LOOP_BEGIN(pixelLightCount)
-        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor, geometricNormalWS);
+        Light light = GetAdditionalLight(lightIndex, inputData, shadowMask, aoFactor);
 
         if (IsMatchingLightLayer(light, meshRenderingLayers))
         {

@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     [SupportedOnRenderer(typeof(UniversalRendererData))]
     [DisallowMultipleRendererFeature("Volumetric Fog")]
-    [Tooltip("Renders volumetric fog by voxelizing global and local fog volumes, ray-marching lit volume slices, and compositing the result.")]
+    [Tooltip("Renders volumetric fog by voxelizing the global fog and Fog Volumes, ray-marching lit volume slices, and compositing the result.")]
     public sealed class VolumetricFogRendererFeature : ScriptableRendererFeature
     {
         // IDs used by more than one pass live here. Single-callsite IDs are declared
@@ -31,6 +31,7 @@ namespace UnityEngine.Rendering.Universal
         VolumetricFogGlobalsPass m_GlobalsPass;
         GenerateMaxZMaskPass m_MaxZPass;
         VolumeVoxelizationPass m_VoxelizationPass;
+        FogVolumesPass m_FogVolumesPass;
         VolumetricLightingPass m_LightingPass;
         VolumetricFilteringPass m_FilteringPass;
         ApplyVolumetricFogPass m_ApplyPass;
@@ -47,6 +48,7 @@ namespace UnityEngine.Rendering.Universal
             m_GlobalsPass = new VolumetricFogGlobalsPass { renderPassEvent = RenderPassEvent.BeforeRenderingShadows };
             m_MaxZPass = new GenerateMaxZMaskPass { renderPassEvent = RenderPassEvent.AfterRenderingSkybox };
             m_VoxelizationPass = new VolumeVoxelizationPass { renderPassEvent = RenderPassEvent.AfterRenderingSkybox };
+            m_FogVolumesPass = new FogVolumesPass { renderPassEvent = RenderPassEvent.AfterRenderingSkybox };
             m_LightingPass = new VolumetricLightingPass { renderPassEvent = RenderPassEvent.AfterRenderingSkybox };
             m_FilteringPass = new VolumetricFilteringPass { renderPassEvent = RenderPassEvent.AfterRenderingSkybox };
             m_ApplyPass = new ApplyVolumetricFogPass { renderPassEvent = RenderPassEvent.AfterRenderingSkybox };
@@ -83,6 +85,7 @@ namespace UnityEngine.Rendering.Universal
 
                 renderer.EnqueuePass(m_MaxZPass);
                 renderer.EnqueuePass(m_VoxelizationPass);
+                renderer.EnqueuePass(m_FogVolumesPass);
                 renderer.EnqueuePass(m_LightingPass);
                 renderer.EnqueuePass(m_FilteringPass);
                 renderer.EnqueuePass(m_ApplyPass);
@@ -95,6 +98,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_GlobalsPass == null)
                 return;
 
+            m_FogVolumesPass.Dispose();
             m_LightingPass.Dispose();
             m_ApplyPass.Dispose();
             m_SSMSPass.Dispose();
@@ -102,6 +106,7 @@ namespace UnityEngine.Rendering.Universal
             m_GlobalsPass = null;
             m_MaxZPass = null;
             m_VoxelizationPass = null;
+            m_FogVolumesPass = null;
             m_LightingPass = null;
             m_FilteringPass = null;
             m_ApplyPass = null;

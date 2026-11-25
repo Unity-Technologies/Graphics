@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor.Rendering.Converter;
+using UnityEditor.Search;
 using UnityEngine;
 using UnityEngine.Categorization;
 
@@ -43,6 +44,58 @@ namespace UnityEditor.Rendering.Universal
             }
 
             return null;
+        }
+
+        internal static PixelPerfectCameraConverterItem CreateItem(SearchItem item)
+        {
+            // Direct conversion - works for both assets and scene objects
+            var unityObject = item.ToObject();
+
+            if (unityObject == null)
+                return CreateUnloadedSceneObjectItem(item);
+
+            // Ensure we're always working with GameObjects
+            GameObject go = null;
+
+            if (unityObject is GameObject gameObject)
+                go = gameObject;
+            else if (unityObject is Component component)
+                go = component.gameObject;
+            else
+                return null; // Not a GameObject or Component
+
+            var gid = GlobalObjectId.GetGlobalObjectIdSlow(go);
+
+            if (gid.identifierType == GlobalObjectIdentifierType.ImportedAsset)
+            {
+                return new PixelPerfectCameraConverterItem(gid.ToString())
+                {
+                    name = $"{unityObject.name} (Prefab)",
+                    info = AssetDatabase.GetAssetPath(unityObject),
+                };
+            }
+
+            return new PixelPerfectCameraConverterItem(gid.ToString())
+            {
+                name = AssetsConverter.GetSceneObjectName(UnityEditor.Search.SearchUtils.GetTransformPath(go.transform)),
+                info = go.scene.path,
+            };
+        }
+
+        // A scene object only loads while its scene is open, so build the item from the search result and let
+        // Convert open the scene
+        static PixelPerfectCameraConverterItem CreateUnloadedSceneObjectItem(SearchItem item)
+        {
+            var scenePath = AssetsConverter.GetUnloadedScenePath(item.id);
+            if (scenePath == null)
+                return null;
+
+            // Search labels scene objects with their path in the hierarchy
+            return new PixelPerfectCameraConverterItem(item.id)
+            {
+                name = AssetsConverter.GetSceneObjectName(item.GetLabel(item.context, true) ?? string.Empty),
+                info = scenePath,
+            };
         }
 
 #if PIXEL_PERFECT_2D_EXISTS
@@ -118,35 +171,9 @@ namespace UnityEditor.Rendering.Universal
                 new List<(string query, string description)> { ("t:UnityEngine.U2D.PixelPerfectCamera", "Game Objects Referencing a U2D Pixel Perfect Camera") },
                 (item, description) =>
                 {
-                    // Direct conversion - works for both assets and scene objects
-                    var unityObject = item.ToObject();
-
-                    if (unityObject == null)
-                        return;
-
-                    // Ensure we're always working with GameObjects
-                    GameObject go = null;
-
-                    if (unityObject is GameObject gameObject)
-                        go = gameObject;
-                    else if (unityObject is Component component)
-                        go = component.gameObject;
-                    else
-                        return; // Not a GameObject or Component
-
-                    var gid = GlobalObjectId.GetGlobalObjectIdSlow(go);
-                    if (!processedIds.Add(gid.ToString()))
-                        return;
-
-                    int type = gid.identifierType; // 1=Asset, 2=SceneObject
-
-                    var ppCameraItem = new PixelPerfectCameraConverterItem(gid.ToString())
-                    {
-                        name = $"{unityObject.name} ({(type == 1 ? "Prefab" : "SceneObject")})",
-                        info = type == 1 ? AssetDatabase.GetAssetPath(unityObject) : go.scene.path,
-                    };
-
-                    returnList.Add(ppCameraItem);
+                    var ppCameraItem = CreateItem(item);
+                    if (ppCameraItem != null && processedIds.Add(ppCameraItem.GlobalObjectId))
+                        returnList.Add(ppCameraItem);
                 },
                 OnSearchFinish
             );

@@ -131,10 +131,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
             cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBias);
 
-            // Set a value that can be used by shaders to identify when AlphaToMask functionality may be active
-            // The material shader alpha clipping logic requires this value in order to function correctly in all cases.
-            float alphaToMaskAvailable = ((data.cameraData.cameraTargetDescriptor.msaaSamples > 1) && data.isOpaque) ? 1.0f : 0.0f;
-            cmd.SetGlobalFloat(ShaderPropertyId.alphaToMaskAvailable, alphaToMaskAvailable);
+            RenderingUtils.SetAlphaToMaskAvailable(cmd, data.alphaToMaskAvailable);
 
             var activeDebugHandler = GetActiveDebugHandler(data.cameraData);
             if (activeDebugHandler != null)
@@ -147,6 +144,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Render objects that did not match any shader pass with error shader
                 RenderingUtils.DrawRendererListObjectsWithError(cmd, ref objectsWithErrorRendererList);
             }
+
+            if (data.alphaToMaskAvailable)
+                RenderingUtils.SetAlphaToMaskAvailable(cmd, false);
         }
 
         /// <summary>
@@ -163,6 +163,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             internal UniversalCameraData cameraData;
             internal UniversalShadowData shadowData;
             internal bool isOpaque;
+            internal bool alphaToMaskAvailable;
             internal bool shouldTransparentsReceiveShadows;
             internal bool shouldTransparentsReceiveSSR;
             internal uint batchLayerMask;
@@ -252,6 +253,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 builder.UseAllGlobalTextures(true);
 
                 InitPassData(cameraData, shadowData, ref passData, batchLayerMask, resourceData.isActiveTargetBackBuffer);
+                TextureHandle msaaTarget = colorTarget.IsValid() ? colorTarget : depthTarget;
+                passData.alphaToMaskAvailable = m_IsOpaque && renderGraph.GetRenderTargetInfo(msaaTarget).msaaSamples > 1;
 
                 if (colorTarget.IsValid())
                 {
@@ -348,8 +351,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // Currently we only need to call this when the user doesn't want transparent objects to receive shadows
                     if (!data.isOpaque && !data.shouldTransparentsReceiveShadows)
                     {
-                        MainLightShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd);
+                        MainLightShadowCasterPass.SetShadowParamsForTransparentsNotReceivingShadows(context.cmd);
                         AdditionalLightsShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd, data.shadowData.emptyAdditionalLightShadowsBuffer);
+                        context.cmd.SetKeyword(ShaderGlobalKeywords.ShadowsPCSS, false);
                     }
 
                     bool yFlip = RenderingUtils.IsHandleYFlipped(context, in (data.albedoHdl.IsValid() ? ref data.albedoHdl : ref data.depthHdl));
@@ -401,7 +405,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         private class RenderingLayersPassData
         {
             internal PassData basePassData;
-            internal RenderingLayerUtils.MaskSize maskSize;
 
             public RenderingLayersPassData()
             {
@@ -410,7 +413,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         internal void Render(RenderGraph renderGraph, ContextContainer frameData, in TextureHandle colorTarget, in TextureHandle renderingLayersTexture, in TextureHandle depthTarget,
-            in TextureHandle mainShadowsTexture, in TextureHandle additionalShadowsTexture, RenderingLayerUtils.MaskSize maskSize, uint batchLayerMask = uint.MaxValue)
+            in TextureHandle mainShadowsTexture, in TextureHandle additionalShadowsTexture, uint batchLayerMask = uint.MaxValue)
         {
             using (var builder = renderGraph.AddRasterRenderPass<RenderingLayersPassData>(passName, out var passData, profilingSampler))
             {
@@ -421,8 +424,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 UniversalShadowData shadowData = frameData.Get<UniversalShadowData>();
 
                 InitPassData(cameraData, shadowData, ref passData.basePassData, batchLayerMask);
-
-                passData.maskSize = maskSize;
+                passData.basePassData.alphaToMaskAvailable = passData.basePassData.isOpaque && renderGraph.GetRenderTargetInfo(colorTarget).msaaSamples > 1;
 
                 passData.basePassData.albedoHdl = colorTarget;
                 builder.SetRenderAttachment(colorTarget, 0, AccessFlags.Write);
@@ -467,7 +469,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     builder.UseRendererList(passData.basePassData.objectsWithErrorRendererListHdl);
                 }
 
-                // Required here because of RenderingLayerUtils.SetupProperties
+                // Required here because of the WriteRenderingLayers keyword
                 builder.AllowGlobalStateModification(true);
 
                 if (cameraData.xr.enabled)
@@ -486,14 +488,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // Enable Rendering Layers
                     context.cmd.SetKeyword(ShaderGlobalKeywords.WriteRenderingLayers, true);
 
-                    RenderingLayerUtils.SetupProperties(context.cmd, data.maskSize);
-
                     // Currently we only need to call this additional pass when the user
                     // doesn't want transparent objects to receive shadows
                     if (!data.basePassData.isOpaque && !data.basePassData.shouldTransparentsReceiveShadows)
                     {
-                        MainLightShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd);
+                        MainLightShadowCasterPass.SetShadowParamsForTransparentsNotReceivingShadows(context.cmd);
                         AdditionalLightsShadowCasterPass.SetShadowParamsForEmptyShadowmap(context.cmd, data.basePassData.shadowData.emptyAdditionalLightShadowsBuffer);
+                        context.cmd.SetKeyword(ShaderGlobalKeywords.ShadowsPCSS, false);
                     }
 
                     bool yFlip = RenderingUtils.IsHandleYFlipped(context, in (data.basePassData.albedoHdl.IsValid() ? ref data.basePassData.albedoHdl : ref data.basePassData.depthHdl));

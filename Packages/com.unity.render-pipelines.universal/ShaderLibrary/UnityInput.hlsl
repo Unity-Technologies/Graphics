@@ -34,7 +34,12 @@
 #define unity_CameraInvProjection     unity_StereoCameraInvProjection[unity_StereoEyeIndex]
 #define unity_WorldToCamera           unity_StereoMatrixV[unity_StereoEyeIndex] // Should be unity_StereoWorldToCamera but no use-case in XR pass
 #define unity_CameraToWorld           unity_StereoMatrixInvV[unity_StereoEyeIndex] // Should be unity_StereoCameraToWorld but no use-case in XR pass
+#if defined(UNITY_COMPILER_DXC)
 #define _WorldSpaceCameraPos          unity_StereoWorldSpaceCameraPos[unity_StereoEyeIndex]
+#else
+// FXC can index this with a stale or uninitialized eye index when the read ends up inside a branch; blend instead of indexing.
+#define _WorldSpaceCameraPos          (unity_StereoWorldSpaceCameraPos[0] * (1.0 - (float)unity_StereoEyeIndex) + unity_StereoWorldSpaceCameraPos[1] * (float)unity_StereoEyeIndex)
+#endif
 #endif
 
 #define UNITY_LIGHTMODEL_AMBIENT (glstate_lightmodel_ambient * 2)
@@ -102,12 +107,10 @@ float4 unity_SpecCube0_BoxMax;          // w contains the blend distance
 float4 unity_SpecCube0_BoxMin;          // w contains the lerp value
 float4 unity_SpecCube0_ProbePosition;   // w is set to 1 for box projection
 float4 unity_SpecCube0_Rotation;
-float4 unity_SpecCube0_Exposure;        // Only the x value is used
 float4 unity_SpecCube1_BoxMax;          // w contains the blend distance
 float4 unity_SpecCube1_BoxMin;          // w contains the sign of (SpecCube0.importance - SpecCube1.importance)
 float4 unity_SpecCube1_ProbePosition;   // w is set to 1 for box projection
 float4 unity_SpecCube1_Rotation;
-float4 unity_SpecCube1_Exposure;        // Only the x value is used
 
 // Lightmap block feature
 float4 unity_LightmapST;
@@ -163,6 +166,11 @@ uint unity_LightProbeUsagePropertyEntry;
 // static-const fallback at parse time and miss the per-instance override.
 #define IsLightProbeSamplingEnabled() (unity_LightProbeUsage != 0u)
 
+// The probe capture exposure (EV) is carried in unity_SpecCubeN_HDR.z. These keep the exposure multiplier (2^EV in x)
+// available to custom shaders under its previous name, without extra per-draw data.
+#define unity_SpecCube0_Exposure float4(exp2((float)unity_SpecCube0_HDR.z), 0.0, 0.0, 0.0)
+#define unity_SpecCube1_Exposure float4(exp2((float)unity_SpecCube1_HDR.z), 0.0, 0.0, 0.0)
+
 #if defined(USING_STEREO_MATRICES)
 CBUFFER_START(UnityStereoViewBuffer)
 float4x4 unity_StereoMatrixP[2];
@@ -180,10 +188,14 @@ CBUFFER_END
 #endif
 
 #if defined(UNITY_STEREO_MULTIVIEW_ENABLED) && defined(SHADER_STAGE_VERTEX)
+#if !defined(UNITY_DECLARE_MULTIVIEW)
+#if defined(SHADER_API_VULKAN) && defined(UNITY_COMPILER_DXC)
+#define UNITY_DECLARE_MULTIVIEW(number_of_views) UNITY_DECLARE_SPIRV_VIEW_INDEX(gl_ViewID)
+#else
 // OVR_multiview
 // In order to convey this info over the DX compiler, we wrap it into a cbuffer.
-#if !defined(UNITY_DECLARE_MULTIVIEW)
 #define UNITY_DECLARE_MULTIVIEW(number_of_views) CBUFFER_START(OVR_multiview) uint gl_ViewID; uint numViews_##number_of_views; CBUFFER_END
+#endif
 #define UNITY_VIEWID gl_ViewID
 #endif
 #endif

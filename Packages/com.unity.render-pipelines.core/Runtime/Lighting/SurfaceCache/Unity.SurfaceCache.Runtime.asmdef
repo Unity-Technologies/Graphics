@@ -20,7 +20,7 @@
         "CloudRendering",
         "XboxOne"
     ],
-    "allowUnsafeCode": false,
+    "allowUnsafeCode": true,
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,

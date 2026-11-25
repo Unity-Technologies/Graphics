@@ -27,6 +27,11 @@ namespace UnityEngine.Rendering.Universal.Internal
         [NoAutoStaticsCleanup] private static readonly ProfilingSampler s_ProfilingSetupSampler = new("Setup Main Shadowmap");
         [NoAutoStaticsCleanup] private static readonly ProfilingSampler s_SetKeywordsSampler = new("Set Main Light Shadow Keywords");
         private readonly ShadowSliceData[] m_CascadeSlices;
+        private bool m_UsePCSS;
+        private MainLightShadowCascadeVectors m_PCSSParams0;
+        private MainLightShadowCascadeVectors m_PCSSParams1;
+        private MainLightShadowCascadeVectors m_PCSSAtlas;
+        private Vector4 m_PCSSScalars;
 
         // Constants and Statics
         private const int k_EmptyShadowMapDimensions = 1;
@@ -62,6 +67,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _MainLightShadowmapID = Shader.PropertyToID(k_MainLightShadowMapTextureName);
             public static readonly int _ShadowParams = Shader.PropertyToID("_MainLightShadowParams");
             public static readonly int _ReceiverNormalBias = Shader.PropertyToID("_MainLightShadowReceiverNormalBias");
+            public static readonly int _SoftShadowKernelParams = Shader.PropertyToID("_MainLightSoftShadowKernelParams");
         }
 
         private class PassData
@@ -190,7 +196,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             using var profScope = new ProfilingScope(s_ProfilingSetupSampler);
 
-            m_ShadowmapDepthStencilFormat = ShadowUtils.GetShadowmapDepthStencilFormat(stencilBuffer);
+            m_ShadowmapDepthStencilFormat = ShadowUtils.GetShadowmapDepthStencilFormat(shadowData.mainLightShadowmapDepthBits, stencilBuffer);
+            shadowData.mainLightShadowmapFormat = m_ShadowmapDepthStencilFormat;
 
             bool isOffscreenDepthTexture = cameraData.camera.targetTexture != null && cameraData.camera.targetTexture.format == RenderTextureFormat.Depth;
             bool willRenderShadowGeometry = shadowsEnabledByCamera && !isOffscreenDepthTexture && ShouldRenderShadowGeometry(renderingData, cameraData, lightData, shadowData);
@@ -240,6 +247,19 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_MaxShadowDistanceSq = cameraData.maxShadowDistance * cameraData.maxShadowDistance;
             m_CascadeBorder = shadowData.mainLightShadowCascadeBorder;
             m_ShadowPassMode = ShadowPassMode.DrawGeometry;
+
+            SetupPCSS(ref shadowLight, shadowData);
+        }
+
+        void SetupPCSS(ref VisibleLight shadowLight, UniversalShadowData shadowData)
+        {
+            shadowLight.light.TryGetComponent(out UniversalAdditionalLightData additionalLightData);
+            m_UsePCSS = ShadowUtils.IsPCSSEnabled(ref shadowLight, additionalLightData, shadowData.supportsSoftShadows, UniversalRenderPipeline.asset);
+            if (!m_UsePCSS)
+                return;
+
+            ShadowUtils.ComputeMainLightPCSSParams(additionalLightData, m_CascadeSlices, m_ShadowCasterCascadesCount, m_RenderTargetWidth, m_RenderTargetHeight, ref m_PCSSParams0, ref m_PCSSParams1, ref m_PCSSAtlas);
+            m_PCSSScalars = ShadowUtils.GetMainLightPCSSScalars(additionalLightData, m_CascadeSlices[0].resolution);
         }
 
         static bool MainLightHasMixedShadows(Light mainLight)
@@ -262,6 +282,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 #endif
 
             m_ShadowPassMode = ShadowPassMode.Empty;
+            m_UsePCSS = false;
 
             bool stripShadowsOffVariants = cameraData.renderer.stripShadowsOffVariants;
             m_SetKeywordForEmptyShadowmap = ShadowUtils.ShouldEnableKeywordForEmptyShadowmap(stripShadowsOffVariants, shadowData.mainLightShadowsEnabled);
@@ -279,11 +300,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             return shadowLightIndex != -1 ? lightData.visibleLights[shadowLightIndex].light : null;
         }
 
-        static Vector4 ComputeShadowParamsForEmptyRendering(Light light, UniversalCameraData cameraData, UniversalShadowData shadowData)
+        internal static Vector4 ComputeShadowParamsForEmptyRendering(Light light, UniversalCameraData cameraData, UniversalShadowData shadowData)
         {
             bool softShadows = light.shadows == LightShadows.Soft && shadowData.supportsSoftShadows;
             ShadowUtils.GetMainLightShadowParams(light, softShadows, out float softShadowsProp, out float shadowStrength);
-            ShadowUtils.GetScaleAndBiasForLinearDistanceFade(cameraData.maxShadowDistance, shadowData.mainLightShadowCascadeBorder, out float shadowFadeScale, out float shadowFadeBias);
+            ShadowUtils.GetScaleAndBiasForLinearDistanceFade(cameraData.maxShadowDistance * cameraData.maxShadowDistance, shadowData.mainLightShadowCascadeBorder, out float shadowFadeScale, out float shadowFadeBias);
             return new Vector4(shadowStrength, softShadowsProp, shadowFadeScale, shadowFadeBias);
         }
 
@@ -314,6 +335,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams, s_EmptyShadowParams);
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ReceiverNormalBias, Vector4.zero);
+            cmd.SetGlobalVector(MainLightShadowConstantBuffer._SoftShadowKernelParams, Vector4.zero);
+        }
+
+        internal static void SetShadowParamsForTransparentsNotReceivingShadows(IBaseCommandBuffer cmd)
+        {
+            cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams, k_DefaultEmptyShadowParams);
+            cmd.SetGlobalVector(MainLightShadowConstantBuffer._ReceiverNormalBias, Vector4.zero);
         }
 
         // Binds the default (1x1) shadowmap as the global main light shadow texture. Called from the renderer's
@@ -338,7 +366,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             SetShadowParamsForEmptyShadowmap(cmd);
         }
 
-        internal void UpdateGlobalShaderVariables(GlobalShaderVariablesUploader vars, UniversalLightData lightData, UniversalShadowData shadowData)
+        internal void UpdateGlobalShaderVariables(GlobalShaderVariablesUploader vars, UniversalCameraData cameraData, UniversalLightData lightData, UniversalShadowData shadowData)
         {
             if (m_ShadowPassMode == ShadowPassMode.Empty)
             {
@@ -352,6 +380,21 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             VisibleLight shadowLight = lightData.visibleLights[shadowLightIndex];
             FillMainLightShadowReceiverVars(ref shadowLight, shadowData, vars);
+
+            if (m_UsePCSS)
+                FillMainLightPCSSVars(cameraData, vars);
+        }
+
+        void FillMainLightPCSSVars(UniversalCameraData cameraData, GlobalShaderVariablesUploader vars)
+        {
+            vars.SetMainLightPCSSParams0(in m_PCSSParams0);
+            vars.SetMainLightPCSSParams1(in m_PCSSParams1);
+            vars.SetMainLightPCSSAtlas(in m_PCSSAtlas);
+
+            // Per frame, so the rotation keeps advancing while a cached atlas is reused
+            Vector4 scalars = m_PCSSScalars;
+            scalars.w = ShadowUtils.GetPCSSTemporalFrameIndex(cameraData);
+            vars._MainLightPCSSScalars = scalars;
         }
 
         void FillMainLightShadowReceiverVars(ref VisibleLight shadowLight, UniversalShadowData shadowData, GlobalShaderVariablesUploader vars)
@@ -408,7 +451,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
 
             VisibleLight shadowLight = data.lightData.visibleLights[shadowLightIndex];
-            SetShadowGlobalKeywordsAndConstants(cmd, ref shadowLight, shadowLightIndex, data.shadowData);
+            SetShadowGlobalKeywordsAndConstants(cmd, ref shadowLight, shadowLightIndex, data.cameraData, data.shadowData);
         }
 
         void RenderMainLightCascadeShadowmap(RasterCommandBuffer cmd, ref PassData data)
@@ -424,6 +467,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 ShadowUtils.SetCameraPosition(cmd, data.cameraData.worldSpaceCameraPos);
 
                 float slopeScaleDepthBias = ShadowUtils.GetSlopeScaleDepthBias(ref shadowLight, data.shadowData, shadowLightIndex);
+                bool useDepthClamp = ShadowUtils.ShouldUseShadowDepthClamp(isDirectional: true);
 
                 for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)
                 {
@@ -431,27 +475,31 @@ namespace UnityEngine.Rendering.Universal.Internal
                     ShadowUtils.SetupShadowCasterConstantBuffer(cmd, ref shadowLight, shadowBias);
                     cmd.SetKeyword(ShaderGlobalKeywords.CastingPunctualLightShadow, false);
                     RendererList shadowRendererList = data.shadowRendererListsHandle[cascadeIndex];
-                    ShadowUtils.RenderShadowSlice(cmd, ref m_CascadeSlices[cascadeIndex], ref shadowRendererList, m_CascadeSlices[cascadeIndex].projectionMatrix, m_CascadeSlices[cascadeIndex].viewMatrix, slopeScaleDepthBias);
+                    ShadowUtils.RenderShadowSlice(cmd, ref m_CascadeSlices[cascadeIndex], ref shadowRendererList, m_CascadeSlices[cascadeIndex].projectionMatrix, m_CascadeSlices[cascadeIndex].viewMatrix, slopeScaleDepthBias, useDepthClamp);
                 }
-                SetShadowGlobalKeywordsAndConstants(cmd, ref shadowLight, shadowLightIndex, data.shadowData);
+
+                SetShadowGlobalKeywordsAndConstants(cmd, ref shadowLight, shadowLightIndex, data.cameraData, data.shadowData);
             }
         }
 
-        internal void SetShadowGlobalKeywordsAndConstants(RasterCommandBuffer cmd, ref VisibleLight shadowLight, int shadowLightIndex, UniversalShadowData shadowData)
+        internal void SetShadowGlobalKeywordsAndConstants(RasterCommandBuffer cmd, ref VisibleLight shadowLight, int shadowLightIndex, UniversalCameraData cameraData, UniversalShadowData shadowData)
         {
             shadowData.isKeywordSoftShadowsEnabled = shadowLight.light.shadows == LightShadows.Soft && shadowData.supportsSoftShadows;
+            shadowData.isMainLightPCSSEnabled = m_UsePCSS;
             cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadows, shadowData.mainLightShadowCascadesCount == 1);
             cmd.SetKeyword(ShaderGlobalKeywords.MainLightShadowCascades, shadowData.mainLightShadowCascadesCount > 1);
             ShadowUtils.SetSoftShadowQualityShaderKeywords(cmd, shadowData);
 
-            SetupMainLightShadowReceiverConstants(cmd, ref shadowLight, shadowLightIndex, shadowData);
+            SetupMainLightShadowReceiverConstants(cmd, ref shadowLight, shadowLightIndex, cameraData, shadowData);
         }
 
-        void SetupMainLightShadowReceiverConstants(RasterCommandBuffer cmd, ref VisibleLight shadowLight, int shadowLightIndex, UniversalShadowData shadowData)
+        void SetupMainLightShadowReceiverConstants(RasterCommandBuffer cmd, ref VisibleLight shadowLight, int shadowLightIndex, UniversalCameraData cameraData, UniversalShadowData shadowData)
         {
             Light light = shadowLight.light;
             bool softShadows = light.shadows == LightShadows.Soft && shadowData.supportsSoftShadows;
             ShadowUtils.GetMainLightShadowParams(light, softShadows, out float softShadowsProp, out float shadowStrength);
+            if (m_UsePCSS)
+                softShadowsProp = ShadowUtils.k_SoftShadowQualityPCSS;
             ShadowUtils.GetScaleAndBiasForLinearDistanceFade(m_MaxShadowDistanceSq, m_CascadeBorder, out float shadowFadeScale, out float shadowFadeBias);
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams,
                 new Vector4(shadowStrength, softShadowsProp, shadowFadeScale, shadowFadeBias));
@@ -463,6 +511,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                     receiverNormalBias[i] = ShadowUtils.GetReceiverNormalBias(ref shadowLight, shadowLightIndex, shadowData, m_CascadeSlices[i].projectionMatrix, m_CascadeSlices[i].resolution);
             }
             cmd.SetGlobalVector(MainLightShadowConstantBuffer._ReceiverNormalBias, receiverNormalBias);
+
+            // A kernel radius of 0 keeps the soft shadow quality's fixed kernel. Every cascade tile has the same resolution.
+            bool useSoftShadowKernelRadius = softShadows && !m_UsePCSS && shadowData.softShadowKernelRadiusPercent > 0.0f;
+            float softShadowKernelRadius = useSoftShadowKernelRadius ? ShadowUtils.GetSoftShadowKernelRadius(shadowData.softShadowKernelRadiusPercent, m_CascadeSlices[0].resolution) : 0.0f;
+            cmd.SetGlobalVector(MainLightShadowConstantBuffer._SoftShadowKernelParams, new Vector4(softShadowKernelRadius, ShadowUtils.GetPCSSTemporalFrameIndex(cameraData), 0.0f, 0.0f));
         }
 
         private void InitPassData(

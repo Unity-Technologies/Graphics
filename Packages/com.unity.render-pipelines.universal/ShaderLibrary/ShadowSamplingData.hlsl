@@ -7,6 +7,8 @@ struct ShadowSamplingData
     half4 shadowOffset1;
     float4 shadowmapSize;
     half softShadowQuality;
+    float softShadowKernelRadius;
+    float softShadowFrameIndex;
 };
 
 #endif // UNIVERSAL_SHADOW_SAMPLING_DATA_INCLUDED

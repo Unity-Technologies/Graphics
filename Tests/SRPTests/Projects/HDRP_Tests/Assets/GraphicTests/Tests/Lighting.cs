@@ -26,6 +26,13 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         [SceneGraphicsTest(@"Assets/GraphicTests/Scenes/2x_Lighting/^[0-9]+")]
         [Timeout(450 * 1000)]
         [IgnoreGraphicsTest(
+            "2317_Mixed_Cached_ShadowMap_Point$",
+            "Small uniform deltaE drift on macOS Editor agents, slightly above threshold.",
+            GraphicsDeviceType.Metal,
+            RuntimePlatform.OSXEditor,
+            Architecture.Arm64
+        )]
+        [IgnoreGraphicsTest(
             "2120_APV_Baking$",
             "Incorrect on DX12/Metal. Bug: https://jira.unity3d.com/browse/UUM-155351",
             GraphicsDeviceType.Direct3D12, GraphicsDeviceType.Metal

@@ -628,12 +628,8 @@ namespace UnityEngine.Rendering
             m_VolumeCollection.ChangeLayer(volume, prevLayer, newLayer);
         }
 
-#if UNITY_ENABLE_CHECKS
-        internal bool renderingDebuggerAttached { get; set; }
-        internal event Action<VolumeStack, Camera> beginVolumeStackUpdate;
-        internal event Action<VolumeStack, Camera> endVolumeStackUpdate;
-        internal event Action<VolumeStack, Volume, float> overrideVolumeStackData;
-#endif
+        // Enabled by the Rendering Debugger to inspect which volumes were blended into a stack
+        internal bool recordVolumeContributions { get; set; }
 
         // Go through all listed components and lerp overridden values in the global state
         void OverrideData(VolumeStack stack, Volume volume, float interpFactor)
@@ -661,11 +657,8 @@ namespace UnityEngine.Rendering
                 }
             }
 
-#if UNITY_ENABLE_CHECKS
-            if (renderingDebuggerAttached)
-                overrideVolumeStackData?.Invoke(stack, volume, interpFactor);
-#endif
-
+            if (recordVolumeContributions)
+                stack.AddContribution(volume, interpFactor);
         }
 
         // Faster version of OverrideData to force replace values in the global state.
@@ -677,6 +670,7 @@ namespace UnityEngine.Rendering
 
             // Rebuilt every frame as volumes are re-applied; never holds stale/destroyed Volume references.
             stack.ClearOverridingVolumes();
+            stack.ClearContributions();
 
             var stackParams = stack.parameters;
             bool resetAllParameters = stack.requiresResetForAllProperties;
@@ -800,14 +794,11 @@ namespace UnityEngine.Rendering
             // Sort the cached volume list(s) for the given layer mask if needed and return it
             var volumes = GrabVolumes(layerMask);
 
+#if UNITY_EDITOR
             Camera camera = null;
             // Behavior should be fine even if camera is null
             if (!onlyGlobal)
                 trigger.TryGetComponent<Camera>(out camera);
-
-#if UNITY_ENABLE_CHECKS
-            if (renderingDebuggerAttached)
-                beginVolumeStackUpdate?.Invoke(stack, camera);
 #endif
 
 #if ENABLE_PHYSICS_MODULE
@@ -887,11 +878,6 @@ namespace UnityEngine.Rendering
                 OverrideData(stack, volume, interpFactor * Mathf.Clamp01(volume.weight));
 #endif
             }
-
-#if UNITY_ENABLE_CHECKS
-            if (renderingDebuggerAttached)
-                endVolumeStackUpdate?.Invoke(stack, camera);
-#endif
         }
 
         /// <summary>

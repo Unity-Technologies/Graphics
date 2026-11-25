@@ -114,8 +114,24 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             CoreUtils.SetKeyword(data.blitMaterialData.material, ShaderKeywordStrings._ENABLE_ALPHA_OUTPUT, data.enableAlphaOutput);
 
-            int shaderPassIndex = source.rt?.filterMode == FilterMode.Bilinear ? data.blitMaterialData.bilinearSamplerPass : data.blitMaterialData.nearestSamplerPass;
+            int shaderPassIndex = RequiresBilinearSampling(source, pixelRect) ? data.blitMaterialData.bilinearSamplerPass : data.blitMaterialData.nearestSamplerPass;
             Blitter.BlitTexture(cmd, source, scaleBias, data.blitMaterialData.material, shaderPassIndex);
+        }
+
+        static bool RequiresBilinearSampling(RTHandle source, Rect destinationRect)
+        {
+            if (source.rt == null || source.rt.filterMode != FilterMode.Bilinear)
+                return false;
+
+            Vector2Int sourceSize = source.useScaling
+                ? source.GetScaledSize(source.rtHandleProperties.currentViewportSize)
+                : new Vector2Int(source.rt.width, source.rt.height);
+            Vector4 dynamicallyScaledSourceSize = PostProcessUtils.CalcShaderSourceSize(sourceSize.x, sourceSize.y, source.rt);
+            int sourceWidth = Mathf.CeilToInt(dynamicallyScaledSourceSize.x);
+            int sourceHeight = Mathf.CeilToInt(dynamicallyScaledSourceSize.y);
+            int destinationWidth = Mathf.RoundToInt(destinationRect.xMax) - Mathf.RoundToInt(destinationRect.xMin);
+            int destinationHeight = Mathf.RoundToInt(destinationRect.yMax) - Mathf.RoundToInt(destinationRect.yMin);
+            return sourceWidth != destinationWidth || sourceHeight != destinationHeight;
         }
 
         private class PassData
@@ -231,7 +247,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                         RTHandle sourceTex = data.source;
                         Vector2 viewportScale = sourceTex.useScaling ? new Vector2(sourceTex.rtHandleProperties.rtHandleScale.x, sourceTex.rtHandleProperties.rtHandleScale.y) : Vector2.one;
 
-                        int shaderPassIndex = sourceTex.rt?.filterMode == FilterMode.Bilinear ? data.blitMaterialData.bilinearSamplerPass : data.blitMaterialData.nearestSamplerPass;
+                        var debugScreenRect = new Rect(0f, 0f, data.cameraData.pixelWidth, data.cameraData.pixelHeight);
+                        int shaderPassIndex = RequiresBilinearSampling(sourceTex, debugScreenRect) ? data.blitMaterialData.bilinearSamplerPass : data.blitMaterialData.nearestSamplerPass;
                         Blitter.BlitTexture(context.cmd, sourceTex, viewportScale, data.blitMaterialData.material, shaderPassIndex);
                     }
                     else

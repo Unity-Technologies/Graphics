@@ -340,12 +340,7 @@ namespace UnityEditor.PathTracing.LightBakerBridge
             allocatedObjects.Add(envCubemap);
             // If we have no cubemap (i.e. the 1x1x1 black texture), don't set it - we don't want to waste samples directly sampling it.
             if (!isEmptyCubemap)
-            {
-                var envCubemapMaterial = new Material(Shader.Find("Hidden/PassthroughSkybox"));
-                envCubemapMaterial.SetTexture("_Tex", envCubemap);
-                world.SetEnvironmentMaterial(envCubemapMaterial);
-                allocatedObjects.Add(envCubemapMaterial);
-            }
+                world.SetEnvironmentCubemap(envCubemap);
         }
 
         internal static void InjectMaterials(
@@ -492,6 +487,15 @@ namespace UnityEditor.PathTracing.LightBakerBridge
                     perInstanceSubMeshVisibility[instanceIdx][subMeshIdx] = subMeshMaterialIdx != -1;
                 }
             }
+            int rejectedMaterialCount = 0;
+            foreach (var handle in materialCache.Values)
+            {
+                if (handle == MaterialHandle.Invalid)
+                    rejectedMaterialCount++;
+            }
+            if (rejectedMaterialCount > 0)
+                Debug.LogError($"Light baking: {rejectedMaterialCount} materials could not be added because the material texture atlas is full ({SystemInfo.maxTextureArraySlices} slices). Geometry using them is left out of the bake.");
+
             Debug.Assert(allocatedObjects.Count == allocationCount + bakeInput.albedoData.Length * 2 + bakeInput.transmissionData.Length, "InjectMaterials allocated objects incorrectly");
         }
 

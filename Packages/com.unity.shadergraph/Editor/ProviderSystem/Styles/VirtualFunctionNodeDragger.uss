@@ -1,0 +1,9 @@
+.sg-virtual-function-node-ghost {
+    position: absolute;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background-color: var(--unity-colors-default-background);
+    color: var(--unity-colors-default-text);
+    -unity-font-style: bold;
+    opacity: 0.8;
+}

@@ -8,6 +8,7 @@ namespace UnityEditor.Rendering.Universal
     [CustomEditor(typeof(Light))]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     [CanEditMultipleObjects]
+    [URPHelpURL("urp/light-component")]
     class UniversalRenderPipelineLightEditor : LightEditor
     {
         UniversalRenderPipelineSerializedLight serializedLight { get; set; }

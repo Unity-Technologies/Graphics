@@ -16,6 +16,7 @@ namespace UnityEditor.Rendering.Universal
     [CustomEditor(typeof(Camera))]
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     [CanEditMultipleObjects]
+    [URPHelpURL("urp/urp-cameras-landing")]
     class UniversalRenderPipelineCameraEditor : Editor
     {
         ReorderableList m_LayerList;

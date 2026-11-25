@@ -432,6 +432,7 @@ namespace UnityEditor.VFX
             var graph = resource.GetGraph();
             graph.UpdateSubAssets();
             resource.WriteAsset();
+            VFXViewController.NotifyResourceWritten(resource);
         }
 
         public static bool IsAssetEditable(this VisualEffectResource resource)
@@ -687,14 +688,17 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        public void SetCustomAttributeOrder(string attributeName, int order)
+        public bool SetCustomAttributeOrder(string attributeName, int order)
         {
-            if (TryFindCustomAttributeDescriptor(attributeName, out var attributeDescriptor))
+            // Attributes imported from subgraphs are not in the local list and cannot be moved
+            if (TryFindCustomAttributeDescriptor(attributeName, out var attributeDescriptor) && m_CustomAttributes.Remove(attributeDescriptor))
             {
-                m_CustomAttributes.Remove(attributeDescriptor);
                 m_CustomAttributes.Insert(order, attributeDescriptor);
                 Invalidate(InvalidationCause.kStructureChanged);
+                return true;
             }
+
+            return false;
         }
 
         public bool TryFindCustomAttributeDescriptor(string attributeName, out VFXCustomAttributeDescriptor attributeDescriptor)
@@ -783,7 +787,11 @@ namespace UnityEditor.VFX
 
             if (result == RenameStatus.NameUsed)
             {
-                Debug.LogWarning("You are trying to rename a custom attribute with a name that is already used by another custom attribute");
+                Debug.LogWarning("Cannot rename custom attribute: The name is already used by another custom attribute");
+            }
+            else if (result == RenameStatus.NameUsedByBuiltIn)
+            {
+                Debug.LogWarning("Cannot rename custom attribute: The name is already used by a built-in attribute");
             }
             return false;
         }
@@ -1472,9 +1480,9 @@ namespace UnityEditor.VFX
             m_PreviewAsset.Clear();
         }
 
-        static void AddObjectToAsset(AssetImportContext ctx, UnityObject newObject, Dictionary<string, int> uniqueIdTracker)
+        static void AddObjectToAsset(AssetImportContext ctx, UnityObject newObject, Dictionary<string, int> uniqueIdTracker, string identifier = null)
         {
-            var currentId = newObject.name;
+            var currentId = identifier ?? newObject.name;
             if (uniqueIdTracker.TryGetValue(currentId, out var count))
             {
                 count++;
@@ -1514,8 +1522,9 @@ namespace UnityEditor.VFX
             {
                 var overridenSystemDesc = new List<VFXEditorSystemDesc>();
                 Dictionary<string, int> uniqueIdTracker = ctx != null ? new() : null;
-                foreach (var system in compilationOutput.assetDesc.systemDesc)
+                for (int systemIndex = 0; systemIndex < compilationOutput.assetDesc.systemDesc.Length; systemIndex++)
                 {
+                    var system = compilationOutput.assetDesc.systemDesc[systemIndex];
                     var overridenTask = new List<VFXEditorTaskDesc>();
                     if (system.tasks != null) foreach (var task in system.tasks)
                     {
@@ -1541,7 +1550,8 @@ namespace UnityEditor.VFX
                             }
                             else
                             {
-                                AddObjectToAsset(ctx, currentProcessor, uniqueIdTracker);
+                                string identifier = shaderSource.compute ? $"VFXCompute/{systemIndex}/{task.type}" : null;
+                                AddObjectToAsset(ctx, currentProcessor, uniqueIdTracker, identifier);
                             }
                         }
                         else if (task.processor is Shader || task.processor is MonoScript)
@@ -1757,7 +1767,13 @@ namespace UnityEditor.VFX
         public string categoryPath
         {
             get { return m_CategoryPath; }
-            set { m_CategoryPath = value; }//TODO invalidate cache here
+            set
+            {
+                if (m_CategoryPath == value)
+                    return;
+                m_CategoryPath = value;
+                Invalidate(InvalidationCause.kUIChanged);
+            }
         }
 
         public ReadOnlyCollection<VisualEffectObject> subgraphDependencies

@@ -51,6 +51,15 @@ namespace UnityEngine.Rendering.Universal.Internal
         private Vector4[] m_AdditionalLightIndexToShadowParams;                        // per-additional-light shadow info passed to the lighting shader (x: shadowStrength, y: softShadows, z: light type, w: perLightFirstShadowSliceIndex)
         private Vector4[] m_ExtraForwardAdditionalLightIndexToShadowParams;            // same as m_AdditionalLightIndexToShadowParams, but always indexed by visible light index. m_AdditionalLightIndexToShadowParams is indexed by shadowcasting light index when using deferred rendering.
         private bool m_NeedExtraForwardShadowParamsCopy;                               // do we need to populate m_ExtraForwardAdditionalLightIndexToShadowParams?
+        private short[] m_AdditionalLightIndexToForwardLightIndex;                     // maps an additional light index back to its forward light index, so the extra forward copies can be filled outside the light loop
+        private UniversalAdditionalLightData[] m_AdditionalLightIndexToAdditionalLightData; // the component the light loop already fetched, reused when the atlas layout is known
+        private Vector4[] m_AdditionalLightIndexToPCSSParams;                          // per-additional-light PCSS info (x: softness, y: min filter radius, z: blocker sample count, w: filter sample count)
+        private Vector4[] m_AdditionalLightIndexToPCSSZParams;                         // per-additional-light blocker depth linearization
+        private Vector4[] m_ExtraForwardAdditionalLightIndexToPCSSParams;              // same as m_AdditionalLightIndexToPCSSParams, indexed like m_ExtraForwardAdditionalLightIndexToShadowParams
+        private Vector4[] m_ExtraForwardAdditionalLightIndexToPCSSZParams;             // same as m_AdditionalLightIndexToPCSSZParams, indexed like m_ExtraForwardAdditionalLightIndexToShadowParams
+        private Vector4[] m_AdditionalLightShadowSliceIndexToPCSSAtlas;                // per-shadow-slice atlas tile rectangle in UV, which the PCSS blocker search needs because it reads raw depth
+        private bool m_AnyAdditionalLightPCSS;                                         // does any shadow casting additional light take the PCSS path this frame?
+        private int m_PCSSTemporalFrameIndex;                                          // seeds the PCSS sample rotation
         private Vector4[] m_AdditionalLightReceiverNormalBiases;                       // per-additional-light world-space receiver normal bias, four lights packed per Vector4 to keep the uniform budget low (all zero in caster mode)
         private Vector4[] m_ExtraForwardAdditionalLightReceiverNormalBiases;           // same as m_AdditionalLightReceiverNormalBiases, but indexed like m_ExtraForwardAdditionalLightIndexToShadowParams
         private bool m_ReceiverNormalBiasesCleared;                                    // lets caster mode clear the arrays once instead of every frame
@@ -74,8 +83,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Keep in sync with CBUFFER_START(AdditionalLightShadows) in com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl
         private const int k_WorldToShadowChannel = 0;
         private const int k_ShadowParamsChannel = 4;
-        private const int k_PCSSChannel = 5;
-        private const int k_AdditionalLightShadowsChannelCount = k_PCSSChannel + 3; // 4 (matrix) + 1 (shadow params) + 3 (PCSS)
+        private const int k_AdditionalLightShadowsChannelCount = k_ShadowParamsChannel + 1; // 4 (matrix) + 1 (shadow params), then the packed receiver normal biases
         private const int k_ReceiverNormalBiasesPerVector = 4;
         private readonly int m_ReceiverNormalBiasOffset;
         private readonly int m_AdditionalLightShadowsBufferLength;
@@ -83,14 +91,28 @@ namespace UnityEngine.Rendering.Universal.Internal
         private const string k_EmptyAdditionalLightShadowsCBName = "Empty Additional Light Shadows Buffer";
         private const string k_ExtraForwardAdditionalLightShadowsCBName = "Extra Forward Additional Light Shadows Buffer";
 
+        // Keep in sync with _AdditionalLightsPCSSData in com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl
+        private const int k_PCSSParamsChannel = 0;
+        private const int k_PCSSZParamsChannel = 1;
+        private const int k_PCSSAtlasChannel = 2;
+        private const int k_AdditionalLightPCSSChannelCount = k_PCSSAtlasChannel + 1; // params + z params + atlas
+        private const string k_AdditionalLightPCSSBufferName = "Additional Light PCSS Buffer";
+        private const string k_ExtraForwardAdditionalLightPCSSBufferName = "Extra Forward Additional Light PCSS Buffer";
+
         private NativeArray<Vector4> m_AdditionalLightShadowsScratch; // write-only on CPU, just used to upload to GraphicsBuffer without allocating
+        private NativeArray<Vector4> m_AdditionalLightPCSSScratch; // same as m_AdditionalLightShadowsScratch, for _AdditionalLightsPCSSData
         private GraphicsBuffer m_AdditionalLightShadowsBuffer;
         private GraphicsBuffer m_ExtraForwardAdditionalLightShadowsBuffer; // only used with deferred renderer, see m_ExtraForwardAdditionalLightIndexToShadowParams
         private GraphicsBuffer m_EmptyAdditionalLightShadowsBuffer;
+        private GraphicsBuffer m_AdditionalLightPCSSBuffer; // created on every device that supports PCSS, only uploaded on frames where a light takes the PCSS path
+        private GraphicsBuffer m_ExtraForwardAdditionalLightPCSSBuffer; // same as m_ExtraForwardAdditionalLightShadowsBuffer, for _AdditionalLightsPCSSData
 
         // x is used in RenderAdditionalShadowMapAtlas to skip shadow map rendering for non-shadow-casting lights.
         // w is perLightFirstShadowSliceIndex, used in Lighting shader to find if Additional light casts shadows.
         private static readonly Vector4 c_DefaultShadowParams = new (0, 0, 0, -1);
+
+        // zw are sample counts the shader divides by, so unused slots hold 1
+        private static readonly Vector4 c_DefaultPCSSParams = new (0, 0, 1, 1);
         private static Vector4 s_EmptyAdditionalShadowFadeParams;
         private static bool s_ReceiverNormalBiasGlobalCleared;
         private static Vector4[] s_EmptyAdditionalLightIndexToShadowParams;
@@ -105,6 +127,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _AdditionalShadowFadeParams = Shader.PropertyToID("_AdditionalShadowFadeParams");
             public static readonly int _AdditionalLightsShadowmapID = Shader.PropertyToID(k_AdditionalLightShadowMapTextureName);
             public static readonly int _AdditionalLightShadowsBufferID = Shader.PropertyToID("AdditionalLightShadows");
+            public static readonly int _AdditionalLightsPCSSData = Shader.PropertyToID("_AdditionalLightsPCSSData");
         }
 
         private class PassData
@@ -131,6 +154,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             renderPassEvent = evt;
 
             m_UsePersistentConstantBuffer = RenderingUtils.usePersistentConstantBuffer;
+            // The PCSS data is only uploaded on the persistent constant buffer path
+            Debug.Assert(m_UsePersistentConstantBuffer || !ShadowUtils.isPCSSSupported, "PCSS needs the persistent constant buffer path.");
             m_MaxVisibleAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
             m_ReceiverNormalBiasOffset = m_MaxVisibleAdditionalLights * k_AdditionalLightShadowsChannelCount;
             m_AdditionalLightShadowsBufferLength = m_ReceiverNormalBiasOffset + GetReceiverNormalBiasVectorCount(m_MaxVisibleAdditionalLights);
@@ -147,6 +172,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_VisibleLightIndexToAdditionalLightIndex = new short[maxVisibleLights];
             m_VisibleLightIndexToIsCastingShadows = new bool[maxVisibleLights];
             m_AdditionalLightIndexToShadowParams = new Vector4[maxAdditionalLightShadowParams];
+            m_AdditionalLightIndexToForwardLightIndex = new short[maxAdditionalLightShadowParams];
+            m_AdditionalLightIndexToAdditionalLightData = new UniversalAdditionalLightData[maxAdditionalLightShadowParams];
             m_AdditionalLightReceiverNormalBiases = new Vector4[GetReceiverNormalBiasVectorCount(maxAdditionalLightShadowParams)];
 
             s_EmptyAdditionalLightIndexToShadowParams = new Vector4[maxAdditionalLightShadowParams];
@@ -154,6 +181,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 s_EmptyAdditionalLightIndexToShadowParams[i] = c_DefaultShadowParams;
 
             m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix = new Matrix4x4[m_MaxVisibleAdditionalLights];
+
+            // Full size, PackPCSSBuffer copies whole arrays
+            m_AdditionalLightIndexToPCSSParams = new Vector4[m_MaxVisibleAdditionalLights];
+            m_AdditionalLightIndexToPCSSZParams = new Vector4[m_MaxVisibleAdditionalLights];
+            m_AdditionalLightShadowSliceIndexToPCSSAtlas = new Vector4[m_MaxVisibleAdditionalLights];
 
             EnsureBuffersCreated();
         }
@@ -171,11 +203,35 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (length <= 0)
                 return;
 
+            int pcssLength = m_MaxVisibleAdditionalLights * k_AdditionalLightPCSSChannelCount;
+
             if (m_NeedExtraForwardShadowParamsCopy && m_ExtraForwardAdditionalLightShadowsBuffer == null)
             {
                 m_ExtraForwardAdditionalLightShadowsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Constant, length, UnsafeUtility.SizeOf<Vector4>())
                 {
                     name = k_ExtraForwardAdditionalLightShadowsCBName
+                };
+            }
+
+            // Created and bound on every device that supports PCSS, even when the asset disables PCSS: with _SHADOWS_PCSS
+            // converted to a dynamic branch, every Lit variant keeps the read, and Metal and Vulkan skip the draws of a
+            // shader whose structured buffer isn't bound. The global binding covers the frames where this pass doesn't run.
+            if (m_AdditionalLightPCSSBuffer == null && ShadowUtils.isPCSSSupported)
+            {
+                m_AdditionalLightPCSSScratch = new NativeArray<Vector4>(pcssLength, Allocator.Persistent);
+
+                m_AdditionalLightPCSSBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, pcssLength, UnsafeUtility.SizeOf<Vector4>())
+                {
+                    name = k_AdditionalLightPCSSBufferName
+                };
+                Shader.SetGlobalBuffer(AdditionalShadowsConstantBuffer._AdditionalLightsPCSSData, m_AdditionalLightPCSSBuffer);
+            }
+
+            if (m_NeedExtraForwardShadowParamsCopy && m_AdditionalLightPCSSBuffer != null && m_ExtraForwardAdditionalLightPCSSBuffer == null)
+            {
+                m_ExtraForwardAdditionalLightPCSSBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, pcssLength, UnsafeUtility.SizeOf<Vector4>())
+                {
+                    name = k_ExtraForwardAdditionalLightPCSSBufferName
                 };
             }
 
@@ -217,7 +273,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (m_AdditionalLightShadowsScratch.IsCreated)
                     m_AdditionalLightShadowsScratch.Dispose();
 
+                if (m_AdditionalLightPCSSScratch.IsCreated)
+                    m_AdditionalLightPCSSScratch.Dispose();
+
                 Shader.SetGlobalConstantBuffer(AdditionalShadowsConstantBuffer._AdditionalLightShadowsBufferID, (ComputeBuffer)null, 0, 0);
+                Shader.SetGlobalBuffer(AdditionalShadowsConstantBuffer._AdditionalLightsPCSSData, (GraphicsBuffer)null);
 
                 m_AdditionalLightShadowsBuffer?.Dispose();
                 m_AdditionalLightShadowsBuffer = null;
@@ -227,6 +287,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 m_EmptyAdditionalLightShadowsBuffer?.Dispose();
                 m_EmptyAdditionalLightShadowsBuffer = null;
+
+                m_AdditionalLightPCSSBuffer?.Dispose();
+                m_AdditionalLightPCSSBuffer = null;
+
+                m_ExtraForwardAdditionalLightPCSSBuffer?.Dispose();
+                m_ExtraForwardAdditionalLightPCSSBuffer = null;
             }
         }
 
@@ -487,6 +553,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Left null when there is nothing extra to bind, the empty shadowmap path already sets the params.
             bool bindExtraForwardShadowParams = m_NeedExtraForwardShadowParamsCopy && m_ShadowPassMode != ShadowPassMode.Empty;
             shadowData.extraForwardAdditionalLightShadowsBuffer = bindExtraForwardShadowParams ? m_ExtraForwardAdditionalLightShadowsBuffer : null;
+            shadowData.extraForwardAdditionalLightPCSSBuffer = bindExtraForwardShadowParams ? m_ExtraForwardAdditionalLightPCSSBuffer : null;
             shadowData.extraForwardAdditionalLightShadowParams = bindExtraForwardShadowParams ? m_ExtraForwardAdditionalLightIndexToShadowParams : null;
             shadowData.extraForwardAdditionalLightReceiverNormalBiases = bindExtraForwardShadowParams && shadowData.normalBiasMode == ShadowNormalBiasMode.Receiver ? m_ExtraForwardAdditionalLightReceiverNormalBiases : null;
 
@@ -506,7 +573,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Populate shadowData with empty buffer info for TransparentSettingsPass
             shadowData.emptyAdditionalLightShadowsBuffer = m_EmptyAdditionalLightShadowsBuffer;
 
-            shadowmapDepthStencilFormat = ShadowUtils.GetShadowmapDepthStencilFormat(stencilBuffer);
+            shadowmapDepthStencilFormat = ShadowUtils.GetShadowmapDepthStencilFormat(shadowData.additionalLightsShadowmapDepthBits, stencilBuffer);
+            shadowData.additionalLightsShadowmapFormat = shadowmapDepthStencilFormat;
+
+            // Per frame, so the rotation keeps advancing while a cached atlas is reused
+            m_PCSSTemporalFrameIndex = ShadowUtils.GetPCSSTemporalFrameIndex(cameraData);
 
             bool shadowsEnabled = shadowData.additionalLightShadowsEnabled;
             bool stripShadowsOffVariants = cameraData.renderer.stripShadowsOffVariants;
@@ -536,6 +607,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             Clear();
+
+            // Below the cached atlas early-out, so a reused atlas keeps the flag of the pass that filled it
+            m_AnyAdditionalLightPCSS = false;
 
             renderTargetWidth = shadowData.additionalLightsShadowmapWidth;
             renderTargetHeight = shadowData.additionalLightsShadowmapHeight;
@@ -580,6 +654,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 m_AdditionalLightIndexToVisibleLightIndex = new short[maxAdditionalLightShadowParams];
                 m_AdditionalLightIndexToShadowParams = new Vector4[maxAdditionalLightShadowParams];
+                m_AdditionalLightIndexToForwardLightIndex = new short[maxAdditionalLightShadowParams];
+                m_AdditionalLightIndexToAdditionalLightData = new UniversalAdditionalLightData[maxAdditionalLightShadowParams];
                 m_AdditionalLightReceiverNormalBiases = new Vector4[GetReceiverNormalBiasVectorCount(maxAdditionalLightShadowParams)];
             }
 
@@ -621,6 +697,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             for (int i = 0; i < m_AdditionalLightIndexToShadowParams.Length; ++i)
                 m_AdditionalLightIndexToShadowParams[i] = c_DefaultShadowParams;
 
+            Array.Fill(m_AdditionalLightIndexToForwardLightIndex, (short)-1);
+            Array.Clear(m_AdditionalLightIndexToAdditionalLightData, 0, m_AdditionalLightIndexToAdditionalLightData.Length);
+            Array.Fill(m_AdditionalLightIndexToPCSSParams, c_DefaultPCSSParams);
+            Array.Clear(m_AdditionalLightIndexToPCSSZParams, 0, m_AdditionalLightIndexToPCSSZParams.Length);
+            Array.Clear(m_AdditionalLightShadowSliceIndexToPCSSAtlas, 0, m_AdditionalLightShadowSliceIndexToPCSSAtlas.Length);
+
             if (m_NeedExtraForwardShadowParamsCopy)
             {
                 // Match length of m_AdditionalLightIndexToShadowParams, so the array can be copied into the constant buffer as-is.
@@ -631,6 +713,15 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 Array.Copy(m_AdditionalLightIndexToShadowParams, m_ExtraForwardAdditionalLightIndexToShadowParams, maxAdditionalLightShadowParams);
+
+                if (m_ExtraForwardAdditionalLightIndexToPCSSParams == null)
+                {
+                    m_ExtraForwardAdditionalLightIndexToPCSSParams = new Vector4[m_MaxVisibleAdditionalLights];
+                    m_ExtraForwardAdditionalLightIndexToPCSSZParams = new Vector4[m_MaxVisibleAdditionalLights];
+                }
+
+                Array.Copy(m_AdditionalLightIndexToPCSSParams, m_ExtraForwardAdditionalLightIndexToPCSSParams, m_MaxVisibleAdditionalLights);
+                Array.Copy(m_AdditionalLightIndexToPCSSZParams, m_ExtraForwardAdditionalLightIndexToPCSSZParams, m_MaxVisibleAdditionalLights);
             }
             for (int i = 0; i < m_VisibleLightIndexToAdditionalLightIndex.Length; ++i)
             {
@@ -659,6 +750,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     continue;
 
                 m_AdditionalLightIndexToVisibleLightIndex[lightIndexToUse] = (short) visibleLightIndex;
+                m_AdditionalLightIndexToForwardLightIndex[lightIndexToUse] = forwardLightIndex;
                 if (m_ShadowSliceToAdditionalLightIndex.Count >= totalShadowSlicesCount)
                     continue;
 
@@ -667,6 +759,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (light == null)
                     break;
                 light.TryGetComponent(out UniversalAdditionalLightData additionalLightData);
+                m_AdditionalLightIndexToAdditionalLightData[lightIndexToUse] = additionalLightData;
 
                 LightType lightType = visibleLight.lightType;
                 bool usesBakedShadows = UsesBakedShadows(light);
@@ -812,6 +905,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             float oneOverAtlasWidth = 1.0f / renderTargetWidth;
             float oneOverAtlasHeight = 1.0f / renderTargetHeight;
 
+            // The slices of one light are contiguous
+            int lastPCSSAdditionalLightIndex = -1;
+            UniversalRenderPipelineAsset asset = UniversalRenderPipeline.asset;
+
             for (int globalShadowSliceIndex = 0; globalShadowSliceIndex < shadowCastingLightsBufferCount; ++globalShadowSliceIndex)
             {
                 int additionalLightIndex = m_ShadowSliceToAdditionalLightIndex[globalShadowSliceIndex];
@@ -835,6 +932,39 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 sliceTransform.m03 = m_AdditionalLightsShadowSlices[globalShadowSliceIndex].offsetX * oneOverAtlasWidth;
                 sliceTransform.m13 = m_AdditionalLightsShadowSlices[globalShadowSliceIndex].offsetY * oneOverAtlasHeight;
+
+                // The first slice of a PCSS light already replaced its packed quality
+                bool usesPCSS = additionalLightIndex == lastPCSSAdditionalLightIndex || ShadowUtils.IsAdditionalLightPCSSEnabled(m_AdditionalLightIndexToShadowParams[additionalLightIndex].y, asset);
+                if (usesPCSS)
+                {
+                    m_AnyAdditionalLightPCSS = true;
+
+                    // The blocker search reads raw depth, so it needs the tile rectangle on its own
+                    m_AdditionalLightShadowSliceIndexToPCSSAtlas[globalShadowSliceIndex] = new Vector4(sliceTransform.m03, sliceTransform.m13, sliceTransform.m00, sliceTransform.m11);
+
+                    if (additionalLightIndex != lastPCSSAdditionalLightIndex)
+                    {
+                        ShadowUtils.ComputeAdditionalLightPCSSParams(visibleLights.UnsafeElementAt(visibleLightIndex).light.shapeRadius,
+                            m_AdditionalLightIndexToAdditionalLightData[additionalLightIndex], sliceResolution,
+                            m_AdditionalLightsShadowSlices[globalShadowSliceIndex].projectionMatrix,
+                            out m_AdditionalLightIndexToPCSSParams[additionalLightIndex],
+                            out m_AdditionalLightIndexToPCSSZParams[additionalLightIndex]);
+                        m_AdditionalLightIndexToShadowParams[additionalLightIndex].y = ShadowUtils.k_SoftShadowQualityPCSS;
+
+                        if (m_NeedExtraForwardShadowParamsCopy)
+                        {
+                            short forwardLightIndex = m_AdditionalLightIndexToForwardLightIndex[additionalLightIndex];
+                            if (forwardLightIndex >= 0 && forwardLightIndex < m_ExtraForwardAdditionalLightIndexToPCSSParams.Length)
+                            {
+                                m_ExtraForwardAdditionalLightIndexToShadowParams[forwardLightIndex].y = ShadowUtils.k_SoftShadowQualityPCSS;
+                                m_ExtraForwardAdditionalLightIndexToPCSSParams[forwardLightIndex] = m_AdditionalLightIndexToPCSSParams[additionalLightIndex];
+                                m_ExtraForwardAdditionalLightIndexToPCSSZParams[forwardLightIndex] = m_AdditionalLightIndexToPCSSZParams[additionalLightIndex];
+                            }
+                        }
+
+                        lastPCSSAdditionalLightIndex = additionalLightIndex;
+                    }
+                }
 
                 // We bake scale and bias to each shadow map in the atlas in the matrix.
                 // saves some instructions in shader.
@@ -993,7 +1123,13 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             GraphicsBuffer constantBuffer = shadowData.extraForwardAdditionalLightShadowsBuffer;
             if (constantBuffer != null)
+            {
                 cmd.SetGlobalConstantBuffer(constantBuffer, AdditionalShadowsConstantBuffer._AdditionalLightShadowsBufferID, 0, constantBuffer.count * constantBuffer.stride);
+
+                GraphicsBuffer pcssBuffer = shadowData.extraForwardAdditionalLightPCSSBuffer;
+                if (pcssBuffer != null)
+                    cmd.SetGlobalBuffer(AdditionalShadowsConstantBuffer._AdditionalLightsPCSSData, pcssBuffer);
+            }
             else
             {
                 if (shadowData.extraForwardAdditionalLightShadowParams != null)
@@ -1038,6 +1174,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.EnableKeyword(ShaderGlobalKeywords.AdditionalLightShadows);
 
             SetShadowParamsForEmptyShadowmap(cmd, m_EmptyAdditionalLightShadowsBuffer);
+
+            if (m_AdditionalLightPCSSBuffer != null)
+                cmd.SetGlobalBuffer(AdditionalShadowsConstantBuffer._AdditionalLightsPCSSData, m_AdditionalLightPCSSBuffer);
         }
 
         internal void UpdateGlobalShaderVariables(GlobalShaderVariablesUploader vars, bool supportsSoftShadows)
@@ -1109,7 +1248,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                     float slopeScaleDepthBias = ShadowUtils.GetSlopeScaleDepthBias(ref shadowLight, data.shadowData, visibleLightIndex);
                     RendererList shadowRendererList = data.shadowRendererListsHdl[globalShadowSliceIndex];
-                    ShadowUtils.RenderShadowSlice(cmd, ref shadowSliceData, ref shadowRendererList, shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix, slopeScaleDepthBias);
+                    ShadowUtils.RenderShadowSlice(cmd, ref shadowSliceData, ref shadowRendererList, shadowSliceData.projectionMatrix, shadowSliceData.viewMatrix, slopeScaleDepthBias, useDepthClamp: false);
                     additionalLightHasSoftShadows |= shadowLight.light.shadows == LightShadows.Soft;
                     anyShadowSliceRenderer = true;
                 }
@@ -1135,6 +1274,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             bool softShadows = data.shadowData.supportsSoftShadows && (mainLightHasSoftShadows || additionalLightHasSoftShadows);
             data.shadowData.isKeywordSoftShadowsEnabled = softShadows;
+            data.shadowData.isAdditionalLightsPCSSEnabled = m_AnyAdditionalLightPCSS && anyShadowSliceRenderer;
             ShadowUtils.SetSoftShadowQualityShaderKeywords(cmd, data.shadowData);
 
             if (anyShadowSliceRenderer)
@@ -1164,6 +1304,16 @@ namespace UnityEngine.Rendering.Universal.Internal
             constantBuffer.SetData(m_AdditionalLightShadowsScratch);
         }
 
+        // Fills a graphics buffer with the data corresponding to the _AdditionalLightsPCSSData layout.
+        private void PackPCSSBuffer(GraphicsBuffer buffer, Vector4[] pcssParams, Vector4[] pcssZParams)
+        {
+            m_AdditionalLightPCSSScratch.GetSubArray(m_MaxVisibleAdditionalLights * k_PCSSParamsChannel, m_MaxVisibleAdditionalLights).CopyFrom(pcssParams);
+            m_AdditionalLightPCSSScratch.GetSubArray(m_MaxVisibleAdditionalLights * k_PCSSZParamsChannel, m_MaxVisibleAdditionalLights).CopyFrom(pcssZParams);
+            m_AdditionalLightPCSSScratch.GetSubArray(m_MaxVisibleAdditionalLights * k_PCSSAtlasChannel, m_MaxVisibleAdditionalLights).CopyFrom(m_AdditionalLightShadowSliceIndexToPCSSAtlas);
+
+            buffer.SetData(m_AdditionalLightPCSSScratch);
+        }
+
         // Set constant buffer data that will be used during the lighting/shadowing pass
         private void SetupAdditionalLightsShadowReceiverConstants(RasterCommandBuffer cmd, ref PassData data)
         {
@@ -1185,7 +1335,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             ShadowUtils.GetScaleAndBiasForLinearDistanceFade(m_MaxShadowDistanceSq, m_CascadeBorder, out float shadowFadeScale, out float shadowFadeBias);
-            cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowFadeParams, new Vector4(shadowFadeScale, shadowFadeBias, 0, 0));
+            cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowFadeParams, new Vector4(shadowFadeScale, shadowFadeBias, m_PCSSTemporalFrameIndex, 0));
 
             if (data.usePersistentConstantBuffer)
             {
@@ -1194,10 +1344,19 @@ namespace UnityEngine.Rendering.Universal.Internal
                     PackShadowsConstantBuffer(m_AdditionalLightShadowsBuffer, m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix, m_AdditionalLightIndexToShadowParams, m_AdditionalLightReceiverNormalBiases);
                     cmd.SetGlobalConstantBuffer(m_AdditionalLightShadowsBuffer, AdditionalShadowsConstantBuffer._AdditionalLightShadowsBufferID, 0, m_AdditionalLightShadowsScratch.Length * UnsafeUtility.SizeOf<Vector4>());
 
+                    if (m_AnyAdditionalLightPCSS)
+                        PackPCSSBuffer(m_AdditionalLightPCSSBuffer, m_AdditionalLightIndexToPCSSParams, m_AdditionalLightIndexToPCSSZParams);
+
+                    // Bound even without a PCSS light, because the PCSS variants still reference it
+                    if (m_AdditionalLightPCSSBuffer != null)
+                        cmd.SetGlobalBuffer(AdditionalShadowsConstantBuffer._AdditionalLightsPCSSData, m_AdditionalLightPCSSBuffer);
+
                     if (m_NeedExtraForwardShadowParamsCopy && m_ExtraForwardAdditionalLightShadowsBuffer != null)
                     {
                         // Will be bound later in the frame, in BindAdditionalShadowParamsForForwardRendering
                         PackShadowsConstantBuffer(m_ExtraForwardAdditionalLightShadowsBuffer, m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix, m_ExtraForwardAdditionalLightIndexToShadowParams, m_ExtraForwardAdditionalLightReceiverNormalBiases);
+                        if (m_AnyAdditionalLightPCSS)
+                            PackPCSSBuffer(m_ExtraForwardAdditionalLightPCSSBuffer, m_ExtraForwardAdditionalLightIndexToPCSSParams, m_ExtraForwardAdditionalLightIndexToPCSSZParams);
                     }
                 }
             }

@@ -333,9 +333,6 @@
         #ifdef LIGHTMAP_ON
             #define UNITY_USE_LIGHTMAPST_ARRAY
         #endif
-        #ifdef DYNAMICLIGHTMAP_ON
-            #define UNITY_USE_DYNAMICLIGHTMAPST_ARRAY
-        #endif
     #endif
 
     #if defined(UNITY_INSTANCED_RENDERER_BOUNDS)
@@ -343,9 +340,7 @@
     #endif
 
     #if defined(UNITY_INSTANCED_SH) && !defined(LIGHTMAP_ON)
-        #if !defined(DYNAMICLIGHTMAP_ON)
-            #define UNITY_USE_SHCOEFFS_ARRAYS
-        #endif
+        #define UNITY_USE_SHCOEFFS_ARRAYS
         #if (SHADOWS_SHADOWMASK_KEYWORD_DECLARED & KEYWORD_TYPE_FLAG_RUNTIME_BRANCHING)
             #define UNITY_USE_PROBESOCCLUSION_ARRAY
         #elif !defined(SHADOWS_SHADOWMASK_KEYWORD_DECLARED) || (SHADOWS_SHADOWMASK_KEYWORD_DECLARED & KEYWORD_TYPE_FLAG_SPECIALIZED_VARIANTS)
@@ -406,10 +401,6 @@
             UNITY_DEFINE_INSTANCED_PROP(float4, unity_LightmapSTArray)
             UNITY_DEFINE_INSTANCED_PROP(float4, unity_LightmapIndexArray)
             #define unity_LightmapST UNITY_ACCESS_INSTANCED_PROP(unity_Builtins2, unity_LightmapSTArray)
-        #endif
-        #ifdef UNITY_USE_DYNAMICLIGHTMAPST_ARRAY
-            UNITY_DEFINE_INSTANCED_PROP(float4, unity_DynamicLightmapSTArray)
-            #define unity_DynamicLightmapST UNITY_ACCESS_INSTANCED_PROP(unity_Builtins2, unity_DynamicLightmapSTArray)
         #endif
         #ifdef UNITY_USE_SHCOEFFS_ARRAYS
             UNITY_DEFINE_INSTANCED_PROP(half4, unity_SHArArray)

@@ -539,8 +539,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Compute kernel indices below are pipeline-lifetime: populated by InitializeLightLoop from the pipeline constructor and reused across domain reload.
         [NoAutoStaticsCleanup] static int s_GenListPerTileKernel;
-        [NoAutoStaticsCleanup] static readonly int[,] s_ClusterKernels = new int[(int)ClusterPrepassSource.Count, (int)ClusterDepthSource.Count];
-        [NoAutoStaticsCleanup] static readonly int[,] s_ClusterObliqueKernels = new int[(int)ClusterPrepassSource.Count, (int)ClusterDepthSource.Count];
+        static readonly int[,] s_ClusterKernels = new int[(int)ClusterPrepassSource.Count, (int)ClusterDepthSource.Count];
+        static readonly int[,] s_ClusterObliqueKernels = new int[(int)ClusterPrepassSource.Count, (int)ClusterDepthSource.Count];
         [NoAutoStaticsCleanup] static int s_ClearVoxelAtomicKernel;
         [NoAutoStaticsCleanup] static int s_ClearDispatchIndirectKernel;
         [NoAutoStaticsCleanup] static int s_BuildIndirectKernel;
@@ -549,7 +549,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [NoAutoStaticsCleanup] static int s_shadeOpaqueDirectFptlKernel;
         [NoAutoStaticsCleanup] static int s_shadeOpaqueDirectFptlDebugDisplayKernel;
 
-        [NoAutoStaticsCleanup] static readonly int[] s_shadeOpaqueIndirectFptlKernels = new int[LightDefinitions.s_NumFeatureVariants];
+        static readonly int[] s_shadeOpaqueIndirectFptlKernels = new int[LightDefinitions.s_NumFeatureVariants];
 
         [NoAutoStaticsCleanup] static int s_deferredContactShadowKernel;
 

@@ -44,6 +44,11 @@ namespace Unity.Rendering.Universal.Tests
             if (UsesNativeGraphicsJobs() && GraphicsDeviceInfo.IsVendor(GraphicsVendor.AMD))
                 return false;
 
+            // UUM-161921: under UGK on D3D12 the async warmup never finishes and cyan placeholders get captured.
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12
+                && UnityGraphicsKernelMode.UgkOn.Equals(new UnityGraphicsKernelNode().Current))
+                return false;
+
             var sceneName = System.IO.Path.GetFileNameWithoutExtension(testCase.ScenePath);
             return asyncShaderCompilationScenes.IsMatch(sceneName);
 #else

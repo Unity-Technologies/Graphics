@@ -12,7 +12,6 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         internal List<ShaderTagId> shaderTagIds { get; set; }
         internal bool enableRenderingLayers { get; set; } = false;
-        internal RenderingLayerUtils.MaskSize renderingLayersMaskSize { get; set; }
         private FilteringSettings m_FilteringSettings;
 
         // Statics
@@ -21,8 +20,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         internal static readonly string k_CameraNormalsTextureName = "_CameraNormalsTexture";
         private static readonly int s_CameraDepthTextureID = Shader.PropertyToID("_CameraDepthTexture");
-        private static readonly int s_CameraNormalsTextureID = Shader.PropertyToID(k_CameraNormalsTextureName);
-        private static readonly int s_CameraRenderingLayersTextureID = Shader.PropertyToID("_CameraRenderingLayersTexture");
+        internal static readonly int s_CameraNormalsTextureID = Shader.PropertyToID(k_CameraNormalsTextureName);
+        internal static readonly int s_CameraRenderingLayersTextureID = Shader.PropertyToID("_CameraRenderingLayersTexture");
 
         // Publishes a valid default as the normals global, for the frames where this pass isn't recorded
         internal static void SetDefaultNormalsGlobalTexture(IBaseRenderGraphBuilder builder, TextureHandle defaultNormalsTexture)
@@ -122,7 +121,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             internal bool enableRenderingLayers;
             internal bool outputSmoothness;
-            internal RenderingLayerUtils.MaskSize maskSize;
             internal RendererListHandle rendererList;
         }
 
@@ -157,10 +155,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 passData.outputSmoothness = renderingData.writesSmoothnessToDepthNormalsAlpha;
 
                 if (passData.enableRenderingLayers)
-                {
                     builder.SetRenderAttachment(renderingLayersTexture, 1, AccessFlags.Write);
-                    passData.maskSize = renderingLayersMaskSize;
-                }
 
                 var param = InitRendererListParams(renderingData, cameraData, lightData);
                 param.filteringSettings.batchLayerMask = batchLayerMask;
@@ -187,14 +182,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (setGlobalDepth)
                     builder.SetGlobalTextureAfterPass(depthTexture, s_CameraDepthTextureID);
 
-                // Required here because of RenderingLayerUtils.SetupProperties, and for setting keywords in ExecutePass
+                // Required here for setting keywords in ExecutePass
                 if (passData.enableRenderingLayers || passData.outputSmoothness)
                     builder.AllowGlobalStateModification(true);
 
                 builder.SetRenderFunc(static (PassData data, RasterGraphContext context) =>
                 {
-                    if (data.enableRenderingLayers)
-                        RenderingLayerUtils.SetupProperties(context.cmd, data.maskSize);
                     ExecutePass(context.cmd, data, data.rendererList);
                 });
             }

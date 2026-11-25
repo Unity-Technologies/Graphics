@@ -35,4 +35,16 @@ namespace Unity.RenderPipelines.Core.Runtime.Shared
         public static void SetSupportsHidingDebugOverlays(bool value)
             => UnityEngine.Rendering.DebugManager.instance.supportsHidingDebugOverlays = value;
     }
+
+    internal static class ConstantBufferBackedPropertiesBridge
+    {
+        public static void SetBackedByConstantBuffer(int nameID, string warning)
+            => UnityEngine.Rendering.ConstantBufferBackedPropertiesBridge.SetBackedByConstantBuffer(nameID, warning);
+
+        public static void ClearWarnings()
+            => UnityEngine.Rendering.ConstantBufferBackedPropertiesBridge.ClearWarnings();
+
+        public static void EnableWarnings(bool enable)
+            => UnityEngine.Rendering.ConstantBufferBackedPropertiesBridge.EnableWarnings(enable);
+    }
 }

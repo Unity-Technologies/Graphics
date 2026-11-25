@@ -219,7 +219,11 @@ namespace UnityEditor.VFX.UI
             void CopyPasteOperators(Dictionary<VFXNodeController, VFXNodeController> targetNodes)
             {
                 m_SourceOperatorAndParameters = m_SourceControllers.OfType<VFXNodeController>().Where(t => !(t is VFXBlockController)).ToList();
-                object result = VFXCopy.Copy(m_SourceOperatorAndParameters, m_Rect);
+
+                // Nodes must come first so the pasted nodes keep the same order as m_SourceOperatorAndParameters
+                var otherElements = m_SourceControllers.Where(t => t is VFXGroupNodeController || t is VFXStickyNoteController
+                    || (t is VFXDataEdgeController edge && m_SourceOperatorAndParameters.Contains(edge.input.sourceNode) && m_SourceOperatorAndParameters.Contains(edge.output.sourceNode)));
+                object result = VFXCopy.Copy(m_SourceOperatorAndParameters.Cast<Controller>().Concat(otherElements), m_Rect);
 
                 m_TargetOperatorAndParameters = new List<VFXNodeController>();
                 VFXPaste.Paste(m_TargetController, m_Rect.center, result, null, null, m_TargetOperatorAndParameters);
@@ -305,7 +309,7 @@ namespace UnityEditor.VFX.UI
                 m_SourceBlockControllers = m_SourceControllers.OfType<VFXBlockController>().OrderBy(t => t.index).ToList();
 
                 VFXContextController sourceContextController = m_SourceBlockControllers.First().contextController;
-                object copyData = VFXCopy.CopyBlocks(m_SourceBlockControllers, m_SourceControllers);
+                object copyData = VFXCopy.CopyBlocks(m_SourceBlockControllers);
 
                 var targetContext = m_TargetController.graph.children.OfType<VFXBlockSubgraphContext>().FirstOrDefault();
                 if (targetContext == null)
@@ -320,7 +324,6 @@ namespace UnityEditor.VFX.UI
 
                 CopyCustomAttributes<VFXBlockController>(sourceView, controllers);
                 VFXPaste.PasteBlocks(m_TargetController, copyData, targetContext, 0, m_TargetBlocks);
-                VFXPaste.PasteStickyNotes(m_TargetController, copyData);
 
                 Dictionary<VFXNodeController, VFXNodeController> targetControllers = new Dictionary<VFXNodeController, VFXNodeController>();
                 CopyPasteOperators(targetControllers);
@@ -334,17 +337,6 @@ namespace UnityEditor.VFX.UI
 
                     var inputBlock = m_TargetBlocks[m_SourceBlockControllers.IndexOf(edge.input.sourceNode as VFXBlockController)];
                     var input = inputBlock.inputPorts.First(t => t.path == edge.input.path);
-
-                    m_TargetController.CreateLink(input, output);
-                }
-                //Create lost links between nodes
-                foreach (var edge in m_SourceController.dataEdges.Where(t => m_SourceOperatorAndParameters.Contains(t.output.sourceNode) && m_SourceOperatorAndParameters.Contains(t.input.sourceNode)))
-                {
-                    var outputNode = targetControllers[edge.output.sourceNode];
-                    var output = outputNode.outputPorts.First(t => t.path == edge.output.path);
-
-                    var inputNode = targetControllers[edge.input.sourceNode];
-                    var input = inputNode.inputPorts.First(t => t.path == edge.input.path);
 
                     m_TargetController.CreateLink(input, output);
                 }

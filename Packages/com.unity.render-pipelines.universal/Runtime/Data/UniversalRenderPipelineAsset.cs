@@ -323,11 +323,24 @@ namespace UnityEngine.Rendering.Universal
         UsePipelineSettings = 2,
     }
 
-    // Which type of resolution scaling in UI order.
-    internal enum ScalingMode
+    /// <summary>
+    /// Defines the type of resolution scaling applied by the render pipeline.
+    /// </summary>
+    public enum ScalingMode
     {
+        /// <summary>
+        /// No scaling. The camera renders at the display resolution.
+        /// </summary>
         None,
+
+        /// <summary>
+        /// Upscaling. The camera renders below the display resolution and the result is upscaled to the display resolution.
+        /// </summary>
         Upscaling,
+
+        /// <summary>
+        /// Supersampling. The camera renders above the display resolution and the result is downsampled to the display resolution.
+        /// </summary>
         Supersampling,
     }
 
@@ -431,10 +444,12 @@ namespace UnityEngine.Rendering.Universal
 
         internal bool IsAtLastVersion() => k_LastVersion == k_AssetVersion;
 
-        private const int k_LastVersion = 15;
+        private const int k_LastVersion = 16;
         // Default values set when a new UniversalRenderPipeline asset is created
         [SerializeField] internal int k_AssetVersion = k_LastVersion;
         [SerializeField] int k_AssetPreviousVersion = k_LastVersion;
+
+        [SerializeField] internal bool m_ShadowSettingsMigrationPending;
 
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.UniversalRenderer;
@@ -533,6 +548,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] LightRenderingMode m_MainLightRenderingMode = LightRenderingMode.PerPixel;
         [SerializeField] bool m_MainLightShadowsSupported = true;
         [SerializeField] ShadowResolution m_MainLightShadowmapResolution = ShadowResolution._2048;
+        [SerializeField] DepthBits m_MainLightShadowmapDepthBits = DepthBits.Depth16;
 
         // Additional lights settings
         [SerializeField] LightRenderingMode m_AdditionalLightsRenderingMode = LightRenderingMode.PerPixel;
@@ -545,6 +561,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] int m_AdditionalLightsPerObjectLimit = 4;
         [SerializeField] bool m_AdditionalLightShadowsSupported = false;
         [SerializeField] ShadowResolution m_AdditionalLightsShadowmapResolution = ShadowResolution._2048;
+        [SerializeField] DepthBits m_AdditionalLightsShadowmapDepthBits = DepthBits.Depth16;
 
         [SerializeField] int m_AdditionalLightsShadowResolutionTierLow = AdditionalLightsDefaultShadowResolutionTierLow;
         [SerializeField] int m_AdditionalLightsShadowResolutionTierMedium = AdditionalLightsDefaultShadowResolutionTierMedium;
@@ -556,12 +573,24 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ReflectionProbeAtlas = true;
 
         // Shadows Settings
-        [SerializeField] float m_ShadowDistance = 50.0f;
-        [SerializeField] int m_ShadowCascadeCount = 1;
-        [SerializeField] float m_Cascade2Split = 0.25f;
-        [SerializeField] Vector2 m_Cascade3Split = new Vector2(0.1f, 0.3f);
-        [SerializeField] Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
-        [SerializeField] float m_CascadeBorder = 0.2f;
+        [SerializeField, FormerlySerializedAs("m_ShadowDistance")]
+        [Obsolete("Kept for migration. #from(7000.0)", false)]
+        internal float m_ObsoleteShadowDistance = 50.0f;
+        [SerializeField, FormerlySerializedAs("m_ShadowCascadeCount")]
+        [Obsolete("Kept for migration. #from(7000.0)", false)]
+        internal int m_ObsoleteShadowCascadeCount = 1;
+        [SerializeField, FormerlySerializedAs("m_Cascade2Split")]
+        [Obsolete("Kept for migration. #from(7000.0)", false)]
+        internal float m_ObsoleteCascade2Split = 0.25f;
+        [SerializeField, FormerlySerializedAs("m_Cascade3Split")]
+        [Obsolete("Kept for migration. #from(7000.0)", false)]
+        internal Vector2 m_ObsoleteCascade3Split = new Vector2(0.1f, 0.3f);
+        [SerializeField, FormerlySerializedAs("m_Cascade4Split")]
+        [Obsolete("Kept for migration. #from(7000.0)", false)]
+        internal Vector3 m_ObsoleteCascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
+        [SerializeField, FormerlySerializedAs("m_CascadeBorder")]
+        [Obsolete("Kept for migration. #from(7000.0)", false)]
+        internal float m_ObsoleteCascadeBorder = 0.2f;
         [SerializeField] float m_ShadowDepthBias = 1.0f;
         [SerializeField] float m_ShadowNormalBias = 1.0f;
 #if UNITY_EDITOR // multi_compile_fragment _ _SHADOWS_SOFT
@@ -575,6 +604,10 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ConservativeEnclosingSphere = false;
         [SerializeField] int m_NumIterationsEnclosingSphere = 64;
         [SerializeField] SoftShadowQuality m_SoftShadowQuality = SoftShadowQuality.Medium;
+        [SerializeField, Range(0.0f, 3.0f)] float m_SoftShadowKernelRadiusPercent;
+
+        [SerializeField] bool m_MainLightShadowsPCSS = false;
+        [SerializeField] bool m_AdditionalLightShadowsPCSS = false;
 
         // Light Cookie Settings
         [SerializeField] LightCookieResolution m_AdditionalLightsCookieResolution = LightCookieResolution._2048;
@@ -861,6 +894,11 @@ namespace UnityEngine.Rendering.Universal
             {
                 renderer.Dispose();
                 renderer = null;
+
+                // The slot can still bind a buffer the renderer released, and after a domain reload
+                // useGlobalConstantBuffer starts over.
+                if (UniversalRenderPipeline.useGlobalConstantBuffer)
+                    GlobalShaderVariablesUploader.UnbindGlobal();
             }
         }
 
@@ -1186,12 +1224,19 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Controls whether upscaling is enabled.
+        /// Controls the type of resolution scaling the render pipeline applies. Set this to <see cref="ScalingMode.None"/> to disable upscaling.
         /// </summary>
-        internal ScalingMode scalingMode
+        public ScalingMode scalingMode
         {
             get => m_ScalingMode;
-            set => m_ScalingMode = value;
+            set
+            {
+                if (value == m_ScalingMode)
+                    return;
+
+                m_ScalingMode = value;
+                OnValidate();
+            }
         }
 
         /// <summary>
@@ -1400,6 +1445,15 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// The depth buffer precision of the main light shadow map.
+        /// </summary>
+        public DepthBits mainLightShadowmapDepthBits
+        {
+            get => m_MainLightShadowmapDepthBits;
+            set => m_MainLightShadowmapDepthBits = value;
+        }
+
+        /// <summary>
         /// Specifies the <c>LightRenderingMode</c> for the additional lights used by this <c>UniversalRenderPipelineAsset</c>.
         /// </summary>
         /// <see cref="LightRenderingMode"/>
@@ -1440,6 +1494,15 @@ namespace UnityEngine.Rendering.Universal
         {
             get => (int)m_AdditionalLightsShadowmapResolution;
             set => m_AdditionalLightsShadowmapResolution = (ShadowResolution)value;
+        }
+
+        /// <summary>
+        /// The depth buffer precision of the additional lights shadow map atlas.
+        /// </summary>
+        public DepthBits additionalLightsShadowmapDepthBits
+        {
+            get => m_AdditionalLightsShadowmapDepthBits;
+            set => m_AdditionalLightsShadowmapDepthBits = value;
         }
 
         /// <summary>
@@ -1534,70 +1597,6 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Controls the maximum distance at which shadows are visible.
-        /// </summary>
-        public float shadowDistance
-        {
-            get => m_ShadowDistance;
-            set => m_ShadowDistance = Mathf.Max(0.0f, value);
-        }
-
-        /// <summary>
-        /// Returns the number of shadow cascades.
-        /// </summary>
-        public int shadowCascadeCount
-        {
-            get => m_ShadowCascadeCount;
-            set
-            {
-                if (value < k_ShadowCascadeMinCount || value > k_ShadowCascadeMaxCount)
-                {
-                    throw new ArgumentException($"Value ({value}) needs to be between {k_ShadowCascadeMinCount} and {k_ShadowCascadeMaxCount}.");
-                }
-                m_ShadowCascadeCount = value;
-            }
-        }
-
-        /// <summary>
-        /// Returns the split value.
-        /// </summary>
-        /// <returns>Returns a Float with the split value.</returns>
-        public float cascade2Split
-        {
-            get => m_Cascade2Split;
-            set => m_Cascade2Split = value;
-        }
-
-        /// <summary>
-        /// Returns the split values.
-        /// </summary>
-        /// <returns>Returns a Vector2 with the split values.</returns>
-        public Vector2 cascade3Split
-        {
-            get => m_Cascade3Split;
-            set => m_Cascade3Split = value;
-        }
-
-        /// <summary>
-        /// Returns the split values.
-        /// </summary>
-        /// <returns>Returns a Vector3 with the split values.</returns>
-        public Vector3 cascade4Split
-        {
-            get => m_Cascade4Split;
-            set => m_Cascade4Split = value;
-        }
-
-        /// <summary>
-        /// Last cascade fade distance in percentage.
-        /// </summary>
-        public float cascadeBorder
-        {
-            get => m_CascadeBorder;
-            set => m_CascadeBorder = value;
-        }
-
-        /// <summary>
         /// The Shadow Depth Bias, controls the offset of the lit pixels.
         /// </summary>
         public float shadowDepthBias
@@ -1631,6 +1630,36 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_SoftShadowQuality;
             set => m_SoftShadowQuality = value;
+        }
+
+        /// <summary>
+        /// Enables Percentage-Closer Soft Shadows (PCSS) for the main directional light when its soft shadow quality is High.
+        /// Note: Builds strip the PCSS shader variants unless a URP Asset in the build enables this.
+        /// </summary>
+        internal bool mainLightShadowsPCSS
+        {
+            get => m_MainLightShadowsPCSS;
+            set => m_MainLightShadowsPCSS = value;
+        }
+
+        /// <summary>
+        /// Enables Percentage-Closer Soft Shadows (PCSS) for shadow casting spot and point lights when their soft shadow quality is High.
+        /// Note: Builds strip the PCSS shader variants unless a URP Asset in the build enables this.
+        /// </summary>
+        internal bool additionalLightShadowsPCSS
+        {
+            get => m_AdditionalLightShadowsPCSS;
+            set => m_AdditionalLightShadowsPCSS = value;
+        }
+
+        /// <summary>
+        /// Radius of the main light's soft shadow filter, as a percentage of the width of a cascade's shadow map, so the penumbra keeps the same width within a cascade regardless of the shadow resolution.
+        /// 0 keeps each soft shadow quality's fixed kernel in shadow-map texels. Ignored when the main light uses PCSS.
+        /// </summary>
+        internal float softShadowKernelRadiusPercent
+        {
+            get => m_SoftShadowKernelRadiusPercent;
+            set => m_SoftShadowKernelRadiusPercent = Mathf.Max(0.0f, value);
         }
 
         /// <summary>
@@ -1935,11 +1964,11 @@ namespace UnityEngine.Rendering.Universal
                 int value = (int)m_ShadowCascades;
                 if (value == 2)
                 {
-                    m_ShadowCascadeCount = 4;
+                    m_ObsoleteShadowCascadeCount = 4;
                 }
                 else
                 {
-                    m_ShadowCascadeCount = value + 1;
+                    m_ObsoleteShadowCascadeCount = value + 1;
                 }
                 k_AssetVersion = 6;
 #pragma warning restore 618 // Obsolete warning
@@ -1954,7 +1983,9 @@ namespace UnityEngine.Rendering.Universal
             if (k_AssetVersion < 8)
             {
                 k_AssetPreviousVersion = k_AssetVersion;
-                m_CascadeBorder = 0.1f; // In previous version we had this hard coded
+#pragma warning disable 618 // Obsolete warning
+                m_ObsoleteCascadeBorder = 0.1f; // In previous version we had this hard coded
+#pragma warning restore 618 // Obsolete warning
                 k_AssetVersion = 8;
             }
 
@@ -2008,6 +2039,14 @@ namespace UnityEngine.Rendering.Universal
 
                 k_AssetPreviousVersion = k_AssetVersion;
                 k_AssetVersion = 15;
+            }
+
+            if (k_AssetVersion < 16)
+            {
+                m_ShadowSettingsMigrationPending = true;
+
+                k_AssetPreviousVersion = k_AssetVersion;
+                k_AssetVersion = 16;
             }
 
 #if UNITY_EDITOR
@@ -2109,6 +2148,8 @@ namespace UnityEngine.Rendering.Universal
         static void UpgradeAsset(EntityId assetInstanceID)
         {
             UniversalRenderPipelineAsset asset = EditorUtility.EntityIdToObject(assetInstanceID) as UniversalRenderPipelineAsset;
+            if (asset == null)
+                return;
 
             if (asset.k_AssetPreviousVersion < 5)
             {
@@ -2174,6 +2215,11 @@ namespace UnityEngine.Rendering.Universal
             if (asset.k_AssetPreviousVersion < 15)
             {
                 asset.k_AssetPreviousVersion = 15;
+            }
+
+            if (asset.k_AssetPreviousVersion < 16)
+            {
+                asset.k_AssetPreviousVersion = 16;
             }
 
             ResourceReloader.ReloadAllNullIn(asset, packagePath);

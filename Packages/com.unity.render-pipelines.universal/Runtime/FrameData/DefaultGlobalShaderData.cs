@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal void Set(GlobalShaderVariablesUploader uploader) => m_Uploader = uploader;
 
-        internal GlobalShaderVariablesUploader Get() => m_Uploader;
+        internal GlobalShaderVariablesUploader GetGlobal() => m_Uploader;
 
         public override void Reset()
         {

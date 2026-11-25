@@ -86,8 +86,8 @@ bool GetExpandedSample(uint dispatchIndex, out uint localSampleOffset, out uint2
             FetchGeomAttributes(hit, g_InstanceGeometryIndex, worldPosition, worldNormal, worldFaceNormal);
 
             worldPosition = mul(g_ShaderLocalToWorld, float4(worldPosition, 1)).xyz;
-            worldNormal = normalize(mul((float3x3)g_ShaderLocalToWorldNormals, worldNormal));
-            worldFaceNormal = normalize(mul((float3x3)g_ShaderLocalToWorldNormals, worldFaceNormal));
+            worldNormal = SafeNormalize(mul((float3x3)g_ShaderLocalToWorldNormals, worldNormal));
+            worldFaceNormal = SafeNormalize(mul((float3x3)g_ShaderLocalToWorldNormals, worldFaceNormal));
             return true;
         }
     }
@@ -112,8 +112,8 @@ bool GetExpandedSample(uint dispatchIndex, inout float3 worldPosition, inout flo
         FetchGeomAttributes(hit, g_InstanceGeometryIndex, worldPosition, worldNormal, worldFaceNormal, uv1);
 
         worldPosition = mul(g_ShaderLocalToWorld, float4(worldPosition, 1)).xyz;
-        worldNormal = normalize(mul((float3x3)g_ShaderLocalToWorldNormals, worldNormal));
-        worldFaceNormal = normalize(mul((float3x3)g_ShaderLocalToWorldNormals, worldFaceNormal));
+        worldNormal = SafeNormalize(mul((float3x3)g_ShaderLocalToWorldNormals, worldNormal));
+        worldFaceNormal = SafeNormalize(mul((float3x3)g_ShaderLocalToWorldNormals, worldFaceNormal));
         return true;
     }
 }

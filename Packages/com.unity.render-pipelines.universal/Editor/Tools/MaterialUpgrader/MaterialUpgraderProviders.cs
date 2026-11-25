@@ -81,19 +81,6 @@ namespace UnityEditor.Rendering.Universal
     }
 
     [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
-    class UIMaterialUpgraderProviders : IMaterialUpgradersProvider
-    {
-        public IEnumerable<MaterialUpgrader> GetUpgraders()
-        {
-            yield return new StandardSimpleLightingUpgrader("UI/Lit/Bumped", SupportedUpgradeParams.diffuseAlphaCutout);
-            yield return new StandardSimpleLightingUpgrader("UI/Lit/Detail", SupportedUpgradeParams.diffuseAlphaCutout);
-            yield return new StandardSimpleLightingUpgrader("UI/Lit/Refraction", SupportedUpgradeParams.diffuseAlphaCutout);
-            yield return new StandardSimpleLightingUpgrader("UI/Lit/Refraction Detail", SupportedUpgradeParams.diffuseAlphaCutout);
-            yield return new StandardSimpleLightingUpgrader("UI/Lit/Transparent", SupportedUpgradeParams.diffuseAlpha);
-        }
-    }
-
-    [SupportedOnRenderPipeline(typeof(UniversalRenderPipelineAsset))]
     class MobileMaterialUpgraderProviders : IMaterialUpgradersProvider
     {
         public IEnumerable<MaterialUpgrader> GetUpgraders()

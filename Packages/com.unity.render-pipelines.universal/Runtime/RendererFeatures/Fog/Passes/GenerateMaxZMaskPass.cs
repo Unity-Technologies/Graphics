@@ -94,22 +94,7 @@ namespace UnityEngine.Rendering.Universal
                 passData.finalMaskH = finalMaskH;
                 passData.viewCount = slices;
 
-                var camera = cameraData.camera;
-                float near = camera.nearClipPlane;
-                float far = camera.farClipPlane;
-                float invNear = Mathf.Approximately(near, 0.0f) ? 0.0f : 1.0f / near;
-                float invFar = Mathf.Approximately(far, 0.0f) ? 0.0f : 1.0f / far;
-                float zc0 = 1.0f - far * invNear;
-                float zc1 = far * invNear;
-                var zBufferParams = new Vector4(zc0, zc1, zc0 * invFar, zc1 * invFar);
-                if (SystemInfo.usesReversedZBuffer)
-                {
-                    zBufferParams.y += zBufferParams.x;
-                    zBufferParams.x = -zBufferParams.x;
-                    zBufferParams.w += zBufferParams.z;
-                    zBufferParams.z = -zBufferParams.z;
-                }
-                passData.zBufferParams = zBufferParams;
+                passData.zBufferParams = RenderingUtils.ComputeZBufferParams(cameraData.camera);
 
                 // Input texture
                 passData.depthTexture = resourceData.cameraDepthTexture;

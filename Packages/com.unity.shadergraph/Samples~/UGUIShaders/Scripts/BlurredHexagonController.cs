@@ -16,7 +16,13 @@ namespace Unity.UI.Shaders.Sample
         [SerializeField] Slider _saturationSlider, _tintRedSlider, _tintGreenSlider, _tintBlueSlider,
             _hexagonDissolveSlider, _hexagonTilesSlider, _blurSlider, _blurCyclesSlider, _blurSamplesPerCycleSlider;
 
-        static int _saturationId, _tintId, _hexagonDissolveId, _hexagonTilesId, _blurId, _blurCyclesId, _blurSamplesPerCycleId;
+        static readonly int _saturationId = Shader.PropertyToID(_saturationRef),
+            _tintId = Shader.PropertyToID(_tintRef),
+            _hexagonDissolveId = Shader.PropertyToID(_hexagonDissolveRef),
+            _hexagonTilesId = Shader.PropertyToID(_hexagonTilesRef),
+            _blurId = Shader.PropertyToID(_blurRef),
+            _blurCyclesId = Shader.PropertyToID(_blurCyclesRef),
+            _blurSamplesPerCycleId = Shader.PropertyToID(_blurSamplesPerCycleRef);
 
         private float _saturation, _hexagonDissolve, _hexagonTiles, _blur, _blurCycles, _blurSamplesPerCycle;
         private Color _tint = Color.gray;
@@ -109,15 +115,6 @@ namespace Unity.UI.Shaders.Sample
         protected override void Awake()
         {
             base.Awake();
-
-            // get ids from prop names
-            _saturationId = Shader.PropertyToID(_saturationRef);
-            _tintId = Shader.PropertyToID(_tintRef);
-            _hexagonDissolveId = Shader.PropertyToID(_hexagonDissolveRef);
-            _hexagonTilesId = Shader.PropertyToID(_hexagonTilesRef);
-            _blurId = Shader.PropertyToID(_blurRef);
-            _blurCyclesId = Shader.PropertyToID(_blurCyclesRef);
-            _blurSamplesPerCycleId = Shader.PropertyToID(_blurSamplesPerCycleRef);
 
             // initialize values with the material's values
             var mat = Graphic.material;

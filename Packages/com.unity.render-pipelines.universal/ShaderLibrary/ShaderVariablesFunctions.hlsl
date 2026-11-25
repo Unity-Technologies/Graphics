@@ -388,15 +388,8 @@ float2 GetNormalizedScreenSpaceUV(float4 positionCS)
 // select4(data[i / 4], i % 4);
 uint Select4(uint4 v, uint i)
 {
-    // x = 0 = 00
-    // y = 1 = 01
-    // z = 2 = 10
-    // w = 3 = 11
-    uint mask0 = uint(int(i << 31) >> 31);
-    uint mask1 = uint(int(i << 30) >> 31);
-    return
-        (((v.w & mask0) | (v.z & ~mask0)) & mask1) |
-        (((v.y & mask0) | (v.x & ~mask0)) & ~mask1);
+    uint2 pair = (i & 2) ? v.zw : v.xy;
+    return (i & 1) ? pair.y : pair.x;
 }
 
 

@@ -85,6 +85,7 @@ namespace UnityEngine.Experimental.Rendering
 #if ENABLE_VR && ENABLE_XR_MODULE
             s_OcclusionMeshScaling = 1.0f;
 #endif
+            s_RenderTargetToCamera.Clear();
         }
 
         // Keep track of only one XR layout — manually drained in ResetStaticsOnLoad()
@@ -133,6 +134,74 @@ namespace UnityEngine.Experimental.Rendering
         // Ability to override the default XR layout
         [AutoStaticsCleanup]
         static Action<XRLayout, Camera> s_LayoutOverride = null;
+
+        const ulong k_DefaultRenderTargetId = 0;
+
+        // Manually cleared in ResetStaticsOnLoad()
+        [NoAutoStaticsCleanup]
+        static readonly Dictionary<ulong, Camera> s_RenderTargetToCamera = new Dictionary<ulong, Camera>();
+
+        /// <summary>
+        /// Associates a camera with a specific XR render target.
+        /// Called by the spatial container system at container creation.
+        /// </summary>
+        /// <param name="renderTargetId">Stable identity for the logical render target. Must not be 0, which is reserved for the default single-target path.</param>
+        /// <param name="camera">The camera to render this target.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="camera"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="renderTargetId"/> is 0.</exception>
+        /// <exception cref="InvalidOperationException">The render target is already associated with a different camera, or the camera is already associated with a different render target.</exception>
+        public static void SetCameraRenderTarget(ulong renderTargetId, Camera camera)
+        {
+            if (camera == null)
+                throw new ArgumentNullException(nameof(camera));
+
+            if (renderTargetId == k_DefaultRenderTargetId)
+                throw new ArgumentException("Render target ID 0 is reserved for the default single-target path.", nameof(renderTargetId));
+
+            if (s_RenderTargetToCamera.TryGetValue(renderTargetId, out var existingCamera))
+            {
+                if (existingCamera == camera)
+                    return;
+
+                if (existingCamera != null)
+                    throw new InvalidOperationException($"Render target {renderTargetId} is already associated with camera '{existingCamera.name}'.");
+            }
+
+            if (TryGetRenderTarget(camera, out var existingTarget))
+                throw new InvalidOperationException($"Camera '{camera.name}' is already associated with render target {existingTarget}.");
+
+            s_RenderTargetToCamera[renderTargetId] = camera;
+        }
+
+        /// <summary>
+        /// Clears all camera-to-render-target associations.
+        /// </summary>
+        public static void ClearCameraRenderTargets()
+            => s_RenderTargetToCamera.Clear();
+
+        /// <summary>
+        /// Removes a single camera-to-render-target association.
+        /// </summary>
+        /// <param name="renderTargetId">The render target identity to remove.</param>
+        public static void ClearCameraRenderTarget(ulong renderTargetId)
+            => s_RenderTargetToCamera.Remove(renderTargetId);
+
+        internal static bool TryGetCameraForTarget(ulong renderTargetId, out Camera camera)
+            => s_RenderTargetToCamera.TryGetValue(renderTargetId, out camera);
+
+        internal static bool TryGetRenderTarget(Camera camera, out ulong renderTargetId)
+        {
+            foreach (var kvp in s_RenderTargetToCamera)
+            {
+                if (kvp.Value == camera)
+                {
+                    renderTargetId = kvp.Key;
+                    return true;
+                }
+            }
+            renderTargetId = k_DefaultRenderTargetId;
+            return false;
+        }
 
         /// <summary>Per-frame Temporal Pixel Synthesis configuration override.</summary>
         public struct TemporalPixelSynthesisConfig
@@ -523,55 +592,52 @@ namespace UnityEngine.Experimental.Rendering
 #endif
         }
 
-        // Setup the layout to use multi-pass or single-pass based on the runtime caps
+        // Setup the layout to use multi-pass or single-pass based on the runtime caps.
+        // Resolves the camera's render target (if any) via the render-target registry,
+        // filters passes by renderTargetId, and classifies XRLayoutType within that set.
         internal static void CreateDefaultLayout(Camera camera, XRLayout layout)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (s_Display == null)
                 throw new NullReferenceException(nameof(s_Display));
 
-            // early return when there's no render pass.
-            if (s_Display.GetRenderPassCount() == 0)
+            int displayPassCount = s_Display.GetRenderPassCount();
+            if (displayPassCount == 0)
                 return;
 
-            // infer XRLayout from number of render passes and number of views in each pass
-            XRLayoutType layoutType = XRLayoutType.Unknown;
-            switch (s_Display.GetRenderPassCount())
+            // Select the display render passes this camera renders.
+            // passIndices[i] is the display render pass index of this camera's i-th pass.
+            // Unregistered cameras get the default render target (0), so they only render passes not claimed by a render target.
+            // Matching passes are not required to be contiguous.
+            Span<int> passIndices = stackalloc int[displayPassCount];
+            bool hasRenderTarget = TryGetRenderTarget(camera, out var renderTargetId);
+            Span<ulong> passTargetIds = stackalloc ulong[displayPassCount];
+            for (int i = 0; i < displayPassCount; ++i)
             {
-                case 1:
-                    s_Display.GetRenderPass(0, out var renderPass);
-                    if (renderPass.GetRenderParameterCount() == 2)
-                    {
-                        // If the runtime can use single-pass instancing, keep SinglePassStereo.
-                        // Otherwise the loop below will split the two views into separate passes,
-                        // so the effective layout is TwoPassStereo.
-                        layoutType = CanUseSinglePass(camera, renderPass)
-                            ? XRLayoutType.SinglePassStereo
-                            : XRLayoutType.TwoPassStereo;
-                    }
-                    else if (renderPass.GetRenderParameterCount() == 1)
-                    {
-                        layoutType = XRLayoutType.OnePassOneView;
-                    }
-                    break;
-                case 2:
-                    s_Display.GetRenderPass(0, out var renderPass0);
-                    s_Display.GetRenderPass(1, out var renderPass1);
-
-                    // Two passes, each with one view, is TwoPassStereo
-                    if (renderPass0.GetRenderParameterCount() == 1 && renderPass1.GetRenderParameterCount() == 1)
-                        layoutType = XRLayoutType.TwoPassStereo;
-                    // Two passes, each with two views, is TwoPassQuadViews — but only
-                    // if single-pass instancing is supported. Without it the loop would
-                    // split each 2-view pass into separate passes, producing 4 total
-                    // passes which is not a supported layout.
-                    else if (renderPass0.GetRenderParameterCount() == 2 && renderPass1.GetRenderParameterCount() == 2
-                        && CanUseSinglePass(camera, renderPass0) && CanUseSinglePass(camera, renderPass1))
-                        layoutType = XRLayoutType.TwoPassQuadViews;
-                    break;
+                s_Display.GetRenderPass(i, out var renderPass);
+                passTargetIds[i] = renderPass.renderTargetId;
             }
+
+            int renderPassCount = CollectTargetPasses(passTargetIds, renderTargetId, passIndices);
+            if (renderPassCount == 0)
+                return;
+
+            // Classify XRLayoutType on the matching passes, not the global pass count.
+            Span<int> viewCountsPerPass = stackalloc int[renderPassCount];
+            bool canUseSinglePass = true;
+            for (int i = 0; i < renderPassCount; ++i)
+            {
+                s_Display.GetRenderPass(passIndices[i], out var renderPass);
+                viewCountsPerPass[i] = renderPass.GetRenderParameterCount();
+                canUseSinglePass &= CanUseSinglePass(camera, renderPass);
+            }
+            XRLayoutType layoutType = ClassifyLayout(viewCountsPerPass, canUseSinglePass, hasRenderTarget);
             if (layoutType == XRLayoutType.Unknown)
-                throw new NotImplementedException($"Unsupported XR layout: {s_Display.GetRenderPassCount()} render passes");
+            {
+                if (hasRenderTarget && ClassifyLayout(viewCountsPerPass, canUseSinglePass, false) == XRLayoutType.TwoPassQuadViews)
+                    throw new NotImplementedException($"Quad views are not supported for cameras with an XR render target (render target {renderTargetId}).");
+                throw new NotImplementedException($"Unsupported XR layout: {renderPassCount} render passes");
+            }
 
             void AddViewToPass(XRPass xrPass, XRDisplaySubsystem.XRRenderPass renderPass, int renderParamIndex)
             {
@@ -598,16 +664,14 @@ namespace UnityEngine.Experimental.Rendering
                 return ExtractFrustumBoundsFromProjection(proj);
             }
 
-            int renderPassCount = s_Display.GetRenderPassCount();
-
             // Pre-calculate view bounds for quad view (2 passes × 2 views) using fixed-size stack variables
             // This avoids List allocations that would cause GC pressure every frame
             Vector4 pass0View0Bounds = default, pass0View1Bounds = default;
             Vector4 pass1View0Bounds = default, pass1View1Bounds = default;
             if (layoutType == XRLayoutType.TwoPassQuadViews)
             {
-                s_Display.GetRenderPass(0, out var pass0);
-                s_Display.GetRenderPass(1, out var pass1);
+                s_Display.GetRenderPass(passIndices[0], out var pass0);
+                s_Display.GetRenderPass(passIndices[1], out var pass1);
                 pass0View0Bounds = ExtractViewBounds(pass0, 0);
                 pass0View1Bounds = ExtractViewBounds(pass0, 1);
                 pass1View0Bounds = ExtractViewBounds(pass1, 0);
@@ -616,7 +680,7 @@ namespace UnityEngine.Experimental.Rendering
 
             for (int renderPassIndex = 0; renderPassIndex < renderPassCount; ++renderPassIndex)
             {
-                s_Display.GetRenderPass(renderPassIndex, out var renderPass);
+                s_Display.GetRenderPass(passIndices[renderPassIndex], out var renderPass);
 
                 int renderParameterCount = renderPass.GetRenderParameterCount();
                 s_Display.GetCullingParameters(camera, renderPass.cullingPassIndex, out var cullingParams);
@@ -629,7 +693,7 @@ namespace UnityEngine.Experimental.Rendering
                 Vector4 uvOffsets = Vector4.zero;
                 if (isQuadViewFirstPass)
                 {
-                    s_Display.GetRenderPass(renderPassIndex + 1, out var innerRenderPass);
+                    s_Display.GetRenderPass(passIndices[renderPassIndex + 1], out var innerRenderPass);
                     SetSplitCullingPlanes(camera, innerRenderPass.cullingPassIndex, ref cullingParams);
                 }
 
@@ -713,7 +777,11 @@ namespace UnityEngine.Experimental.Rendering
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (xrPass.enabled && s_Display != null)
             {
-                s_Display.GetRenderPass(xrPass.multipassId, out var renderPass);
+                // Use the render pass stored at layout-build time rather than looking up by
+                // multipassId. multipassId is a per-camera local index and does not match the
+                // global display render pass index when multiple spatial container cameras
+                // each build their own layout.
+                var renderPass = xrPass.xrSdkRenderPass;
                 Debug.Assert(xrPass.singlePassEnabled || renderPass.GetRenderParameterCount() == 1);
 
                 s_Display.GetCullingParameters(camera, renderPass.cullingPassIndex, out var cullingParams);
@@ -722,7 +790,7 @@ namespace UnityEngine.Experimental.Rendering
                 // This must happen after BeginCameraRendering, which may have moved the camera.
                 if (xrPass.xrLayoutType == XRLayoutType.TwoPassQuadViews && !xrPass.isQuadViewInnerPass)
                 {
-                    s_Display.GetRenderPass(xrPass.multipassId + 1, out var innerRenderPass);
+                    s_Display.GetRenderPass(xrPass.xrSdkRenderPass.renderPassIndex + 1, out var innerRenderPass);
                     SetSplitCullingPlanes(camera, innerRenderPass.cullingPassIndex, ref cullingParams);
                 }
 
@@ -737,6 +805,43 @@ namespace UnityEngine.Experimental.Rendering
                 s_LayoutOverride?.Invoke(s_Layout.top, camera);
             }
 #endif
+        }
+
+        // Matching passes are not required to be contiguous.
+        internal static int CollectTargetPasses(ReadOnlySpan<ulong> passTargetIds, ulong target, Span<int> matchedPasses)
+        {
+            int matchCount = 0;
+            for (int i = 0; i < passTargetIds.Length; ++i)
+            {
+                if (passTargetIds[i] == target)
+                    matchedPasses[matchCount++] = i;
+            }
+            return matchCount;
+        }
+
+        internal static XRLayoutType ClassifyLayout(ReadOnlySpan<int> viewCountsPerPass, bool canUseSinglePass, bool hasRenderTarget)
+        {
+            switch (viewCountsPerPass.Length)
+            {
+                case 1:
+                    // Without single-pass instancing the two views are split into separate passes
+                    if (viewCountsPerPass[0] == 2)
+                        return canUseSinglePass ? XRLayoutType.SinglePassStereo : XRLayoutType.TwoPassStereo;
+                    else if (viewCountsPerPass[0] == 1)
+                        return XRLayoutType.OnePassOneView;
+                    break;
+
+                case 2:
+                    if (viewCountsPerPass[0] == 1 && viewCountsPerPass[1] == 1)
+                        return XRLayoutType.TwoPassStereo;
+
+                    // Without single-pass instancing each 2-view pass would be split, giving 4 passes, which is unsupported
+                    // Quad views are not supported with XR render targets yet
+                    if (viewCountsPerPass[0] == 2 && viewCountsPerPass[1] == 2 && canUseSinglePass && !hasRenderTarget)
+                        return XRLayoutType.TwoPassQuadViews;
+                    break;
+            }
+            return XRLayoutType.Unknown;
         }
 
 #if ENABLE_VR && ENABLE_XR_MODULE

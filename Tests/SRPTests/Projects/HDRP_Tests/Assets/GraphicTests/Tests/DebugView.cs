@@ -59,6 +59,13 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             RuntimePlatform.WindowsEditor,
             GraphicsDeviceType.Direct3D12
         )]
+        [IgnoreGraphicsTest(
+            "3003_LightingMode$|301[0-7]_MipMapMode_",
+            "Internal Metal shader compiler error on macOS 14 (Apple Silicon) in the Editor",
+            GraphicsDeviceType.Metal,
+            RuntimePlatform.OSXEditor,
+            Architecture.Arm64
+        )]
         [TestNotSupportedOn(
             "3002|3008|301[0-7]",
             "Not XR compatible",

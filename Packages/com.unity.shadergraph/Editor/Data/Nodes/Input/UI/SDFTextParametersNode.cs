@@ -1,4 +1,4 @@
-using System.Linq;
+using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.Rendering.UITK.ShaderGraph;
 using UnityEngine;
@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Vector2MaterialSlot(ShadowOffsetSlotId, k_ShadowOffsetSlotName, k_ShadowOffsetSlotName, SlotType.Output, Vector2.zero));
             AddSlot(new Vector1MaterialSlot(ShadowSoftnessSlotId, k_ShadowSoftnessSlotName, k_ShadowSoftnessSlotName, SlotType.Output, 0.0f));
             RemoveSlotsNameNotMatching(k_SlotOrder);
-            SetSlotOrder(k_SlotOrder.ToList());
+            SetSlotOrder(new List<int>(k_SlotOrder));
         }
 
         static readonly (int slotId, string dimension, string field)[] k_Outputs =

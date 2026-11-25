@@ -10,9 +10,8 @@ namespace UnityEngine.Rendering.Universal
         public const string k_TargetName = "CameraColorDepthOfFieldGaussian";
         const int k_DownSample = 2;
 
-        Material m_Material;
-        Material m_MaterialCoc;
-        bool m_IsValid;
+        PostProcessMaterial m_Material;
+        PostProcessMaterial m_MaterialCoc;
 
         Experimental.Rendering.GraphicsFormat m_CoCFormat;
 
@@ -21,9 +20,8 @@ namespace UnityEngine.Rendering.Universal
             this.renderPassEvent = RenderPassEvent.AfterRenderingPostProcessing - 1;
             this.profilingSampler = URPProfilingSamplers.GaussianDepthOfField;
 
-            m_Material = PostProcessUtils.LoadShader(shader, passName, logLevel: LogType.Log);
-            m_MaterialCoc = PostProcessUtils.LoadShader(shader, passName, logLevel: LogType.Log);
-            m_IsValid = m_Material != null && m_MaterialCoc != null;
+            m_Material = new PostProcessMaterial(shader, passName);
+            m_MaterialCoc = new PostProcessMaterial(shader, passName);
 
             // Depth of Field
             //
@@ -40,9 +38,8 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Dispose()
         {
-            CoreUtils.Destroy(m_Material);
-            CoreUtils.Destroy(m_MaterialCoc);
-            m_IsValid = false;
+            m_Material.Dispose();
+            m_MaterialCoc.Dispose();
         }
 
         private class DoFGaussianPassData
@@ -68,15 +65,16 @@ namespace UnityEngine.Rendering.Universal
         };
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
         {
-            if (!m_IsValid)
-                return;
-
             var depthOfField = volumeStack.GetComponent<DepthOfField>();
             if (!depthOfField.IsActive() || depthOfField.mode.value != DepthOfFieldMode.Gaussian)
                 return;
 
             UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
             if (cameraData.isSceneViewCamera)
+                return;
+
+            // m_MaterialCoc uses the same shader, so it is valid if m_Material is.
+            if (!m_Material.Validate())
                 return;
 
             UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
@@ -117,8 +115,8 @@ namespace UnityEngine.Rendering.Universal
                 passData.highQualitySamplingValue = depthOfField.highQualitySampling.value;
                 passData.enableAlphaOutput = cameraData.isAlphaOutputEnabled;
 
-                passData.material = m_Material;
-                passData.materialCoC = m_MaterialCoc;
+                passData.material = m_Material.material;
+                passData.materialCoC = m_MaterialCoc.material;
 
                 // Inputs
                 passData.sourceTexture = sourceTexture;

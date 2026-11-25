@@ -64,8 +64,8 @@ namespace UnityEngine.Rendering.Tests
             if (XRSettings.enabled)
                 supportsGpuFrameTime = false; // XR
 #endif
-            // UGK-3010: zero on every UGK graphics API, not just Android/Metal.
-            if (UnityGraphicsKernelTestUtils.IsForcedUGK())
+            // UGK-3010: under UGK only Vulkan and D3D12 report graph timing for FrameTime.GPU so far.
+            if (UnityGraphicsKernelTestUtils.IsForcedUGK() && SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan && SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D12)
                 supportsGpuFrameTime = false;
 
             yield return Warmup();

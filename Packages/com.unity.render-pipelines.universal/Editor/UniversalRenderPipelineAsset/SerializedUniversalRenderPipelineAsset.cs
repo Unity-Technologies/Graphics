@@ -30,6 +30,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty mainLightRenderingModeProp { get; }
         public SerializedProperty mainLightShadowsSupportedProp { get; }
         public SerializedProperty mainLightShadowmapResolutionProp { get; }
+        public SerializedProperty mainLightShadowmapDepthBitsProp { get; }
 
         public SerializedProperty shEvalModeProp { get; }
 
@@ -46,6 +47,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty additionalLightsPerObjectLimitProp { get; }
         public SerializedProperty additionalLightShadowsSupportedProp { get; }
         public SerializedProperty additionalLightShadowmapResolutionProp { get; }
+        public SerializedProperty additionalLightsShadowmapDepthBitsProp { get; }
 
         public SerializedProperty additionalLightsShadowResolutionTierLowProp { get; }
         public SerializedProperty additionalLightsShadowResolutionTierMediumProp { get; }
@@ -58,16 +60,13 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty reflectionProbeBoxProjectionProp { get; }
         public SerializedProperty reflectionProbeAtlasProp { get; }
 
-        public SerializedProperty shadowDistanceProp { get; }
-        public SerializedProperty shadowCascadeCountProp { get; }
-        public SerializedProperty shadowCascade2SplitProp { get; }
-        public SerializedProperty shadowCascade3SplitProp { get; }
-        public SerializedProperty shadowCascade4SplitProp { get; }
-        public SerializedProperty shadowCascadeBorderProp { get; }
         public SerializedProperty shadowDepthBiasProp { get; }
         public SerializedProperty shadowNormalBiasProp { get; }
         public SerializedProperty softShadowsSupportedProp { get; }
         public SerializedProperty softShadowQualityProp { get; }
+        public SerializedProperty mainLightShadowsPCSSProp { get; }
+        public SerializedProperty additionalLightShadowsPCSSProp { get; }
+        public SerializedProperty softShadowKernelRadiusPercentProp { get; }
         public SerializedProperty conservativeEnclosingSphereProp { get; }
 
         public SerializedProperty srpBatcher { get; }
@@ -98,8 +97,6 @@ namespace UnityEditor.Rendering.Universal
 #endif
         public UniversalRenderPipelineAsset asset { get; }
         public SerializedObject serializedObject { get; }
-
-        public EditorPrefBoolFlags<EditorUtils.Unit> state;
 
         public SerializedUniversalRenderPipelineAsset(SerializedObject serializedObject)
         {
@@ -142,11 +139,13 @@ namespace UnityEditor.Rendering.Universal
             mainLightRenderingModeProp = serializedObject.FindProperty("m_MainLightRenderingMode");
             mainLightShadowsSupportedProp = serializedObject.FindProperty("m_MainLightShadowsSupported");
             mainLightShadowmapResolutionProp = serializedObject.FindProperty("m_MainLightShadowmapResolution");
+            mainLightShadowmapDepthBitsProp = serializedObject.FindProperty("m_MainLightShadowmapDepthBits");
 
             additionalLightsRenderingModeProp = serializedObject.FindProperty("m_AdditionalLightsRenderingMode");
             additionalLightsPerObjectLimitProp = serializedObject.FindProperty("m_AdditionalLightsPerObjectLimit");
             additionalLightShadowsSupportedProp = serializedObject.FindProperty("m_AdditionalLightShadowsSupported");
             additionalLightShadowmapResolutionProp = serializedObject.FindProperty("m_AdditionalLightsShadowmapResolution");
+            additionalLightsShadowmapDepthBitsProp = serializedObject.FindProperty("m_AdditionalLightsShadowmapDepthBits");
 
             additionalLightsShadowResolutionTierLowProp = serializedObject.FindProperty("m_AdditionalLightsShadowResolutionTierLow");
             additionalLightsShadowResolutionTierMediumProp = serializedObject.FindProperty("m_AdditionalLightsShadowResolutionTierMedium");
@@ -159,17 +158,13 @@ namespace UnityEditor.Rendering.Universal
             reflectionProbeBoxProjectionProp = serializedObject.FindProperty("m_ReflectionProbeBoxProjection");
             reflectionProbeAtlasProp = serializedObject.FindProperty("m_ReflectionProbeAtlas");
 
-            shadowDistanceProp = serializedObject.FindProperty("m_ShadowDistance");
-
-            shadowCascadeCountProp = serializedObject.FindProperty("m_ShadowCascadeCount");
-            shadowCascade2SplitProp = serializedObject.FindProperty("m_Cascade2Split");
-            shadowCascade3SplitProp = serializedObject.FindProperty("m_Cascade3Split");
-            shadowCascade4SplitProp = serializedObject.FindProperty("m_Cascade4Split");
-            shadowCascadeBorderProp = serializedObject.FindProperty("m_CascadeBorder");
             shadowDepthBiasProp = serializedObject.FindProperty("m_ShadowDepthBias");
             shadowNormalBiasProp = serializedObject.FindProperty("m_ShadowNormalBias");
             softShadowsSupportedProp = serializedObject.FindProperty("m_SoftShadowsSupported");
             softShadowQualityProp = serializedObject.FindProperty("m_SoftShadowQuality");
+            mainLightShadowsPCSSProp = serializedObject.FindProperty("m_MainLightShadowsPCSS");
+            additionalLightShadowsPCSSProp = serializedObject.FindProperty("m_AdditionalLightShadowsPCSS");
+            softShadowKernelRadiusPercentProp = serializedObject.FindProperty("m_SoftShadowKernelRadiusPercent");
             conservativeEnclosingSphereProp = serializedObject.FindProperty("m_ConservativeEnclosingSphere");
 
             srpBatcher = serializedObject.FindProperty("m_UseSRPBatcher");
@@ -201,9 +196,6 @@ namespace UnityEditor.Rendering.Universal
 #endif
 
             UpdateUpscalerOptions();
-
-            string Key = "Universal_Shadow_Setting_Unit:UI_State";
-            state = new EditorPrefBoolFlags<EditorUtils.Unit>(Key);
         }
 
 
